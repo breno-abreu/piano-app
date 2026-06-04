@@ -1,0 +1,319 @@
+================================================================================
+  PIANOAPP — DIRETRIZES PARA RECRIAR O PROJETO DO ZERO
+================================================================================
+
+Use este documento na próxima tentativa. Ele resume requisitos, design,
+arquitetura recomendada, animação do pedal e erros a evitar.
+
+
+--------------------------------------------------------------------------------
+1. STACK E INÍCIO DO PROJETO
+--------------------------------------------------------------------------------
+
+Framework:
+  - Vue 3 com Options API (NÃO Composition API), salvo preferência contrária
+  - Vite como bundler
+  - Ordem nos .vue: <template> → <script> → <style>
+
+Comandos iniciais sugeridos:
+  npm create vite@latest pianoapp -- --template vue
+  cd pianoapp
+  npm install
+  npm install soundfont-player
+
+DevDependencies:
+  - @vitejs/plugin-vue
+  - vite
+
+Scripts:
+  - npm run dev     → desenvolvimento (usar http://localhost:5173)
+  - npm run build   → produção
+  - npm run preview → testar build
+
+vite.config.js (recomendado):
+  - plugins: [vue()]
+  - server.port: 5173
+  - server.open: true  (abre o navegador automaticamente)
+
+Requisitos de ambiente:
+  - Chrome ou Edge (Web MIDI API + áudio)
+  - localhost ou HTTPS (MIDI e File System Access exigem contexto seguro)
+  - Permissão MIDI quando o navegador pedir
+  - Hard refresh (Ctrl+Shift+R) após mudanças grandes
+
+
+--------------------------------------------------------------------------------
+2. FUNCIONALIDADES (ESCOPO COMPLETO)
+--------------------------------------------------------------------------------
+
+TECLADO VISUAL
+  - 88 teclas: A0 até C8
+  - Largura 100% do container, altura fixa ~220px
+  - Centralizado verticalmente na tela (flex no main)
+  - Teclas brancas em flex; pretas posicionadas com position:absolute
+  - Clique/toque: pressionar e soltar (não toggle)
+
+CORES DAS TECLAS (dois estados visuais)
+  - Pressionada (mouse ou tecla ainda down): azul forte #1d4ed8
+  - Sustentada pelo pedal (soltou mas sustain ON): azul suave
+      · brancas: fundo #dbeafe, borda #bfdbfe
+      · pretas:  fundo #60a5fa, borda #93c5fd
+  - Usar !important nas classes pressed/sustained se gradiente nas teclas
+    brancas sobrescrever a cor
+
+NOTAS ACIMA DO TECLADO
+  - Lista das notas ativas (pressionadas + sustentadas)
+  - Ordenadas da grave à aguda
+  - Formato: "C4 · Dó4" (occidental · solfege)
+  - Solfege: Dó, Ré, Mi, Fá, Sol, Lá, Si (+ sustenido se houver)
+  - Área vazia: visibility:hidden (mantém layout, não pisca)
+
+MIDI AO VIVO (Web MIDI API)
+  - Entrada de teclado/controlador USB
+  - Notas MIDI 21–108 (A0–C8)
+  - Pedal sustain: Control Change 64, valor >= 64 = pressionado
+  - Reconectar dispositivo deve reassociar handlers
+
+PEDAL (visual duplo)
+  - Pílula + desenho SVG minimalista (ver seção 4)
+  - Estado binário: solto / pressionado
+
+GRAVAÇÃO MIDI
+  - Botão record (círculo vermelho) / stop (quadrado)
+  - Atalho R (sem Ctrl/Alt/Meta, ignorar se foco em input)
+  - Gravar mensagens MIDI raw durante performance
+  - Salvar .mid via showSaveFilePicker (Salvar como nativo)
+  - Fallback: download automático se API não existir
+
+ÁUDIO DE PIANO
+  - Biblioteca: soundfont-player
+  - Timbre: acoustic_grand_piano
+  - Dinâmica conforme velocity MIDI (0–127)
+  - Volume master ~4x (GainNode) se estiver baixo
+  - Sustain no áudio: notas continuam até soltar pedal
+  - Primeira interação do usuário necessária (política do navegador)
+  - Samples baixados da CDN na 1ª execução (pode levar 1–2 s)
+
+NÃO INCLUIR NA PRIMEIRA VERSÃO ESTÁVEL (causou regressões)
+  - Importar arquivo .mid
+  - Reprodução visual/sonora de MIDI gravado
+  - Adicionar só depois que mouse + MIDI + gravação + áudio estiverem sólidos
+
+
+--------------------------------------------------------------------------------
+3. ARQUITETURA DE ARQUIVOS RECOMENDADA
+--------------------------------------------------------------------------------
+
+src/
+  main.js
+  App.vue                    → só importa HomePage
+  style.css                  → body escuro #1e1e24, #app 100svh
+  pages/
+    HomePage.vue             → centraliza PianoKeyboard
+  components/
+    PianoKeyboard.vue        → UI principal (teclado, notas, pedal, record)
+  utils/
+    pianoKeys.js             → gera 88 teclas + pitchIndexByNote
+    noteNames.js             → C4 / Dó4
+    midiNotes.js             → conversão nota ↔ MIDI, CC 64, range 21–108
+    midiConnection.js        → Web MIDI: parse + bind inputs
+    midiRecorder.js          → gravar eventos + export .mid + save dialog
+    pianoAudio.js            → Soundfont, play/release, sustain áudio
+
+Estado no PianoKeyboard (simples, separado por origem):
+  pointerActive {}   → teclas clicadas na tela
+  midiActive {}      → teclas do controlador
+  sustainedActive {} → teclas sustentadas pelo pedal (já soltas)
+  sustainPedalDown boolean
+
+Regras de estado:
+  - Pressionar: limpar sustained da mesma nota, marcar active
+  - Soltar com pedal ON: remover de active, adicionar a sustainedActive
+  - Soltar pedal: limpar sustainedActive (visual + áudio)
+
+
+--------------------------------------------------------------------------------
+4. ANIMAÇÃO E VISUAL DO PEDAL (EXPLICAÇÃO DETALHADA)
+--------------------------------------------------------------------------------
+
+O pedal tem DUAS representações sincronizadas pela mesma variável
+sustainPedalDown (true quando CC 64 >= 64).
+
+A) PÍLULA DE STATUS
+   - Label texto: "PEDAL" (Plus Jakarta Sans, letter-spacing largo)
+   - Retângulo arredondado (pill): 52×18px, border-radius 999px
+   - Solto:   vermelho #ef4444 + glow rgba(239,68,68,0.45)
+   - Pressionado: verde #22c55e + glow rgba(34,197,94,0.55)
+   - Transição CSS 0.15s em background e box-shadow
+
+B) DESENHO SVG MINIMALISTA (80×56 viewBox)
+   Camadas (de baixo para cima):
+   1. Linha de chão (chão do pedal)
+   2. Base retangular (plataforma no chão)
+   3. Poste vertical (eixo/braço traseiro)
+   4. Grupo <g class="pedal-visual__lever"> contendo o pad (superfície do pedal)
+
+   ANIMAÇÃO DA ALAVANCA (o efeito principal):
+   - O grupo .pedal-visual__lever usa CSS transform: rotate()
+   - transform-origin: 25% 79%  → pivô perto do poste/base (cantinho
+     inferior esquerdo da alavanca), imitando pedal real
+   - transform-box: view-box     → origem relativa ao SVG, não ao pixel
+   - Solto:       rotate(-18deg) → alavanca inclinada para cima/trás
+   - Pressionado: rotate(14deg)  → alavanca desce ~32° (simula pisar)
+   - transition: transform 0.14s ease-out
+
+   COR DO PAD (superfície que o pé pisa):
+   - Solto:       cinza #9ca3af, borda #d1d5db
+   - Pressionado: verde claro #86efac, borda #4ade80
+   - transition: fill/stroke 0.14s ease-out
+   - Seletor: .pedal-visual__lever--pressed .pedal-visual__pad
+
+   Ligação Vue:
+   - :class="{ 'pedal-visual__lever--pressed': sustainPedalDown }"
+   - :class="{ 'sustain-pedal__indicator--pressed': sustainPedalDown }"
+
+   Não usa JavaScript para animar frame a frame — só CSS transition +
+   classe condicional. Simples e performático.
+
+
+--------------------------------------------------------------------------------
+5. INTERAÇÃO MOUSE / TOQUE (CRÍTICO — LIÇÕES APRENDIDAS)
+--------------------------------------------------------------------------------
+
+O QUE FUNCIONOU:
+  - mousedown na tecla → marca pointerActive + toca áudio
+  - mouseup na window → solta (mesmo se mouse sair da tecla)
+  - NÃO usar pointerup + pointercancel na mesma tecla do botão
+  - NÃO usar @pointerdown.prevent + pointercancel (cancelava estado na hora)
+
+O QUE EVITAR:
+  - pointerleave soltando tecla (dispara ao carregar AudioContext)
+  - lostpointercapture soltando tecla imediatamente
+  - setPointerCapture sem cuidado (perda de capture = release fantasma)
+  - Separar "estado visual" em 3 sistemas diferentes (keyColors, playback,
+    live) — usar um par active + sustained por origem
+
+Template — preferir leitura direta no :class:
+  'piano-key--pressed': !!(pointerActive[key.note] || midiActive[key.note])
+
+
+--------------------------------------------------------------------------------
+6. MIDI — PARSER E HANDLERS
+--------------------------------------------------------------------------------
+
+Mensagens a tratar:
+  - Note On:  status 0x9n, velocity > 0  → onNoteOn(note, velocity)
+  - Note Off: status 0x8n OU 0x9n velocity 0 → onNoteOff(note)
+  - CC:       status 0xBn, controller 64   → sustain
+
+Parser:
+  - Caso comum Web MIDI: pacote de 3 bytes [status, data1, data2] — tratar
+    primeiro com caminho simples
+  - Running status: guardar por input.id; ignorar bytes 0xF8–0xFF (tempo real)
+  - Reassociar input.onmidimessage sempre que access.onstatechange disparar
+
+Handlers Vue:
+  - Usar arrow functions em bindMidiInputs para manter `this` do componente
+  - Atualizar midiActive/sustainPedalDown de forma síncrona no handler
+  - Áudio pode ser async (playPianoNote) — visual NÃO deve depender do áudio
+
+
+--------------------------------------------------------------------------------
+7. ÁUDIO (pianoAudio.js)
+--------------------------------------------------------------------------------
+
+Fluxo:
+  1. ensurePianoAudio() — AudioContext + Soundfont instrument (singleton)
+  2. resumeAudioContext() se suspended
+  3. playPianoNote(midi, velocity) — gain por velocity
+  4. releasePianoNote(midi, { sustainPedalDown }) — se sustain, não para
+  5. releaseSustainedPianoNotes() ao soltar pedal
+
+MASTER_VOLUME = 4 no GainNode antes do destination
+
+velocityToGain sugerido:
+  normalized = velocity / 127
+  gain = 0.45 + normalized * 0.55  (ajustar ao gosto)
+
+
+--------------------------------------------------------------------------------
+8. GRAVAÇÃO (midiRecorder.js)
+--------------------------------------------------------------------------------
+
+  - midiRecorder.start() / stop() → lista de { timeMs, data: Uint8Array }
+  - createMidiBlob(events) → arquivo MIDI tipo 0
+  - saveMidiFile(blob, filename) → showSaveFilePicker ou <a download>
+  - handleRawMidiMessage: if isRecording → recorder.record(event.data)
+
+
+--------------------------------------------------------------------------------
+9. LAYOUT E ESTILO GLOBAL
+--------------------------------------------------------------------------------
+
+  - Fundo: #1e1e24
+  - Fonte UI notas: Plus Jakarta Sans (Google Fonts no index.html)
+  - piano-wrapper: flex column, gap 20px
+  - Teclado: height 220px, user-select none, touch-action manipulation
+  - Pretas: container pointer-events none; cada tecla preta pointer-events auto
+  - home-page: flex center vertical e horizontal, height 100%
+
+
+--------------------------------------------------------------------------------
+10. ORDEM DE IMPLEMENTAÇÃO RECOMENDADA (INCREMENTAL)
+--------------------------------------------------------------------------------
+
+  Fase 1 — Visual básico
+    · 88 teclas, clique, azul ao pressionar, sem MIDI, sem áudio
+    · Validar mousedown + mouseup window
+
+  Fase 2 — Notas acima + sustain visual
+    · pressedNotes, pedal CC 64, azul suave sustain
+    · Pedal: pílula + SVG animado
+
+  Fase 3 — MIDI input
+    · midiConnection + midiActive
+    · Testar controlador antes de qualquer outra feature
+
+  Fase 4 — Gravação
+    · Record/stop, atalho R, salvar .mid
+
+  Fase 5 — Áudio
+    · soundfont-player por último (AudioContext + async complicam eventos)
+    · Testar mouse e MIDI depois de integrar áudio
+
+  Fase 6 (opcional, só se estável) — Import/play MIDI arquivo
+    · Módulos separados midiParser.js + midiPlayer.js
+    · Estado playbackActive SEPARADO do live — nunca misturar no mesmo mapa
+      sem disciplina clara
+
+
+--------------------------------------------------------------------------------
+11. CHECKLIST DE TESTE ANTES DE CONSIDERAR PRONTO
+--------------------------------------------------------------------------------
+
+  [ ] Clicar e SEGURAR tecla → azul forte + nome acima
+  [ ] Soltar → some (ou azul suave se pedal pressionado)
+  [ ] Pedal MIDI → pílula verde + alavanca SVG desce
+  [ ] Controlador MIDI → mesmas cores + nomes + som
+  [ ] Gravação R → salva .mid
+  [ ] Só um npm run dev na porta 5173 (fechar servidores antigos)
+  [ ] Console F12 sem erros vermelhos
+
+
+--------------------------------------------------------------------------------
+12. CONSTANTES ÚTEIS
+--------------------------------------------------------------------------------
+
+  PIANO_MIDI_MIN = 21   (A0)
+  PIANO_MIDI_MAX = 108  (C8)
+  SUSTAIN_PEDAL_CC = 64
+  whiteKeyCount = 52
+
+  Cores pressed:  #1d4ed8 / border #1e3a8a
+  Cores sustain branca: #dbeafe / #bfdbfe
+  Cores sustain preta:  #60a5fa / #93c5fd
+
+
+================================================================================
+  Fim do documento — PianoApp diretrizes v1
+================================================================================
