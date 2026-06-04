@@ -1,9 +1,26 @@
 const STORAGE_KEY = 'pianoapp:preferences'
 
+export const VIEW_ZOOM_DEFAULT = 1
+export const VIEW_ZOOM_MIN = 0.25
+export const VIEW_ZOOM_MAX = 2
+export const VIEW_ZOOM_STEP = 0.05
+
 export const OPTIONS_PREFERENCE_DEFAULTS = {
   showKeyLabels: false,
   keyLabelNotation: 'western',
   keyboardHeight: 220,
+  viewZoom: VIEW_ZOOM_DEFAULT,
+}
+
+function clampViewZoom(value, fallback = VIEW_ZOOM_DEFAULT) {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return fallback
+  }
+
+  const clamped = Math.max(VIEW_ZOOM_MIN, Math.min(VIEW_ZOOM_MAX, value))
+  const steps = Math.round((clamped - VIEW_ZOOM_MIN) / VIEW_ZOOM_STEP)
+
+  return Math.round((VIEW_ZOOM_MIN + steps * VIEW_ZOOM_STEP) * 100) / 100
 }
 
 function clampKeyboardHeight(
@@ -32,6 +49,7 @@ function sanitizeOptionsPreferences(raw, bounds) {
   }
 
   prefs.keyboardHeight = clampKeyboardHeight(raw?.keyboardHeight, bounds)
+  prefs.viewZoom = clampViewZoom(raw?.viewZoom)
 
   return prefs
 }

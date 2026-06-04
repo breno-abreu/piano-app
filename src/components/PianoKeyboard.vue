@@ -1,11 +1,12 @@
 <template>
-  <div class="piano-wrapper">
+  <div class="piano-wrapper" :style="viewZoomStyle">
     <section class="recorder-section" aria-label="Controles da performance">
-      <div
-        class="recorder-section__tabs"
-        role="tablist"
-        aria-label="Seções de controles"
-      >
+      <div class="recorder-section__nav">
+        <div
+          class="recorder-section__tabs"
+          role="tablist"
+          aria-label="Seções de controles"
+        >
         <button
           id="controls-tab-playback"
           type="button"
@@ -16,7 +17,8 @@
           aria-controls="controls-panel-playback"
           @click="controlsTab = 'playback'"
         >
-          Gravação e reprodução
+          <ControlTabIcon name="playback" />
+          <span class="recorder-section__tab-label">Gravação e reprodução</span>
         </button>
         <button
           id="controls-tab-options"
@@ -28,7 +30,8 @@
           aria-controls="controls-panel-options"
           @click="controlsTab = 'options'"
         >
-          Opções
+          <ControlTabIcon name="options" />
+          <span class="recorder-section__tab-label">Opções</span>
         </button>
         <button
           id="controls-tab-metronome"
@@ -40,7 +43,8 @@
           aria-controls="controls-panel-metronome"
           @click="controlsTab = 'metronome'"
         >
-          Metrônomo
+          <ControlTabIcon name="metronome" />
+          <span class="recorder-section__tab-label">Metrônomo</span>
         </button>
         <button
           id="controls-tab-screen"
@@ -52,7 +56,8 @@
           aria-controls="controls-panel-screen"
           @click="controlsTab = 'screen'"
         >
-          Vídeo da tela
+          <ControlTabIcon name="screen" />
+          <span class="recorder-section__tab-label">Vídeo da tela</span>
         </button>
         <button
           id="controls-tab-harmonic"
@@ -64,10 +69,15 @@
           aria-controls="controls-panel-harmonic"
           @click="controlsTab = 'harmonic'"
         >
-          Campos harmônicos
+          <ControlTabIcon name="harmonic" />
+          <span class="recorder-section__tab-label">Campos harmônicos</span>
         </button>
+        </div>
       </div>
 
+      <div class="recorder-section__nav-divider" aria-hidden="true" />
+
+      <div class="recorder-section__body">
       <div
         v-show="controlsTab === 'playback'"
         id="controls-panel-playback"
@@ -271,6 +281,46 @@
               @click="changeKeyboardHeight(keyboardHeightStep)"
             >
               <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
+            </button>
+          </div>
+
+          <span class="recorder-section__divider" aria-hidden="true" />
+
+          <span class="recorder-section__label">Zoom</span>
+          <div class="recorder-section__bpm">
+            <button
+              type="button"
+              class="recorder-section__bpm-step"
+              aria-label="Diminuir zoom da tela"
+              :disabled="!canDecreaseViewZoom"
+              @click="changeViewZoom(-viewZoomStep)"
+            >
+              <span class="recorder-section__bpm-step-glyph" aria-hidden="true">−</span>
+            </button>
+            <span
+              class="recorder-section__bpm-value recorder-section__bpm-value--readonly"
+              aria-live="polite"
+            >
+              {{ viewZoomPercent }}%
+            </span>
+            <button
+              type="button"
+              class="recorder-section__bpm-step"
+              aria-label="Aumentar zoom da tela"
+              :disabled="!canIncreaseViewZoom"
+              @click="changeViewZoom(viewZoomStep)"
+            >
+              <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
+            </button>
+            <button
+              type="button"
+              class="recorder-section__pill recorder-section__pill--bpm-reset"
+              :disabled="viewZoom === viewZoomDefault"
+              aria-label="Restaurar zoom para 100%"
+              title="Voltar para 100%"
+              @click="resetViewZoom"
+            >
+              100%
             </button>
           </div>
         </div>
@@ -509,6 +559,7 @@
           />
         </button>
       </div>
+      </div>
     </section>
 
     <div
@@ -688,6 +739,10 @@ import {
 import {
   loadOptionsPreferences,
   saveOptionsPreferences,
+  VIEW_ZOOM_DEFAULT,
+  VIEW_ZOOM_MAX,
+  VIEW_ZOOM_MIN,
+  VIEW_ZOOM_STEP,
 } from '../utils/userPreferences.js'
 import {
   createScreenRecorder,
@@ -697,6 +752,7 @@ import {
   isScreenRecordingSupported,
   saveScreenRecording,
 } from '../utils/screenRecorder.js'
+import ControlTabIcon from './ControlTabIcon.vue'
 import PianoRoll from './PianoRoll.vue'
 
 const piano = buildPianoKeys()
@@ -718,6 +774,7 @@ const storedOptionsPreferences = loadOptionsPreferences(keyboardHeightBounds)
 export default {
   name: 'PianoKeyboard',
   components: {
+    ControlTabIcon,
     PianoRoll,
   },
   data() {
@@ -760,6 +817,9 @@ export default {
       controlsTab: 'playback',
       keyboardHeight: storedOptionsPreferences.keyboardHeight,
       keyboardHeightStep: KEYBOARD_HEIGHT_STEP,
+      viewZoom: storedOptionsPreferences.viewZoom,
+      viewZoomStep: VIEW_ZOOM_STEP,
+      viewZoomDefault: VIEW_ZOOM_DEFAULT,
       screenRecorder: createScreenRecorder(),
       isScreenRecording: false,
       screenRecordingElapsedMs: 0,
@@ -820,6 +880,18 @@ export default {
     },
     canIncreaseKeyboardHeight() {
       return this.keyboardHeight < KEYBOARD_HEIGHT_MAX
+    },
+    viewZoomStyle() {
+      return { zoom: this.viewZoom }
+    },
+    viewZoomPercent() {
+      return Math.round(this.viewZoom * 100)
+    },
+    canDecreaseViewZoom() {
+      return this.viewZoom > VIEW_ZOOM_MIN
+    },
+    canIncreaseViewZoom() {
+      return this.viewZoom < VIEW_ZOOM_MAX
     },
     blackKeyWidthPercent() {
       return (100 / this.whiteKeyCount) * 0.58
@@ -888,6 +960,9 @@ export default {
       this.persistOptionsPreferences()
     },
     keyboardHeight() {
+      this.persistOptionsPreferences()
+    },
+    viewZoom() {
       this.persistOptionsPreferences()
     },
   },
@@ -1005,7 +1080,20 @@ export default {
         showKeyLabels: this.showKeyLabels,
         keyLabelNotation: this.keyLabelNotation,
         keyboardHeight: this.keyboardHeight,
+        viewZoom: this.viewZoom,
       })
+    },
+    changeViewZoom(delta) {
+      const next =
+        Math.round((this.viewZoom + delta) * 100) / 100
+
+      this.viewZoom = Math.max(
+        VIEW_ZOOM_MIN,
+        Math.min(VIEW_ZOOM_MAX, next),
+      )
+    },
+    resetViewZoom() {
+      this.viewZoom = VIEW_ZOOM_DEFAULT
     },
     toggleShowKeyLabels() {
       this.showKeyLabels = !this.showKeyLabels
@@ -1575,6 +1663,8 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 16px 20px 0;
+  box-sizing: border-box;
 }
 
 .piano-stage {
@@ -1812,6 +1902,9 @@ export default {
   --neu-raised:
     6px 6px 12px var(--neu-dark),
     -6px -6px 12px var(--neu-light);
+  --neu-raised-lg:
+    10px 10px 22px var(--neu-dark),
+    -10px -10px 22px var(--neu-light);
   --neu-raised-sm:
     4px 4px 8px var(--neu-dark),
     -4px -4px 8px var(--neu-light);
@@ -1823,14 +1916,42 @@ export default {
     inset -6px -6px 12px var(--neu-light);
 
   width: 100%;
-  padding: 18px 22px 16px;
+  padding: 0;
   border-radius: 20px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   background: #1e1e24;
-  box-shadow: var(--neu-pressed-deep);
+  box-shadow: var(--neu-raised-lg);
   display: flex;
   flex-direction: column;
   gap: 0;
+  overflow: hidden;
+}
+
+.recorder-section__nav {
+  position: relative;
+  z-index: 2;
+  padding: 14px 18px 12px;
+  background: #25252d;
+  box-shadow:
+    var(--neu-raised-sm),
+    0 6px 14px rgba(0, 0, 0, 0.28);
+}
+
+.recorder-section__nav-divider {
+  flex-shrink: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.recorder-section__body {
+  position: relative;
+  z-index: 1;
+  padding: 16px 22px 18px;
+  background: #1a1a20;
+  box-shadow: inset 0 8px 14px rgba(0, 0, 0, 0.38);
 }
 
 .recorder-section__inner {
@@ -1847,25 +1968,33 @@ export default {
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 14px;
 }
 
 .recorder-section__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   margin: 0;
-  padding: 10px 18px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--neu-surface);
   box-shadow: var(--neu-raised-sm);
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.04em;
+  line-height: 1.2;
   color: rgba(243, 244, 246, 0.55);
   cursor: pointer;
   transition:
     color 0.12s ease,
     box-shadow 0.12s ease;
+}
+
+.recorder-section__tab-label {
+  white-space: nowrap;
 }
 
 .recorder-section__tab:hover {
