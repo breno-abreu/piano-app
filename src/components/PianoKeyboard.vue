@@ -54,6 +54,18 @@
         >
           Vídeo da tela
         </button>
+        <button
+          id="controls-tab-harmonic"
+          type="button"
+          role="tab"
+          class="recorder-section__tab"
+          :class="{ 'recorder-section__tab--active': controlsTab === 'harmonic' }"
+          :aria-selected="controlsTab === 'harmonic'"
+          aria-controls="controls-panel-harmonic"
+          @click="controlsTab = 'harmonic'"
+        >
+          Campos harmônicos
+        </button>
       </div>
 
       <div
@@ -265,6 +277,84 @@
       </div>
 
       <div
+        v-show="controlsTab === 'harmonic'"
+        id="controls-panel-harmonic"
+        role="tabpanel"
+        class="recorder-section__panel recorder-section__panel--harmonic"
+        aria-labelledby="controls-tab-harmonic"
+      >
+        <div class="recorder-section__inner recorder-section__harmonic">
+          <div class="recorder-section__harmonic-row">
+            <span class="recorder-section__label">Campo</span>
+            <button
+              type="button"
+              class="recorder-section__pill"
+              :class="{ 'recorder-section__pill--active': harmonicDisplayEnabled }"
+              :aria-pressed="harmonicDisplayEnabled"
+              :aria-label="harmonicDisplayEnabled ? 'Ocultar campo harmônico no teclado' : 'Mostrar campo harmônico no teclado'"
+              @click="toggleHarmonicDisplay"
+            >
+              {{ harmonicDisplayEnabled ? 'Ativo' : 'Inativo' }}
+            </button>
+
+            <span class="recorder-section__divider" aria-hidden="true" />
+
+            <span class="recorder-section__label">Escala</span>
+            <button
+              v-for="scale in harmonicScaleTypes"
+              :key="scale.id"
+              type="button"
+              class="recorder-section__pill"
+              :class="{ 'recorder-section__pill--active': harmonicScaleType === scale.id }"
+              :aria-pressed="harmonicScaleType === scale.id"
+              @click="setHarmonicScaleType(scale.id)"
+            >
+              {{ scale.label }}
+            </button>
+
+            <span class="recorder-section__divider" aria-hidden="true" />
+
+            <span class="recorder-section__label">Tom</span>
+            <button
+              v-for="tonic in harmonicTonics"
+              :key="tonic"
+              type="button"
+              class="recorder-section__pill recorder-section__pill--tonic"
+              :class="{
+                'recorder-section__pill--active': harmonicTonic === tonic,
+                'recorder-section__pill--tonic-enh': tonic.includes('#'),
+              }"
+              :aria-pressed="harmonicTonic === tonic"
+              :aria-label="`Tom ${formatHarmonicTonicLabel(tonic)}`"
+              @click="setHarmonicTonic(tonic)"
+            >
+              {{ formatHarmonicTonicLabel(tonic) }}
+            </button>
+          </div>
+
+          <div class="recorder-section__harmonic-row recorder-section__harmonic-row--chords">
+            <span class="recorder-section__label">Acordes</span>
+            <div class="harmonic-chords" role="list">
+              <button
+                v-for="chord in harmonicChords"
+                :key="chord.id"
+                type="button"
+                role="listitem"
+                class="harmonic-chords__item"
+                :class="{ 'harmonic-chords__item--active': harmonicSelectedChordId === chord.id }"
+                :aria-pressed="harmonicSelectedChordId === chord.id"
+                :aria-label="`Acorde ${chord.degree}, ${chord.symbol}`"
+                @click="toggleHarmonicChord(chord.id)"
+              >
+                <span class="harmonic-chords__degree">{{ chord.degree }}</span>
+                <span class="harmonic-chords__symbol">{{ chord.symbol }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
         v-show="controlsTab === 'screen'"
         id="controls-panel-screen"
         role="tabpanel"
@@ -454,11 +544,19 @@
           :class="{
             'piano-key--pressed': isKeyPressed(key.note),
             'piano-key--sustained': isKeySustained(key.note),
+            'piano-key--harmonic-scale':
+              isHarmonicScaleNote(key.note) && !isHarmonicChordNote(key.note),
+            'piano-key--harmonic-chord': isHarmonicChordNote(key.note),
           }"
           :aria-label="key.note"
           :aria-pressed="isKeyActive(key.note)"
           @mousedown.prevent="pressKey(key.note, 'pointer')"
         >
+          <span
+            v-if="isHarmonicTonicNote(key.note)"
+            class="piano-key__tonic-dot"
+            aria-hidden="true"
+          />
           <span v-if="showKeyLabels" class="piano-key__label">{{ keyLabel(key.note) }}</span>
         </button>
     </div>
@@ -472,12 +570,20 @@
         :class="{
           'piano-key--pressed': isKeyPressed(key.note),
           'piano-key--sustained': isKeySustained(key.note),
+          'piano-key--harmonic-scale':
+            isHarmonicScaleNote(key.note) && !isHarmonicChordNote(key.note),
+          'piano-key--harmonic-chord': isHarmonicChordNote(key.note),
         }"
           :style="blackKeyStyle(key)"
           :aria-label="key.note"
           :aria-pressed="isKeyActive(key.note)"
           @mousedown.prevent="pressKey(key.note, 'pointer')"
         >
+          <span
+            v-if="isHarmonicTonicNote(key.note)"
+            class="piano-key__tonic-dot"
+            aria-hidden="true"
+          />
           <span v-if="showKeyLabels" class="piano-key__label">{{ keyLabel(key.note) }}</span>
         </button>
     </div>
@@ -573,6 +679,17 @@ import { parseMidiFile } from '../utils/midiParser.js'
 import { createMidiPlayer } from '../utils/midiPlayer.js'
 import { buildPianoRollNotes } from '../utils/midiPianoRoll.js'
 import {
+  buildHarmonicField,
+  formatHarmonicTonicLabel,
+  HARMONIC_SCALE_TYPES,
+  HARMONIC_TONICS,
+  isNoteInPitchClassSet,
+} from '../utils/harmonicField.js'
+import {
+  loadOptionsPreferences,
+  saveOptionsPreferences,
+} from '../utils/userPreferences.js'
+import {
   createScreenRecorder,
   formatScreenRecordingFilename,
   getPreferredRecordingContainerLabel,
@@ -588,6 +705,15 @@ const KEYBOARD_HEIGHT_DEFAULT = 220
 const KEYBOARD_HEIGHT_MIN = 120
 const KEYBOARD_HEIGHT_MAX = 360
 const KEYBOARD_HEIGHT_STEP = 16
+
+const keyboardHeightBounds = {
+  min: KEYBOARD_HEIGHT_MIN,
+  max: KEYBOARD_HEIGHT_MAX,
+  step: KEYBOARD_HEIGHT_STEP,
+  fallback: KEYBOARD_HEIGHT_DEFAULT,
+}
+
+const storedOptionsPreferences = loadOptionsPreferences(keyboardHeightBounds)
 
 export default {
   name: 'PianoKeyboard',
@@ -607,8 +733,8 @@ export default {
       midiBinder: null,
       isRecording: false,
       midiRecorder: createMidiRecorder(),
-      showKeyLabels: false,
-      keyLabelNotation: 'western',
+      showKeyLabels: storedOptionsPreferences.showKeyLabels,
+      keyLabelNotation: storedOptionsPreferences.keyLabelNotation,
       metronome: createMetronome(),
       metronomeRunning: false,
       metronomeBpm: 120,
@@ -632,14 +758,35 @@ export default {
       playbackBpmEditing: false,
       playbackBpmDraft: '',
       controlsTab: 'playback',
-      keyboardHeight: KEYBOARD_HEIGHT_DEFAULT,
+      keyboardHeight: storedOptionsPreferences.keyboardHeight,
       keyboardHeightStep: KEYBOARD_HEIGHT_STEP,
       screenRecorder: createScreenRecorder(),
       isScreenRecording: false,
       screenRecordingElapsedMs: 0,
+      harmonicScaleTypes: HARMONIC_SCALE_TYPES,
+      harmonicTonics: HARMONIC_TONICS,
+      harmonicDisplayEnabled: false,
+      harmonicScaleType: 'major',
+      harmonicTonic: 'C',
+      harmonicSelectedChordId: null,
     }
   },
   computed: {
+    harmonicField() {
+      return buildHarmonicField(this.harmonicTonic, this.harmonicScaleType)
+    },
+    harmonicChords() {
+      return this.harmonicField.chords
+    },
+    harmonicSelectedChord() {
+      if (!this.harmonicSelectedChordId) return null
+
+      return (
+        this.harmonicChords.find(
+          (chord) => chord.id === this.harmonicSelectedChordId,
+        ) ?? null
+      )
+    },
     screenRecordingSupported() {
       return isScreenRecordingSupported()
     },
@@ -733,6 +880,17 @@ export default {
       return this.playbackBpm === this.midiRecordedBpm
     },
   },
+  watch: {
+    showKeyLabels() {
+      this.persistOptionsPreferences()
+    },
+    keyLabelNotation() {
+      this.persistOptionsPreferences()
+    },
+    keyboardHeight() {
+      this.persistOptionsPreferences()
+    },
+  },
   mounted() {
     this.metronome.setOnTick((beatIndex) => {
       this.metronomeCurrentBeat = beatIndex
@@ -759,6 +917,7 @@ export default {
     this.teardownMidi()
   },
   methods: {
+    formatHarmonicTonicLabel,
     handleRecordingKeydown(event) {
       if (this.isPlaybackBlockingLive) return
       if (event.key !== 'r' && event.key !== 'R') return
@@ -795,10 +954,58 @@ export default {
     isKeyActive(note) {
       return this.isKeyPressed(note) || this.isKeySustained(note)
     },
+    isHarmonicScaleNote(note) {
+      if (!this.harmonicDisplayEnabled) return false
+
+      return isNoteInPitchClassSet(note, this.harmonicField.scalePitchClasses)
+    },
+    isHarmonicChordNote(note) {
+      if (!this.harmonicDisplayEnabled || !this.harmonicSelectedChord) {
+        return false
+      }
+
+      return isNoteInPitchClassSet(
+        note,
+        this.harmonicSelectedChord.pitchClasses,
+      )
+    },
+    isHarmonicTonicNote(note) {
+      if (!this.harmonicDisplayEnabled) return false
+
+      const tonicPitchClass = this.harmonicField.scalePitchClasses[0]
+
+      return isNoteInPitchClassSet(note, [tonicPitchClass])
+    },
+    toggleHarmonicDisplay() {
+      this.harmonicDisplayEnabled = !this.harmonicDisplayEnabled
+
+      if (!this.harmonicDisplayEnabled) {
+        this.harmonicSelectedChordId = null
+      }
+    },
+    setHarmonicScaleType(scaleType) {
+      this.harmonicScaleType = scaleType
+      this.harmonicSelectedChordId = null
+    },
+    setHarmonicTonic(tonic) {
+      this.harmonicTonic = tonic
+      this.harmonicSelectedChordId = null
+    },
+    toggleHarmonicChord(chordId) {
+      this.harmonicSelectedChordId =
+        this.harmonicSelectedChordId === chordId ? null : chordId
+    },
     keyLabel(note) {
       return this.keyLabelNotation === 'western'
         ? formatWestern(note)
         : formatSolfege(note)
+    },
+    persistOptionsPreferences() {
+      saveOptionsPreferences({
+        showKeyLabels: this.showKeyLabels,
+        keyLabelNotation: this.keyLabelNotation,
+        keyboardHeight: this.keyboardHeight,
+      })
     },
     toggleShowKeyLabels() {
       this.showKeyLabels = !this.showKeyLabels
@@ -1433,6 +1640,29 @@ export default {
   transition: border-color 0.1s ease;
 }
 
+.piano-key__tonic-dot {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9a3412;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.piano-key--white:has(.piano-key__label) .piano-key__tonic-dot {
+  bottom: 22px;
+}
+
+.piano-key--black .piano-key__tonic-dot {
+  bottom: 6px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
 .piano-key__label {
   position: absolute;
   bottom: 6px;
@@ -1541,6 +1771,40 @@ export default {
   border-color: #93c5fd !important;
 }
 
+.piano-key--white.piano-key--harmonic-scale:not(.piano-key--pressed):not(:active):not(
+    .piano-key--harmonic-chord
+  ) {
+  background: #fdba74 !important;
+  border-color: #fb923c !important;
+}
+
+.piano-key--white.piano-key--harmonic-chord:not(.piano-key--pressed):not(:active) {
+  background: #f87171 !important;
+  border-color: #ef4444 !important;
+}
+
+.piano-key--black.piano-key--harmonic-scale:not(.piano-key--pressed):not(:active):not(
+    .piano-key--harmonic-chord
+  ) {
+  background: #ea580c !important;
+  border-color: #f97316 !important;
+}
+
+.piano-key--black.piano-key--harmonic-chord:not(.piano-key--pressed):not(:active) {
+  background: #dc2626 !important;
+  border-color: #f87171 !important;
+}
+
+.piano-key--white.piano-key--harmonic-scale .piano-key__label,
+.piano-key--white.piano-key--harmonic-chord .piano-key__label {
+  color: #9a3412;
+}
+
+.piano-key--black.piano-key--harmonic-scale .piano-key__label,
+.piano-key--black.piano-key--harmonic-chord .piano-key__label {
+  color: #fecaca;
+}
+
 .recorder-section {
   --neu-surface: #25252d;
   --neu-light: rgba(255, 255, 255, 0.07);
@@ -1624,6 +1888,96 @@ export default {
 
 .recorder-section__panel--metronome .recorder-section__metronome {
   width: 100%;
+}
+
+.recorder-section__harmonic {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 14px;
+}
+
+.recorder-section__harmonic-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.recorder-section__harmonic-row--chords {
+  gap: 12px;
+}
+
+.recorder-section__pill--tonic {
+  min-width: 2.5rem;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.recorder-section__pill--tonic-enh {
+  min-width: 4.75rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.harmonic-chords {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.harmonic-chords__item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  cursor: pointer;
+  transition:
+    box-shadow 0.12s ease,
+    color 0.12s ease;
+}
+
+.harmonic-chords__item:hover {
+  box-shadow: var(--neu-raised);
+}
+
+.harmonic-chords__item:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.harmonic-chords__item--active {
+  box-shadow: var(--neu-pressed-deep);
+  background: #3f1d1d;
+}
+
+.harmonic-chords__degree {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(251, 191, 36, 0.85);
+}
+
+.harmonic-chords__symbol {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.harmonic-chords__item--active .harmonic-chords__symbol {
+  color: #fca5a5;
 }
 
 .recorder-section__progress {
