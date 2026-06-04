@@ -1,5 +1,155 @@
 <template>
   <div class="piano-wrapper">
+    <section class="recorder-section" aria-label="Controles da performance">
+      <div class="recorder-section__inner">
+        <span class="recorder-section__label">Gravação</span>
+        <button
+          type="button"
+          class="recorder-section__button"
+          :class="{ 'recorder-section__button--recording': isRecording }"
+          :aria-label="isRecording ? 'Parar gravação MIDI' : 'Gravar performance MIDI'"
+          @click="toggleRecording"
+        >
+          <span
+            v-if="!isRecording"
+            class="recorder-section__icon recorder-section__icon--record"
+          />
+          <span
+            v-else
+            class="recorder-section__icon recorder-section__icon--stop"
+          />
+        </button>
+        <span
+          class="recorder-section__hint"
+          :class="{ 'recorder-section__hint--active': isRecording }"
+        >
+          {{ isRecording ? 'Gravando…' : 'Tecla R' }}
+        </span>
+
+        <span class="recorder-section__divider" aria-hidden="true" />
+
+        <span class="recorder-section__label">Reprodução</span>
+        <button
+          type="button"
+          class="recorder-section__button recorder-section__button--play"
+          aria-label="Reproduzir"
+        >
+          <span class="recorder-section__icon recorder-section__icon--play" />
+        </button>
+
+        <span class="recorder-section__divider" aria-hidden="true" />
+
+        <span class="recorder-section__label">Notas</span>
+        <button
+          type="button"
+          class="recorder-section__pill"
+          :class="{ 'recorder-section__pill--active': showKeyLabels }"
+          :aria-pressed="showKeyLabels"
+          :aria-label="showKeyLabels ? 'Ocultar nomes nas teclas' : 'Mostrar nomes nas teclas'"
+          @click="toggleShowKeyLabels"
+        >
+          {{ showKeyLabels ? 'Visível' : 'Oculto' }}
+        </button>
+        <button
+          type="button"
+          class="recorder-section__pill recorder-section__pill--notation"
+          :aria-label="keyLabelNotation === 'western' ? 'Notação ocidental. Alternar para solfejo.' : 'Solfejo. Alternar para notação ocidental.'"
+          @click="toggleKeyLabelNotation"
+        >
+          {{ keyLabelNotation === 'western' ? 'C4' : 'Dó4' }}
+        </button>
+
+        <span class="recorder-section__divider" aria-hidden="true" />
+
+        <div class="recorder-section__metronome">
+          <div class="recorder-section__metronome-controls">
+            <span class="recorder-section__label">Metrônomo</span>
+            <button
+              type="button"
+              class="recorder-section__button recorder-section__button--metronome"
+              :class="{ 'recorder-section__button--metronome-active': metronomeRunning }"
+              :aria-label="metronomeRunning ? 'Parar metrônomo' : 'Iniciar metrônomo'"
+              @click="toggleMetronome"
+            >
+              <span
+                v-if="!metronomeRunning"
+                class="recorder-section__icon recorder-section__icon--metronome-play"
+              />
+              <span
+                v-else
+                class="recorder-section__icon recorder-section__icon--metronome-stop"
+              />
+            </button>
+            <div class="recorder-section__bpm">
+              <button
+                type="button"
+                class="recorder-section__bpm-step"
+                aria-label="Diminuir andamento"
+                @click="changeMetronomeBpm(-1)"
+              >
+                −
+              </button>
+              <button
+                v-if="!metronomeBpmEditing"
+                type="button"
+                class="recorder-section__bpm-value"
+                aria-label="Editar andamento em BPM"
+                @click="startMetronomeBpmEdit"
+              >
+                {{ metronomeBpm }} BPM
+              </button>
+              <span v-else class="recorder-section__bpm-edit">
+                <input
+                  ref="metronomeBpmInput"
+                  v-model="metronomeBpmDraft"
+                  type="text"
+                  inputmode="numeric"
+                  class="recorder-section__bpm-input"
+                  aria-label="Andamento em BPM"
+                  @keydown.enter.prevent="commitMetronomeBpm"
+                  @keydown.esc.prevent="cancelMetronomeBpmEdit"
+                  @blur="commitMetronomeBpm"
+                />
+                <span class="recorder-section__bpm-suffix">BPM</span>
+              </span>
+              <button
+                type="button"
+                class="recorder-section__bpm-step"
+                aria-label="Aumentar andamento"
+                @click="changeMetronomeBpm(1)"
+              >
+                +
+              </button>
+            </div>
+            <button
+              v-for="signature in metronomeTimeSignatures"
+              :key="signature"
+              type="button"
+              class="recorder-section__pill recorder-section__pill--time"
+              :class="{ 'recorder-section__pill--active': metronomeTimeSignature === signature }"
+              :aria-pressed="metronomeTimeSignature === signature"
+              @click="setMetronomeTimeSignature(signature)"
+            >
+              {{ signature }}
+            </button>
+          </div>
+          <div
+            v-if="metronomeRunning"
+            class="recorder-section__beat-dots"
+            aria-hidden="true"
+          >
+            <span
+              v-for="beatIndex in metronomeBeatCount"
+              :key="beatIndex"
+              class="recorder-section__beat-dot"
+              :class="metronomeBeatDotClass(beatIndex - 1)"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="piano-stage">
     <div
       class="pressed-notes"
       :class="{ 'pressed-notes--empty': pressedNotes.length === 0 }"
@@ -35,7 +185,9 @@
           :aria-label="key.note"
           :aria-pressed="isKeyActive(key.note)"
           @mousedown.prevent="pressKey(key.note, 'pointer')"
-        />
+        >
+          <span v-if="showKeyLabels" class="piano-key__label">{{ keyLabel(key.note) }}</span>
+        </button>
     </div>
 
     <div class="piano-keyboard__black-keys">
@@ -48,31 +200,14 @@
           'piano-key--pressed': isKeyPressed(key.note),
           'piano-key--sustained': isKeySustained(key.note),
         }"
-        :style="blackKeyStyle(key)"
-        :aria-label="key.note"
-        :aria-pressed="isKeyActive(key.note)"
-        @mousedown.prevent="pressKey(key.note, 'pointer')"
-      />
+          :style="blackKeyStyle(key)"
+          :aria-label="key.note"
+          :aria-pressed="isKeyActive(key.note)"
+          @mousedown.prevent="pressKey(key.note, 'pointer')"
+        >
+          <span v-if="showKeyLabels" class="piano-key__label">{{ keyLabel(key.note) }}</span>
+        </button>
     </div>
-    </div>
-
-    <div class="midi-recorder">
-      <button
-        type="button"
-        class="midi-recorder__button"
-        :class="{ 'midi-recorder__button--recording': isRecording }"
-        :aria-label="isRecording ? 'Parar gravação MIDI' : 'Gravar performance MIDI'"
-        @click="toggleRecording"
-      >
-        <span
-          v-if="!isRecording"
-          class="midi-recorder__icon midi-recorder__icon--record"
-        />
-        <span
-          v-else
-          class="midi-recorder__icon midi-recorder__icon--stop"
-        />
-      </button>
     </div>
 
     <div class="sustain-pedal">
@@ -131,12 +266,13 @@
         </g>
       </svg>
     </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { buildPianoKeys } from '../utils/pianoKeys.js'
-import { formatNoteLabels } from '../utils/noteNames.js'
+import { formatNoteLabels, formatSolfege, formatWestern } from '../utils/noteNames.js'
 import { bindMidiInputs, isMidiSupported, requestMidiAccess } from '../utils/midiConnection.js'
 import { isPianoMidiNote, midiNumberToNote, noteToMidiNumber, SUSTAIN_PEDAL_CC } from '../utils/midiNotes.js'
 import {
@@ -151,6 +287,13 @@ import {
   formatRecordingFilename,
   saveMidiFile,
 } from '../utils/midiRecorder.js'
+import {
+  createMetronome,
+  getMetronomeBeatsPerBar,
+  MAX_BPM,
+  METRONOME_TIME_SIGNATURES,
+  MIN_BPM,
+} from '../utils/metronome.js'
 
 const piano = buildPianoKeys()
 
@@ -170,6 +313,16 @@ export default {
       midiBinder: null,
       isRecording: false,
       midiRecorder: createMidiRecorder(),
+      showKeyLabels: false,
+      keyLabelNotation: 'western',
+      metronome: createMetronome(),
+      metronomeRunning: false,
+      metronomeBpm: 120,
+      metronomeBpmEditing: false,
+      metronomeBpmDraft: '',
+      metronomeTimeSignature: '4/4',
+      metronomeTimeSignatures: METRONOME_TIME_SIGNATURES,
+      metronomeCurrentBeat: -1,
     }
   },
   computed: {
@@ -193,8 +346,14 @@ export default {
           ...formatNoteLabels(note),
         }))
     },
+    metronomeBeatCount() {
+      return getMetronomeBeatsPerBar(this.metronomeTimeSignature)
+    },
   },
   mounted() {
+    this.metronome.setOnTick((beatIndex) => {
+      this.metronomeCurrentBeat = beatIndex
+    })
     this.initMidi()
     window.addEventListener('keydown', this.handleRecordingKeydown)
     window.addEventListener('mouseup', this.onWindowMouseUp)
@@ -203,6 +362,7 @@ export default {
     window.removeEventListener('keydown', this.handleRecordingKeydown)
     window.removeEventListener('mouseup', this.onWindowMouseUp)
     stopAllPianoNotes()
+    this.metronome.dispose()
     this.teardownMidi()
   },
   methods: {
@@ -232,6 +392,74 @@ export default {
     },
     isKeyActive(note) {
       return this.isKeyPressed(note) || this.isKeySustained(note)
+    },
+    keyLabel(note) {
+      return this.keyLabelNotation === 'western'
+        ? formatWestern(note)
+        : formatSolfege(note)
+    },
+    toggleShowKeyLabels() {
+      this.showKeyLabels = !this.showKeyLabels
+    },
+    toggleKeyLabelNotation() {
+      this.keyLabelNotation = this.keyLabelNotation === 'western' ? 'solfege' : 'western'
+    },
+    async toggleMetronome() {
+      if (this.metronome.isRunning()) {
+        this.metronome.stop()
+        this.metronomeRunning = false
+        this.metronomeCurrentBeat = -1
+        return
+      }
+
+      this.metronome.setBpm(this.metronomeBpm)
+      this.metronome.setTimeSignature(this.metronomeTimeSignature)
+      await this.metronome.start()
+      this.metronomeRunning = true
+    },
+    metronomeBeatDotClass(beatIndex) {
+      const isCurrent = this.metronomeCurrentBeat === beatIndex
+
+      return {
+        'recorder-section__beat-dot--current': isCurrent,
+        'recorder-section__beat-dot--strong': beatIndex === 0 && !isCurrent,
+      }
+    },
+    changeMetronomeBpm(delta) {
+      this.applyMetronomeBpm(this.metronomeBpm + delta)
+    },
+    applyMetronomeBpm(value) {
+      this.metronomeBpm = Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(value)))
+      this.metronome.setBpm(this.metronomeBpm)
+    },
+    startMetronomeBpmEdit() {
+      this.metronomeBpmDraft = String(this.metronomeBpm)
+      this.metronomeBpmEditing = true
+
+      this.$nextTick(() => {
+        const input = this.$refs.metronomeBpmInput
+        if (!input) return
+
+        input.focus()
+        input.select()
+      })
+    },
+    commitMetronomeBpm() {
+      if (!this.metronomeBpmEditing) return
+
+      const parsed = Number.parseInt(this.metronomeBpmDraft, 10)
+      if (Number.isFinite(parsed)) {
+        this.applyMetronomeBpm(parsed)
+      }
+
+      this.metronomeBpmEditing = false
+    },
+    cancelMetronomeBpmEdit() {
+      this.metronomeBpmEditing = false
+    },
+    setMetronomeTimeSignature(signature) {
+      this.metronomeTimeSignature = signature
+      this.metronome.setTimeSignature(signature)
     },
     playKeyAudio(midiNumber, velocity = 96) {
       playPianoNote(midiNumber, velocity).catch((error) => {
@@ -397,9 +625,18 @@ export default {
 <style scoped>
 .piano-wrapper {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.piano-stage {
+  margin-top: auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding-bottom: 24px;
 }
 
 .pressed-notes {
@@ -454,6 +691,7 @@ export default {
   height: 220px;
   user-select: none;
   touch-action: manipulation;
+  overflow: visible;
 }
 
 .piano-keyboard__white-keys {
@@ -463,12 +701,61 @@ export default {
 }
 
 .piano-key {
+  position: relative;
   margin: 0;
   padding: 0;
   cursor: pointer;
   outline: none;
   box-sizing: border-box;
   transition: background-color 0.1s ease;
+}
+
+.piano-key__label {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: clamp(0.45rem, 0.85vw, 0.625rem);
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.piano-key--white .piano-key__label {
+  color: #6b7280;
+}
+
+.piano-key--white.piano-key--pressed .piano-key__label {
+  color: #ffffff;
+}
+
+.piano-key--white.piano-key--sustained .piano-key__label {
+  color: #1e40af;
+}
+
+.piano-key--black .piano-key__label {
+  top: calc(100% + 10px);
+  bottom: auto;
+  width: max-content;
+  max-width: none;
+  overflow: visible;
+  text-overflow: unset;
+  font-size: clamp(0.42rem, 0.62vw, 0.55rem);
+  color: #374151;
+  z-index: 2;
+}
+
+.piano-key--black.piano-key--pressed .piano-key__label {
+  color: #1e3a8a;
+}
+
+.piano-key--black.piano-key--sustained .piano-key__label {
+  color: #1e40af;
 }
 
 .piano-key:focus-visible {
@@ -503,6 +790,7 @@ export default {
   width: 100%;
   height: 62%;
   pointer-events: none;
+  overflow: visible;
 }
 
 .piano-key--black {
@@ -526,13 +814,38 @@ export default {
   border-color: #93c5fd !important;
 }
 
-.midi-recorder {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.recorder-section {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.midi-recorder__button {
+.recorder-section__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.recorder-section__divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.recorder-section__label {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(243, 244, 246, 0.72);
+}
+
+.recorder-section__button {
   width: 44px;
   height: 44px;
   margin: 0;
@@ -547,25 +860,30 @@ export default {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.midi-recorder__button:hover {
+.recorder-section__button:hover {
   border-color: rgba(255, 255, 255, 0.28);
 }
 
-.midi-recorder__button:focus-visible {
+.recorder-section__button:focus-visible {
   outline: 2px solid #ef4444;
   outline-offset: 3px;
 }
 
-.midi-recorder__button--recording {
+.recorder-section__button--recording {
   border-color: rgba(239, 68, 68, 0.65);
   box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
 }
 
-.midi-recorder__icon {
+.recorder-section__button--play:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 3px;
+}
+
+.recorder-section__icon {
   display: block;
 }
 
-.midi-recorder__icon--record {
+.recorder-section__icon--record {
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -573,11 +891,236 @@ export default {
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.55);
 }
 
-.midi-recorder__icon--stop {
+.recorder-section__icon--stop {
   width: 14px;
   height: 14px;
   border-radius: 2px;
   background: #f3f4f6;
+}
+
+.recorder-section__icon--play {
+  width: 0;
+  height: 0;
+  margin-left: 3px;
+  border-style: solid;
+  border-width: 8px 0 8px 14px;
+  border-color: transparent transparent transparent #22c55e;
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.45));
+}
+
+.recorder-section__hint {
+  min-width: 72px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(243, 244, 246, 0.45);
+}
+
+.recorder-section__hint--active {
+  color: #fca5a5;
+}
+
+.recorder-section__pill {
+  height: 36px;
+  margin: 0;
+  padding: 0 14px;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(243, 244, 246, 0.72);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.recorder-section__pill:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.recorder-section__pill:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+.recorder-section__pill--active {
+  border-color: rgba(59, 130, 246, 0.65);
+  background: rgba(59, 130, 246, 0.15);
+  color: #bfdbfe;
+}
+
+.recorder-section__pill--notation {
+  min-width: 52px;
+}
+
+.recorder-section__pill--time {
+  min-width: 46px;
+  padding: 0 12px;
+}
+
+.recorder-section__metronome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.recorder-section__metronome-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.recorder-section__beat-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 10px;
+}
+
+.recorder-section__beat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  transition:
+    background-color 0.08s ease,
+    box-shadow 0.08s ease,
+    transform 0.08s ease;
+}
+
+.recorder-section__beat-dot--strong {
+  background: #ca8a04;
+  box-shadow: 0 0 6px rgba(202, 138, 4, 0.35);
+}
+
+.recorder-section__beat-dot--current {
+  background: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+  transform: scale(1.2);
+}
+
+.recorder-section__button--metronome:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+.recorder-section__button--metronome-active {
+  border-color: rgba(245, 158, 11, 0.65);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+}
+
+.recorder-section__icon--metronome-play {
+  width: 0;
+  height: 0;
+  margin-left: 3px;
+  border-style: solid;
+  border-width: 9px 0 9px 16px;
+  border-color: transparent transparent transparent #f59e0b;
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.45));
+}
+
+.recorder-section__icon--metronome-stop {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: #f3f4f6;
+}
+
+.recorder-section__bpm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recorder-section__bpm-step {
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1;
+  color: rgba(243, 244, 246, 0.85);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.recorder-section__bpm-step:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.recorder-section__bpm-step:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.recorder-section__bpm-value {
+  min-width: 72px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(243, 244, 246, 0.85);
+  text-align: center;
+  cursor: text;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.recorder-section__bpm-value:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.recorder-section__bpm-value:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.recorder-section__bpm-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 72px;
+}
+
+.recorder-section__bpm-input {
+  width: 44px;
+  margin: 0;
+  padding: 6px 8px;
+  border: 2px solid rgba(245, 158, 11, 0.65);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f3f4f6;
+  text-align: center;
+}
+
+.recorder-section__bpm-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+}
+
+.recorder-section__bpm-suffix {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(243, 244, 246, 0.85);
 }
 
 .sustain-pedal {

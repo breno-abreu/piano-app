@@ -1,6 +1,6 @@
 <template>
   <main class="home-page">
-    <PianoKeyboard />
+    <PianoKeyboard class="home-page__piano" />
   </main>
 </template>
 
@@ -20,8 +20,15 @@ export default {
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   box-sizing: border-box;
+  padding: 20px 16px 0;
+  overflow: hidden;
+}
+
+.home-page__piano {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 </style>
