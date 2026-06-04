@@ -70,17 +70,36 @@ export function createMidiRecorder() {
       startTime = performance.now()
       recording = true
     },
-    record(data) {
-      if (!recording || !data || data.length < 2) return
-
-      const command = data[0] & 0xf0
-
-      if (command !== 0x80 && command !== 0x90 && command !== 0xb0) return
+    recordMessage(data) {
+      if (!recording || !data || data.length < 3) return
 
       events.push({
         timeMs: performance.now() - startTime,
-        data: Array.from(data.slice(0, data.length >= 3 ? 3 : 2)),
+        data: Array.from(data),
       })
+    },
+    recordNoteOn(midiNumber, velocity = 96) {
+      if (!recording || midiNumber < 0 || midiNumber > 127) return
+
+      this.recordMessage([
+        0x90,
+        midiNumber,
+        Math.max(1, Math.min(127, Math.round(velocity))),
+      ])
+    },
+    recordNoteOff(midiNumber) {
+      if (!recording || midiNumber < 0 || midiNumber > 127) return
+
+      this.recordMessage([0x80, midiNumber, 0])
+    },
+    recordControlChange(controller, value) {
+      if (!recording || controller < 0 || controller > 127) return
+
+      this.recordMessage([
+        0xb0,
+        controller,
+        Math.max(0, Math.min(127, Math.round(value))),
+      ])
     },
     stop() {
       recording = false
@@ -89,9 +108,14 @@ export function createMidiRecorder() {
   }
 }
 
+export function bpmToTempo(bpm) {
+  const rounded = Math.max(1, Math.round(bpm))
+  return Math.round(60000000 / rounded)
+}
+
 export function createMidiBlob(events, options = {}) {
   const ticksPerQuarter = options.ticksPerQuarter ?? 480
-  const tempo = options.tempo ?? 500000
+  const tempo = options.tempo ?? bpmToTempo(120)
   const trackBytes = buildTrackBytes(events, ticksPerQuarter, tempo)
   const fileBytes = []
 

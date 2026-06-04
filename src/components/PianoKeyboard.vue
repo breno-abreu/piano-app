@@ -1,69 +1,266 @@
 <template>
   <div class="piano-wrapper">
     <section class="recorder-section" aria-label="Controles da performance">
-      <div class="recorder-section__inner">
-        <span class="recorder-section__label">Gravação</span>
+      <div
+        class="recorder-section__tabs"
+        role="tablist"
+        aria-label="Seções de controles"
+      >
         <button
+          id="controls-tab-playback"
           type="button"
-          class="recorder-section__button"
-          :class="{ 'recorder-section__button--recording': isRecording }"
-          :aria-label="isRecording ? 'Parar gravação MIDI' : 'Gravar performance MIDI'"
-          @click="toggleRecording"
+          role="tab"
+          class="recorder-section__tab"
+          :class="{ 'recorder-section__tab--active': controlsTab === 'playback' }"
+          :aria-selected="controlsTab === 'playback'"
+          aria-controls="controls-panel-playback"
+          @click="controlsTab = 'playback'"
         >
+          Gravação e reprodução
+        </button>
+        <button
+          id="controls-tab-options"
+          type="button"
+          role="tab"
+          class="recorder-section__tab"
+          :class="{ 'recorder-section__tab--active': controlsTab === 'options' }"
+          :aria-selected="controlsTab === 'options'"
+          aria-controls="controls-panel-options"
+          @click="controlsTab = 'options'"
+        >
+          Opções
+        </button>
+        <button
+          id="controls-tab-metronome"
+          type="button"
+          role="tab"
+          class="recorder-section__tab"
+          :class="{ 'recorder-section__tab--active': controlsTab === 'metronome' }"
+          :aria-selected="controlsTab === 'metronome'"
+          aria-controls="controls-panel-metronome"
+          @click="controlsTab = 'metronome'"
+        >
+          Metrônomo
+        </button>
+      </div>
+
+      <div
+        v-show="controlsTab === 'playback'"
+        id="controls-panel-playback"
+        role="tabpanel"
+        class="recorder-section__panel"
+        aria-labelledby="controls-tab-playback"
+      >
+        <div class="recorder-section__inner">
+          <span class="recorder-section__label">Gravação</span>
+          <button
+            type="button"
+            class="recorder-section__button"
+            :class="{ 'recorder-section__button--recording': isRecording }"
+            :aria-label="isRecording ? 'Parar gravação MIDI' : 'Gravar performance MIDI'"
+            @click="toggleRecording"
+          >
+            <span
+              v-if="!isRecording"
+              class="recorder-section__icon recorder-section__icon--record"
+            />
+            <span
+              v-else
+              class="recorder-section__icon recorder-section__icon--stop"
+            />
+          </button>
           <span
-            v-if="!isRecording"
-            class="recorder-section__icon recorder-section__icon--record"
+            class="recorder-section__hint"
+            :class="{ 'recorder-section__hint--active': isRecording }"
+          >
+            {{ isRecording ? 'Gravando…' : 'Tecla R' }}
+          </span>
+
+          <span class="recorder-section__divider" aria-hidden="true" />
+
+          <span class="recorder-section__label">Reprodução</span>
+          <input
+            ref="midiFileInput"
+            type="file"
+            accept=".mid,audio/midi,audio/x-midi"
+            class="recorder-section__file-input"
+            @change="onMidiFileSelected"
           />
+          <button
+            type="button"
+            class="recorder-section__pill recorder-section__pill--file"
+            @click="openMidiFilePicker"
+          >
+            Arquivo
+          </button>
           <span
-            v-else
-            class="recorder-section__icon recorder-section__icon--stop"
-          />
-        </button>
-        <span
-          class="recorder-section__hint"
-          :class="{ 'recorder-section__hint--active': isRecording }"
-        >
-          {{ isRecording ? 'Gravando…' : 'Tecla R' }}
-        </span>
+            v-if="midiFileName"
+            class="recorder-section__file-name"
+            :title="midiFileName"
+          >
+            {{ midiFileName }}
+          </span>
+          <button
+            v-if="midiPlaybackReady"
+            type="button"
+            class="recorder-section__pill recorder-section__pill--remove-file"
+            aria-label="Remover arquivo MIDI carregado"
+            @click="removeMidiFile"
+          >
+            Remover
+          </button>
+          <button
+            type="button"
+            class="recorder-section__button recorder-section__button--play"
+            :class="{ 'recorder-section__button--pause-mode': playbackStatus === 'playing' }"
+            :disabled="!midiPlaybackReady"
+            :aria-label="playbackStatus === 'playing' ? 'Pausar reprodução MIDI' : 'Reproduzir arquivo MIDI'"
+            @click="togglePlaybackPlayPause"
+          >
+            <span
+              v-if="playbackStatus !== 'playing'"
+              class="recorder-section__icon recorder-section__icon--play"
+            />
+            <span
+              v-else
+              class="recorder-section__icon recorder-section__icon--pause"
+            />
+          </button>
+          <button
+            type="button"
+            class="recorder-section__button recorder-section__button--stop-playback"
+            :disabled="!midiPlaybackCanStop"
+            aria-label="Parar reprodução MIDI"
+            @click="stopPlayback"
+          >
+            <span class="recorder-section__icon recorder-section__icon--stop" />
+          </button>
+          <template v-if="midiPlaybackReady">
+            <span class="recorder-section__label">Velocidade</span>
+            <div class="recorder-section__bpm">
+              <button
+                type="button"
+                class="recorder-section__bpm-step"
+                aria-label="Diminuir velocidade da reprodução"
+                @click="changePlaybackBpm(-1)"
+              >
+                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">−</span>
+              </button>
+              <button
+                v-if="!playbackBpmEditing"
+                type="button"
+                class="recorder-section__bpm-value"
+                :aria-label="playbackBpmAriaLabel"
+                @click="startPlaybackBpmEdit"
+              >
+                {{ playbackBpm }} BPM
+              </button>
+              <span v-else class="recorder-section__bpm-edit">
+                <input
+                  ref="playbackBpmInput"
+                  v-model="playbackBpmDraft"
+                  type="text"
+                  inputmode="numeric"
+                  class="recorder-section__bpm-input"
+                  aria-label="Velocidade da reprodução em BPM"
+                  @keydown.enter.prevent="commitPlaybackBpm"
+                  @keydown.esc.prevent="cancelPlaybackBpmEdit"
+                  @blur="commitPlaybackBpm"
+                />
+                <span class="recorder-section__bpm-suffix">BPM</span>
+              </span>
+              <button
+                type="button"
+                class="recorder-section__bpm-step"
+                aria-label="Aumentar velocidade da reprodução"
+                @click="changePlaybackBpm(1)"
+              >
+                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
+              </button>
+              <button
+                type="button"
+                class="recorder-section__pill recorder-section__pill--bpm-reset"
+                :disabled="isPlaybackAtOriginalBpm"
+                :aria-label="`Restaurar velocidade original (${midiRecordedBpm} BPM)`"
+                :title="`Voltar para ${midiRecordedBpm} BPM`"
+                @click="resetPlaybackBpm"
+              >
+                Original
+              </button>
+            </div>
+          </template>
+        </div>
+      </div>
 
-        <span class="recorder-section__divider" aria-hidden="true" />
+      <div
+        v-show="controlsTab === 'options'"
+        id="controls-panel-options"
+        role="tabpanel"
+        class="recorder-section__panel"
+        aria-labelledby="controls-tab-options"
+      >
+        <div class="recorder-section__inner">
+          <span class="recorder-section__label">Notas</span>
+          <button
+            type="button"
+            class="recorder-section__pill"
+            :class="{ 'recorder-section__pill--active': showKeyLabels }"
+            :aria-pressed="showKeyLabels"
+            :aria-label="showKeyLabels ? 'Ocultar nomes nas teclas' : 'Mostrar nomes nas teclas'"
+            @click="toggleShowKeyLabels"
+          >
+            {{ showKeyLabels ? 'Visível' : 'Oculto' }}
+          </button>
+          <button
+            type="button"
+            class="recorder-section__pill recorder-section__pill--notation"
+            :aria-label="keyLabelNotation === 'western' ? 'Notação ocidental. Alternar para solfejo.' : 'Solfejo. Alternar para notação ocidental.'"
+            @click="toggleKeyLabelNotation"
+          >
+            {{ keyLabelNotation === 'western' ? 'C4' : 'Dó4' }}
+          </button>
 
-        <span class="recorder-section__label">Reprodução</span>
-        <button
-          type="button"
-          class="recorder-section__button recorder-section__button--play"
-          aria-label="Reproduzir"
-        >
-          <span class="recorder-section__icon recorder-section__icon--play" />
-        </button>
+          <span class="recorder-section__divider" aria-hidden="true" />
 
-        <span class="recorder-section__divider" aria-hidden="true" />
+          <span class="recorder-section__label">Altura das teclas</span>
+          <div class="recorder-section__bpm">
+            <button
+              type="button"
+              class="recorder-section__bpm-step"
+              aria-label="Diminuir altura do teclado"
+              :disabled="!canDecreaseKeyboardHeight"
+              @click="changeKeyboardHeight(-keyboardHeightStep)"
+            >
+              <span class="recorder-section__bpm-step-glyph" aria-hidden="true">−</span>
+            </button>
+            <span
+              class="recorder-section__bpm-value recorder-section__bpm-value--readonly"
+              aria-live="polite"
+            >
+              {{ keyboardHeight }} px
+            </span>
+            <button
+              type="button"
+              class="recorder-section__bpm-step"
+              aria-label="Aumentar altura do teclado"
+              :disabled="!canIncreaseKeyboardHeight"
+              @click="changeKeyboardHeight(keyboardHeightStep)"
+            >
+              <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-        <span class="recorder-section__label">Notas</span>
-        <button
-          type="button"
-          class="recorder-section__pill"
-          :class="{ 'recorder-section__pill--active': showKeyLabels }"
-          :aria-pressed="showKeyLabels"
-          :aria-label="showKeyLabels ? 'Ocultar nomes nas teclas' : 'Mostrar nomes nas teclas'"
-          @click="toggleShowKeyLabels"
-        >
-          {{ showKeyLabels ? 'Visível' : 'Oculto' }}
-        </button>
-        <button
-          type="button"
-          class="recorder-section__pill recorder-section__pill--notation"
-          :aria-label="keyLabelNotation === 'western' ? 'Notação ocidental. Alternar para solfejo.' : 'Solfejo. Alternar para notação ocidental.'"
-          @click="toggleKeyLabelNotation"
-        >
-          {{ keyLabelNotation === 'western' ? 'C4' : 'Dó4' }}
-        </button>
-
-        <span class="recorder-section__divider" aria-hidden="true" />
-
+      <div
+        v-show="controlsTab === 'metronome'"
+        id="controls-panel-metronome"
+        role="tabpanel"
+        class="recorder-section__panel recorder-section__panel--metronome"
+        aria-labelledby="controls-tab-metronome"
+      >
         <div class="recorder-section__metronome">
-          <div class="recorder-section__metronome-controls">
-            <span class="recorder-section__label">Metrônomo</span>
+          <div class="recorder-section__inner recorder-section__metronome-controls">
             <button
               type="button"
               class="recorder-section__button recorder-section__button--metronome"
@@ -147,31 +344,52 @@
           </div>
         </div>
       </div>
+
+      <div
+        v-if="midiPlaybackReady"
+        class="recorder-section__progress"
+      >
+        <button
+          type="button"
+          class="recorder-section__progress-track"
+          :aria-label="playbackProgressAriaLabel"
+          :aria-valuenow="Math.round(playbackPositionMs)"
+          aria-valuemin="0"
+          :aria-valuemax="Math.round(midiDurationMs)"
+          @click="seekPlaybackFromEvent"
+        >
+          <span
+            class="recorder-section__progress-fill"
+            :style="{ width: `${playbackProgressPercent}%` }"
+          />
+        </button>
+      </div>
     </section>
 
-    <div class="piano-stage">
     <div
-      class="pressed-notes"
-      :class="{ 'pressed-notes--empty': pressedNotes.length === 0 }"
-      aria-live="polite"
-      aria-label="Notas pressionadas"
+      class="piano-stage"
+      :class="{ 'piano-stage--with-roll': midiPlaybackReady }"
     >
-      <div
-        v-for="entry in pressedNotes"
-        :key="entry.note"
-        class="pressed-note"
-      >
-        <span class="pressed-note__western">{{ entry.western }}</span>
-        <span class="pressed-note__separator">·</span>
-        <span class="pressed-note__solfege">{{ entry.solfege }}</span>
-      </div>
-    </div>
+    <div
+      class="piano-playfield"
+      :class="{ 'piano-playfield--with-roll': midiPlaybackReady }"
+    >
+      <PianoRoll
+        v-if="midiPlaybackReady"
+        :notes="pianoRollNotes"
+        :position-ms="playbackPositionMs"
+        :white-keys="whiteKeys"
+        :black-keys="blackKeys"
+        :white-key-count="whiteKeyCount"
+        :black-key-width-percent="blackKeyWidthPercent"
+      />
 
-    <div
-      class="piano-keyboard"
-      role="application"
-      aria-label="Teclado de piano de 88 teclas"
-    >
+      <div
+        class="piano-keyboard"
+        role="application"
+        aria-label="Teclado de piano de 88 teclas"
+        :style="keyboardHeightStyle"
+      >
       <div class="piano-keyboard__white-keys">
         <button
           v-for="key in whiteKeys"
@@ -208,18 +426,19 @@
           <span v-if="showKeyLabels" class="piano-key__label">{{ keyLabel(key.note) }}</span>
         </button>
     </div>
+      </div>
     </div>
 
     <div class="sustain-pedal">
       <div
         class="sustain-pedal__control"
         role="status"
-        :aria-label="sustainPedalDown ? 'Pedal pressionado' : 'Pedal solto'"
+        :aria-label="visualSustainPedalDown ? 'Pedal pressionado' : 'Pedal solto'"
       >
         <span class="sustain-pedal__label">PEDAL</span>
         <div
           class="sustain-pedal__indicator"
-          :class="{ 'sustain-pedal__indicator--pressed': sustainPedalDown }"
+          :class="{ 'sustain-pedal__indicator--pressed': visualSustainPedalDown }"
         />
       </div>
 
@@ -253,7 +472,7 @@
         />
         <g
           class="pedal-visual__lever"
-          :class="{ 'pedal-visual__lever--pressed': sustainPedalDown }"
+          :class="{ 'pedal-visual__lever--pressed': visualSustainPedalDown }"
         >
           <rect
             class="pedal-visual__pad"
@@ -282,6 +501,7 @@ import {
   stopAllPianoNotes,
 } from '../utils/pianoAudio.js'
 import {
+  bpmToTempo,
   createMidiBlob,
   createMidiRecorder,
   formatRecordingFilename,
@@ -294,17 +514,28 @@ import {
   METRONOME_TIME_SIGNATURES,
   MIN_BPM,
 } from '../utils/metronome.js'
+import { parseMidiFile } from '../utils/midiParser.js'
+import { createMidiPlayer } from '../utils/midiPlayer.js'
+import { buildPianoRollNotes } from '../utils/midiPianoRoll.js'
+import PianoRoll from './PianoRoll.vue'
 
 const piano = buildPianoKeys()
 
+const KEYBOARD_HEIGHT_DEFAULT = 220
+const KEYBOARD_HEIGHT_MIN = 120
+const KEYBOARD_HEIGHT_MAX = 360
+const KEYBOARD_HEIGHT_STEP = 16
+
 export default {
   name: 'PianoKeyboard',
+  components: {
+    PianoRoll,
+  },
   data() {
     return {
       whiteKeys: piano.whiteKeys,
       blackKeys: piano.blackKeys,
       whiteKeyCount: piano.whiteKeyCount,
-      pitchIndexByNote: piano.pitchIndexByNote,
       pointerActive: {},
       pointerHeld: {},
       midiActive: {},
@@ -323,31 +554,92 @@ export default {
       metronomeTimeSignature: '4/4',
       metronomeTimeSignatures: METRONOME_TIME_SIGNATURES,
       metronomeCurrentBeat: -1,
+      midiFileName: '',
+      midiParsedEvents: [],
+      pianoRollNotes: [],
+      midiPlayer: null,
+      playbackStatus: 'idle',
+      playbackActive: {},
+      playbackSustained: {},
+      playbackSustainPedalDown: false,
+      midiDurationMs: 0,
+      playbackPositionMs: 0,
+      midiRecordedBpm: 120,
+      playbackBpm: 120,
+      playbackBpmEditing: false,
+      playbackBpmDraft: '',
+      controlsTab: 'playback',
+      keyboardHeight: KEYBOARD_HEIGHT_DEFAULT,
+      keyboardHeightStep: KEYBOARD_HEIGHT_STEP,
     }
   },
   computed: {
+    keyboardHeightStyle() {
+      return { height: `${this.keyboardHeight}px` }
+    },
+    canDecreaseKeyboardHeight() {
+      return this.keyboardHeight > KEYBOARD_HEIGHT_MIN
+    },
+    canIncreaseKeyboardHeight() {
+      return this.keyboardHeight < KEYBOARD_HEIGHT_MAX
+    },
     blackKeyWidthPercent() {
       return (100 / this.whiteKeyCount) * 0.58
     },
     activeKeys() {
+      if (this.playbackStatus === 'playing') {
+        return {
+          ...this.playbackActive,
+          ...this.playbackSustained,
+        }
+      }
+
       return {
         ...this.pointerActive,
         ...this.midiActive,
         ...this.sustainedActive,
       }
     },
-    pressedNotes() {
-      return Object.keys(this.activeKeys)
-        .sort(
-          (a, b) => this.pitchIndexByNote[a] - this.pitchIndexByNote[b],
-        )
-        .map((note) => ({
-          note,
-          ...formatNoteLabels(note),
-        }))
-    },
     metronomeBeatCount() {
       return getMetronomeBeatsPerBar(this.metronomeTimeSignature)
+    },
+    isPlaybackBlockingLive() {
+      return this.playbackStatus === 'playing'
+    },
+    visualSustainPedalDown() {
+      if (this.playbackStatus === 'playing') {
+        return this.playbackSustainPedalDown
+      }
+
+      return this.sustainPedalDown
+    },
+    midiPlaybackReady() {
+      return this.midiParsedEvents.length > 0
+    },
+    midiPlaybackCanStop() {
+      return (
+        this.midiPlaybackReady &&
+        (this.playbackStatus === 'playing' || this.playbackStatus === 'paused')
+      )
+    },
+    playbackProgressPercent() {
+      if (!this.midiDurationMs) return 0
+
+      return Math.min(
+        100,
+        (this.playbackPositionMs / this.midiDurationMs) * 100,
+      )
+    },
+    playbackProgressAriaLabel() {
+      return `Posição da reprodução: ${this.formatPlaybackTime(this.playbackPositionMs)} de ${this.formatPlaybackTime(this.midiDurationMs)}`
+    },
+    playbackBpmAriaLabel() {
+      const percent = Math.round((this.playbackBpm / this.midiRecordedBpm) * 100)
+
+      return `Velocidade da reprodução: ${this.playbackBpm} BPM (${percent}% do original ${this.midiRecordedBpm} BPM). Clique para editar.`
+    },
+    isPlaybackAtOriginalBpm() {
+      return this.playbackBpm === this.midiRecordedBpm
     },
   },
   mounted() {
@@ -363,10 +655,12 @@ export default {
     window.removeEventListener('mouseup', this.onWindowMouseUp)
     stopAllPianoNotes()
     this.metronome.dispose()
+    this.disposeMidiPlayer()
     this.teardownMidi()
   },
   methods: {
     handleRecordingKeydown(event) {
+      if (this.isPlaybackBlockingLive) return
       if (event.key !== 'r' && event.key !== 'R') return
       if (event.repeat) return
       if (event.ctrlKey || event.metaKey || event.altKey) return
@@ -383,9 +677,17 @@ export default {
       this.toggleRecording()
     },
     isKeyPressed(note) {
+      if (this.playbackStatus === 'playing') {
+        return Boolean(this.playbackActive[note])
+      }
+
       return Boolean(this.pointerActive[note] || this.midiActive[note])
     },
     isKeySustained(note) {
+      if (this.playbackStatus === 'playing') {
+        return Boolean(this.playbackSustained[note] && !this.playbackActive[note])
+      }
+
       return Boolean(
         this.sustainedActive[note] && !this.isKeyPressed(note),
       )
@@ -404,11 +706,16 @@ export default {
     toggleKeyLabelNotation() {
       this.keyLabelNotation = this.keyLabelNotation === 'western' ? 'solfege' : 'western'
     },
+    changeKeyboardHeight(delta) {
+      const next = this.keyboardHeight + delta
+      this.keyboardHeight = Math.max(
+        KEYBOARD_HEIGHT_MIN,
+        Math.min(KEYBOARD_HEIGHT_MAX, next),
+      )
+    },
     async toggleMetronome() {
       if (this.metronome.isRunning()) {
-        this.metronome.stop()
-        this.metronomeRunning = false
-        this.metronomeCurrentBeat = -1
+        this.stopMetronomeAudio()
         return
       }
 
@@ -416,6 +723,51 @@ export default {
       this.metronome.setTimeSignature(this.metronomeTimeSignature)
       await this.metronome.start()
       this.metronomeRunning = true
+    },
+    stopMetronomeAudio() {
+      this.metronome.stop()
+      this.metronomeRunning = false
+      this.metronomeCurrentBeat = -1
+    },
+    changePlaybackBpm(delta) {
+      this.applyPlaybackBpm(this.playbackBpm + delta)
+    },
+    resetPlaybackBpm() {
+      this.applyPlaybackBpm(this.midiRecordedBpm)
+    },
+    applyPlaybackBpm(value) {
+      const bpm = Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(value)))
+      this.playbackBpm = bpm
+
+      if (!this.midiPlayer || !this.midiRecordedBpm) return
+
+      const rate = bpm / this.midiRecordedBpm
+      this.midiPlayer.setPlaybackRate(rate)
+    },
+    startPlaybackBpmEdit() {
+      this.playbackBpmDraft = String(this.playbackBpm)
+      this.playbackBpmEditing = true
+
+      this.$nextTick(() => {
+        const input = this.$refs.playbackBpmInput
+        if (input instanceof HTMLInputElement) {
+          input.focus()
+          input.select()
+        }
+      })
+    },
+    commitPlaybackBpm() {
+      if (!this.playbackBpmEditing) return
+
+      const parsed = Number.parseInt(this.playbackBpmDraft, 10)
+      if (Number.isFinite(parsed)) {
+        this.applyPlaybackBpm(parsed)
+      }
+
+      this.playbackBpmEditing = false
+    },
+    cancelPlaybackBpmEdit() {
+      this.playbackBpmEditing = false
     },
     metronomeBeatDotClass(beatIndex) {
       const isCurrent = this.metronomeCurrentBeat === beatIndex
@@ -461,6 +813,210 @@ export default {
       this.metronomeTimeSignature = signature
       this.metronome.setTimeSignature(signature)
     },
+    openMidiFilePicker() {
+      this.$refs.midiFileInput?.click()
+    },
+    async onMidiFileSelected(event) {
+      const input = event.target
+      const file = input?.files?.[0]
+      if (!file) return
+
+      try {
+        const buffer = await file.arrayBuffer()
+        const parsed = parseMidiFile(buffer)
+
+        this.stopPlayback()
+        this.disposeMidiPlayer()
+        this.midiParsedEvents = parsed.events
+        this.pianoRollNotes = buildPianoRollNotes(parsed.events)
+        this.midiDurationMs = parsed.durationMs
+        this.midiRecordedBpm = parsed.initialBpm
+        this.playbackBpm = parsed.initialBpm
+        this.playbackPositionMs = 0
+        this.midiFileName = file.name
+        this.playbackStatus = 'ready'
+        this.midiPlayer = createMidiPlayer(parsed.events, {
+          onNoteOn: (midiNumber, velocity) => {
+            this.handlePlaybackNoteOn(midiNumber, velocity)
+          },
+          onNoteOff: (midiNumber) => {
+            this.handlePlaybackNoteOff(midiNumber)
+          },
+          onSustainPedal: (value) => {
+            this.handlePlaybackSustainPedal(value)
+          },
+          onProgress: (positionMs, durationMs) => {
+            this.playbackPositionMs = positionMs
+            this.midiDurationMs = durationMs
+          },
+          onSeek: () => {
+            this.resetPlaybackVisuals()
+            stopAllPianoNotes()
+          },
+          onFinish: () => {
+            this.finishPlayback()
+          },
+          onPause: (positionMs) => {
+            this.playbackPositionMs = positionMs
+            this.pausePlaybackVisuals()
+          },
+          onStop: () => {
+            this.playbackPositionMs = 0
+            this.resetPlaybackVisuals()
+          },
+        })
+        this.midiPlayer.setPlaybackRate(1)
+      } catch (error) {
+        console.warn('Não foi possível ler o arquivo MIDI.', error)
+        this.clearMidiFile()
+      }
+
+      input.value = ''
+    },
+    clearMidiFile() {
+      this.stopPlayback()
+      this.disposeMidiPlayer()
+      this.midiFileName = ''
+      this.midiParsedEvents = []
+      this.pianoRollNotes = []
+      this.midiDurationMs = 0
+      this.midiRecordedBpm = 120
+      this.playbackBpm = 120
+      this.playbackBpmEditing = false
+      this.playbackPositionMs = 0
+      this.playbackStatus = 'idle'
+    },
+    removeMidiFile() {
+      this.clearMidiFile()
+
+      const input = this.$refs.midiFileInput
+      if (input) {
+        input.value = ''
+      }
+    },
+    disposeMidiPlayer() {
+      if (this.midiPlayer) {
+        this.midiPlayer.dispose()
+        this.midiPlayer = null
+      }
+    },
+    togglePlaybackPlayPause() {
+      if (!this.midiPlayer || !this.midiPlaybackReady) return
+
+      if (this.playbackStatus === 'playing') {
+        this.midiPlayer.pause()
+        this.playbackStatus = 'paused'
+        return
+      }
+
+      if (this.playbackStatus === 'paused') {
+        this.playbackStatus = 'playing'
+        this.midiPlayer.resume()
+        return
+      }
+
+      this.startPlayback()
+    },
+    startPlayback() {
+      if (!this.midiPlayer) return
+
+      this.resetPlaybackVisuals()
+      stopAllPianoNotes()
+      this.playbackStatus = 'playing'
+      this.midiPlayer.play(0)
+    },
+    stopPlayback() {
+      if (!this.midiPlayer) {
+        this.playbackStatus = this.midiPlaybackReady ? 'ready' : 'idle'
+        this.playbackPositionMs = 0
+        this.resetPlaybackVisuals()
+        return
+      }
+
+      this.midiPlayer.stop()
+      this.playbackStatus = this.midiPlaybackReady ? 'ready' : 'idle'
+      this.resetPlaybackVisuals()
+    },
+    finishPlayback() {
+      this.playbackStatus = this.midiPlaybackReady ? 'ready' : 'idle'
+      this.playbackPositionMs = 0
+      this.resetPlaybackVisuals()
+    },
+    formatPlaybackTime(ms) {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+      const minutes = Math.floor(totalSeconds / 60)
+      const seconds = totalSeconds % 60
+
+      return `${minutes}:${String(seconds).padStart(2, '0')}`
+    },
+    seekPlaybackFromEvent(event) {
+      if (!this.midiPlayer || !this.midiDurationMs) return
+
+      const track = event.currentTarget
+      const rect = track.getBoundingClientRect()
+      const ratio = Math.max(
+        0,
+        Math.min(1, (event.clientX - rect.left) / rect.width),
+      )
+      const targetMs = ratio * this.midiDurationMs
+
+      this.seekPlaybackTo(targetMs)
+    },
+    seekPlaybackTo(targetMs) {
+      if (!this.midiPlayer) return
+
+      this.midiPlayer.seek(targetMs)
+      this.playbackPositionMs = targetMs
+    },
+    pausePlaybackVisuals() {
+      this.resetPlaybackVisuals()
+    },
+    resetPlaybackVisuals() {
+      this.playbackActive = {}
+      this.playbackSustained = {}
+      this.playbackSustainPedalDown = false
+      stopAllPianoNotes()
+    },
+    handlePlaybackNoteOn(midiNumber, velocity = 100) {
+      const note = midiNumberToNote(midiNumber)
+      if (!note) return
+
+      if (this.playbackSustained[note]) {
+        const sustained = { ...this.playbackSustained }
+        delete sustained[note]
+        this.playbackSustained = sustained
+      }
+
+      this.playbackActive = { ...this.playbackActive, [note]: true }
+      this.playKeyAudio(midiNumber, velocity)
+    },
+    handlePlaybackNoteOff(midiNumber) {
+      const note = midiNumberToNote(midiNumber)
+      if (!note || !this.playbackActive[note]) return
+
+      const next = { ...this.playbackActive }
+      delete next[note]
+      this.playbackActive = next
+
+      if (this.playbackSustainPedalDown) {
+        this.playbackSustained = { ...this.playbackSustained, [note]: true }
+      }
+
+      releasePianoNote(midiNumber, {
+        sustainPedalDown: this.playbackSustainPedalDown,
+      }).catch((error) => {
+        console.warn('Erro ao soltar áudio da nota.', error)
+      })
+    },
+    handlePlaybackSustainPedal(value) {
+      const isDown = value >= 64
+      this.playbackSustainPedalDown = isDown
+
+      if (!isDown) {
+        this.playbackSustained = {}
+        releaseSustainedPianoNotes()
+      }
+    },
     playKeyAudio(midiNumber, velocity = 96) {
       playPianoNote(midiNumber, velocity).catch((error) => {
         console.warn('Erro ao reproduzir áudio da nota.', error)
@@ -474,6 +1030,8 @@ export default {
       )
     },
     pressKey(note, source, velocity = 96) {
+      if (this.isPlaybackBlockingLive) return
+
       if (this.sustainedActive[note]) {
         const sustained = { ...this.sustainedActive }
         delete sustained[note]
@@ -490,6 +1048,7 @@ export default {
       const midiNumber = noteToMidiNumber(note)
       if (midiNumber !== null) {
         this.playKeyAudio(midiNumber, velocity)
+        this.recordLiveNoteOn(midiNumber, velocity)
       }
     },
     releaseKey(note, source) {
@@ -520,18 +1079,37 @@ export default {
       const midiNumber = noteToMidiNumber(note)
       if (midiNumber !== null) {
         this.releaseKeyAudio(midiNumber)
+        this.recordLiveNoteOff(midiNumber)
       }
     },
+    recordLiveNoteOn(midiNumber, velocity) {
+      if (!this.isRecording) return
+
+      this.midiRecorder.recordNoteOn(midiNumber, velocity)
+    },
+    recordLiveNoteOff(midiNumber) {
+      if (!this.isRecording) return
+
+      this.midiRecorder.recordNoteOff(midiNumber)
+    },
+    recordLiveSustainPedal(value) {
+      if (!this.isRecording) return
+
+      this.midiRecorder.recordControlChange(SUSTAIN_PEDAL_CC, value)
+    },
     onWindowMouseUp(event) {
-      if (event.button !== 0) return
+      if (event.button !== 0 || this.isPlaybackBlockingLive) return
 
       for (const note of Object.keys(this.pointerHeld)) {
         this.releaseKey(note, 'pointer')
       }
     },
     handleSustainPedal(value) {
+      if (this.isPlaybackBlockingLive) return
+
       const isDown = value >= 64
       this.sustainPedalDown = isDown
+      this.recordLiveSustainPedal(value)
 
       if (!isDown) {
         this.sustainedActive = {}
@@ -539,23 +1117,23 @@ export default {
       }
     },
     handleMidiControlChange(controller, value) {
+      if (this.isPlaybackBlockingLive) return
       if (controller !== SUSTAIN_PEDAL_CC) return
       this.handleSustainPedal(value)
     },
     handleMidiNoteOn(midiNumber, velocity = 100) {
+      if (this.isPlaybackBlockingLive) return
       if (!isPianoMidiNote(midiNumber)) return
       this.pressKey(midiNumberToNote(midiNumber), 'midi', velocity)
     },
     handleMidiNoteOff(midiNumber) {
+      if (this.isPlaybackBlockingLive) return
       if (!isPianoMidiNote(midiNumber)) return
       this.releaseKey(midiNumberToNote(midiNumber), 'midi')
     },
-    handleRawMidiMessage(data) {
-      if (!this.isRecording) return
-
-      this.midiRecorder.record(data)
-    },
     toggleRecording() {
+      if (this.isPlaybackBlockingLive) return
+
       if (this.isRecording) {
         this.stopRecording()
         return
@@ -564,18 +1142,29 @@ export default {
       this.midiRecorder.start()
       this.isRecording = true
     },
-    stopRecording() {
+    async stopRecording() {
       this.isRecording = false
       const events = this.midiRecorder.stop()
 
-      if (events.length === 0) return
+      if (events.length === 0) {
+        console.warn('Gravação vazia: nenhuma nota ou pedal foi registrado.')
+        return
+      }
 
-      const blob = createMidiBlob(events)
+      const blob = createMidiBlob(events, {
+        tempo: bpmToTempo(this.metronomeBpm),
+      })
       const filename = `pianoapp-${formatRecordingFilename()}`
 
-      saveMidiFile(blob, filename).catch((error) => {
+      try {
+        const result = await saveMidiFile(blob, filename)
+
+        if (result.cancelled) {
+          console.warn('Salvamento do MIDI cancelado.')
+        }
+      } catch (error) {
         console.warn('Não foi possível salvar o arquivo MIDI.', error)
-      })
+      }
     },
     async initMidi() {
       if (!isMidiSupported()) return
@@ -588,7 +1177,6 @@ export default {
           onNoteOn: this.handleMidiNoteOn.bind(this),
           onNoteOff: this.handleMidiNoteOff.bind(this),
           onControlChange: this.handleMidiControlChange.bind(this),
-          onMidiMessage: this.handleRawMidiMessage.bind(this),
         })
       } catch (error) {
         console.warn('Não foi possível acessar dispositivos MIDI.', error)
@@ -639,56 +1227,37 @@ export default {
   padding-bottom: 24px;
 }
 
-.pressed-notes {
+.piano-stage--with-roll {
+  flex: 1;
+  min-height: 0;
+  margin-top: 16px;
+  gap: 20px;
+}
+
+.piano-playfield {
+  width: 100%;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  min-height: 52px;
-  padding: 0 16px;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  flex-direction: column;
 }
 
-.pressed-notes--empty {
-  visibility: hidden;
+.piano-playfield--with-roll {
+  flex: 1;
+  min-height: 0;
+  gap: 0;
 }
 
-.pressed-note {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #f3f4f6;
-  white-space: nowrap;
-}
-
-.pressed-note__western {
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.pressed-note__separator {
-  font-size: 1rem;
-  font-weight: 500;
-  color: rgba(243, 244, 246, 0.45);
-}
-
-.pressed-note__solfege {
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: #93c5fd;
-  letter-spacing: 0.01em;
+.piano-playfield--with-roll .piano-keyboard {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .piano-keyboard {
   position: relative;
   width: 100%;
   height: 220px;
+  min-height: 120px;
+  max-height: 360px;
   user-select: none;
   touch-action: manipulation;
   overflow: visible;
@@ -838,11 +1407,14 @@ export default {
     inset -6px -6px 12px var(--neu-light);
 
   width: 100%;
-  padding: 18px 22px;
+  padding: 18px 22px 16px;
   border-radius: 20px;
   border: none;
   background: #1e1e24;
   box-shadow: var(--neu-pressed-deep);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .recorder-section__inner {
@@ -851,6 +1423,98 @@ export default {
   justify-content: center;
   flex-wrap: wrap;
   gap: 16px;
+}
+
+.recorder-section__tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.recorder-section__tab {
+  margin: 0;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(243, 244, 246, 0.55);
+  cursor: pointer;
+  transition:
+    color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.recorder-section__tab:hover {
+  color: rgba(243, 244, 246, 0.85);
+}
+
+.recorder-section__tab:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+.recorder-section__tab--active {
+  color: #fbbf24;
+  box-shadow: var(--neu-pressed);
+}
+
+.recorder-section__panel {
+  width: 100%;
+}
+
+.recorder-section__panel--metronome .recorder-section__metronome {
+  width: 100%;
+}
+
+.recorder-section__progress {
+  width: 100%;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.recorder-section__progress-track {
+  display: block;
+  width: 100%;
+  height: 10px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed-deep);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.recorder-section__progress-track:hover {
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px rgba(251, 191, 36, 0.2);
+}
+
+.recorder-section__progress-track:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.recorder-section__progress-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ca8a04 0%, #fbbf24 100%);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.35);
+  pointer-events: none;
 }
 
 .recorder-section__divider {
@@ -913,6 +1577,92 @@ export default {
 
 .recorder-section__button--play:focus-visible {
   outline: 2px solid #22c55e;
+  outline-offset: 3px;
+}
+
+.recorder-section__button--pause-mode {
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px rgba(251, 191, 36, 0.35);
+}
+
+.recorder-section__button--pause-mode:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.recorder-section__icon--pause {
+  position: relative;
+  width: 14px;
+  height: 14px;
+}
+
+.recorder-section__icon--pause::before,
+.recorder-section__icon--pause::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 14px;
+  border-radius: 1px;
+  background: #fbbf24;
+  box-shadow: 0 0 5px rgba(251, 191, 36, 0.55);
+}
+
+.recorder-section__icon--pause::before {
+  left: 1px;
+}
+
+.recorder-section__icon--pause::after {
+  right: 1px;
+}
+
+.recorder-section__button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--neu-pressed);
+}
+
+.recorder-section__button:disabled:hover {
+  box-shadow: var(--neu-pressed);
+}
+
+.recorder-section__file-input {
+  display: none;
+}
+
+.recorder-section__pill--file {
+  min-width: 72px;
+}
+
+.recorder-section__pill--bpm-reset {
+  min-width: 72px;
+  margin-left: 4px;
+}
+
+.recorder-section__pill--remove-file {
+  min-width: 72px;
+  color: rgba(252, 165, 165, 0.9);
+}
+
+.recorder-section__pill--remove-file:hover {
+  color: #fecaca;
+}
+
+.recorder-section__file-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(243, 244, 246, 0.5);
+}
+
+.recorder-section__button--stop-playback:focus-visible {
+  outline: 2px solid rgba(243, 244, 246, 0.55);
   outline-offset: 3px;
 }
 
@@ -1150,6 +1900,13 @@ export default {
   text-align: center;
   cursor: text;
   transition: box-shadow 0.15s ease;
+}
+
+.recorder-section__bpm-value--readonly {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
 }
 
 .recorder-section__bpm-value:hover {
