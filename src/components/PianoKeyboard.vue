@@ -42,6 +42,18 @@
         >
           Metrônomo
         </button>
+        <button
+          id="controls-tab-screen"
+          type="button"
+          role="tab"
+          class="recorder-section__tab"
+          :class="{ 'recorder-section__tab--active': controlsTab === 'screen' }"
+          :aria-selected="controlsTab === 'screen'"
+          aria-controls="controls-panel-screen"
+          @click="controlsTab = 'screen'"
+        >
+          Vídeo da tela
+        </button>
       </div>
 
       <div
@@ -249,6 +261,49 @@
               <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      <div
+        v-show="controlsTab === 'screen'"
+        id="controls-panel-screen"
+        role="tabpanel"
+        class="recorder-section__panel"
+        aria-labelledby="controls-tab-screen"
+      >
+        <div class="recorder-section__inner">
+          <span class="recorder-section__label">Gravação de tela</span>
+          <button
+            type="button"
+            class="recorder-section__button"
+            :class="{ 'recorder-section__button--recording': isScreenRecording }"
+            :disabled="!screenRecordingSupported"
+            :aria-label="isScreenRecording ? 'Parar gravação de tela' : screenRecordAriaLabel"
+            @click="toggleScreenRecording"
+          >
+            <span
+              v-if="!isScreenRecording"
+              class="recorder-section__icon recorder-section__icon--record"
+            />
+            <span
+              v-else
+              class="recorder-section__icon recorder-section__icon--stop"
+            />
+          </button>
+          <span
+            class="recorder-section__hint"
+            :class="{ 'recorder-section__hint--active': isScreenRecording }"
+          >
+            <template v-if="isScreenRecording">
+              {{ screenRecordingHint }}
+            </template>
+            <template v-else-if="screenRecordingSupported">
+              {{ screenRecordingIdleHint }}
+            </template>
+            <template v-else>
+              Não suportado neste navegador
+            </template>
+          </span>
         </div>
       </div>
 
@@ -517,6 +572,14 @@ import {
 import { parseMidiFile } from '../utils/midiParser.js'
 import { createMidiPlayer } from '../utils/midiPlayer.js'
 import { buildPianoRollNotes } from '../utils/midiPianoRoll.js'
+import {
+  createScreenRecorder,
+  formatScreenRecordingFilename,
+  getPreferredRecordingContainerLabel,
+  getRecordingFormatFromMime,
+  isScreenRecordingSupported,
+  saveScreenRecording,
+} from '../utils/screenRecorder.js'
 import PianoRoll from './PianoRoll.vue'
 
 const piano = buildPianoKeys()
@@ -571,9 +634,37 @@ export default {
       controlsTab: 'playback',
       keyboardHeight: KEYBOARD_HEIGHT_DEFAULT,
       keyboardHeightStep: KEYBOARD_HEIGHT_STEP,
+      screenRecorder: createScreenRecorder(),
+      isScreenRecording: false,
+      screenRecordingElapsedMs: 0,
     }
   },
   computed: {
+    screenRecordingSupported() {
+      return isScreenRecordingSupported()
+    },
+    screenRecordFormatLabel() {
+      const mimeType = this.screenRecorder.getRecordingMimeType()
+
+      return mimeType
+        ? getRecordingFormatFromMime(mimeType).containerLabel
+        : getPreferredRecordingContainerLabel(true)
+    },
+    screenRecordAriaLabel() {
+      return `Gravar tela em ${this.screenRecordFormatLabel}`
+    },
+    screenRecordingIdleHint() {
+      const format = this.screenRecordFormatLabel
+
+      return `Salva em ${format} (H.264 quando disponível). Tela inteira + áudio do sistema; o piano é incluído`
+    },
+    screenRecordingHint() {
+      const audioLabel = this.screenRecorder.hasAudioTrack()
+        ? 'com áudio'
+        : 'sem áudio do sistema'
+
+      return `Gravando ${this.formatPlaybackTime(this.screenRecordingElapsedMs)} · ${this.screenRecordFormatLabel} ${audioLabel}`
+    },
     keyboardHeightStyle() {
       return { height: `${this.keyboardHeight}px` }
     },
@@ -646,6 +737,14 @@ export default {
     this.metronome.setOnTick((beatIndex) => {
       this.metronomeCurrentBeat = beatIndex
     })
+    this.screenRecorder.setOnElapsed((elapsedMs) => {
+      this.screenRecordingElapsedMs = elapsedMs
+    })
+    this.screenRecorder.setOnShareEnded(() => {
+      if (this.isScreenRecording) {
+        this.stopScreenRecording()
+      }
+    })
     this.initMidi()
     window.addEventListener('keydown', this.handleRecordingKeydown)
     window.addEventListener('mouseup', this.onWindowMouseUp)
@@ -655,6 +754,7 @@ export default {
     window.removeEventListener('mouseup', this.onWindowMouseUp)
     stopAllPianoNotes()
     this.metronome.dispose()
+    this.screenRecorder.dispose()
     this.disposeMidiPlayer()
     this.teardownMidi()
   },
@@ -1141,6 +1241,58 @@ export default {
 
       this.midiRecorder.start()
       this.isRecording = true
+    },
+    async toggleScreenRecording() {
+      if (!this.screenRecordingSupported) return
+
+      if (this.isScreenRecording) {
+        await this.stopScreenRecording()
+        return
+      }
+
+      await this.startScreenRecording()
+    },
+    async startScreenRecording() {
+      try {
+        await this.screenRecorder.start()
+        this.isScreenRecording = true
+        this.screenRecordingElapsedMs = 0
+      } catch (error) {
+        if (error.name === 'NotAllowedError' || error.name === 'AbortError') {
+          return
+        }
+
+        console.warn('Não foi possível iniciar a gravação de tela.', error)
+      }
+    },
+    async stopScreenRecording() {
+      if (!this.screenRecorder.isRecording()) {
+        this.isScreenRecording = false
+        this.screenRecordingElapsedMs = 0
+        return
+      }
+
+      this.isScreenRecording = false
+      this.screenRecordingElapsedMs = 0
+
+      try {
+        const blob = await this.screenRecorder.stop()
+
+        if (!blob || blob.size === 0) {
+          console.warn('Gravação de tela vazia.')
+          return
+        }
+
+        const filename = formatScreenRecordingFilename(new Date(), blob.type)
+        const result = await saveScreenRecording(blob, filename)
+
+        if (result.cancelled) {
+          console.warn('Salvamento do vídeo cancelado.')
+        }
+      } catch (error) {
+        console.warn('Não foi possível salvar a gravação de tela.', error)
+        this.screenRecorder.cancel()
+      }
     },
     async stopRecording() {
       this.isRecording = false

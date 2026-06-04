@@ -4,6 +4,7 @@ import { isPianoMidiNote, midiNumberToNote } from './midiNotes.js'
 let audioContext = null
 let pianoInstrument = null
 let masterGain = null
+let recordDestination = null
 let initPromise = null
 const activeNotes = new Map()
 const sustainedNotes = new Set()
@@ -15,6 +16,14 @@ function velocityToGain(velocity) {
   return 0.45 + normalized * 0.55
 }
 
+export function getPianoAudioMediaStream() {
+  return recordDestination?.stream ?? null
+}
+
+export async function resumePianoAudioContext() {
+  await resumeAudioContext()
+}
+
 export async function ensurePianoAudio() {
   if (initPromise) return initPromise
 
@@ -23,6 +32,8 @@ export async function ensurePianoAudio() {
     masterGain = audioContext.createGain()
     masterGain.gain.value = MASTER_VOLUME
     masterGain.connect(audioContext.destination)
+    recordDestination = audioContext.createMediaStreamDestination()
+    masterGain.connect(recordDestination)
 
     pianoInstrument = await Soundfont.instrument(
       audioContext,
