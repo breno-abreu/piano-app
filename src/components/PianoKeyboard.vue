@@ -87,7 +87,7 @@
                 aria-label="Diminuir andamento"
                 @click="changeMetronomeBpm(-1)"
               >
-                −
+                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">−</span>
               </button>
               <button
                 v-if="!metronomeBpmEditing"
@@ -118,7 +118,7 @@
                 aria-label="Aumentar andamento"
                 @click="changeMetronomeBpm(1)"
               >
-                +
+                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
               </button>
             </div>
             <button
@@ -707,7 +707,9 @@ export default {
   cursor: pointer;
   outline: none;
   box-sizing: border-box;
-  transition: background-color 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  transition: border-color 0.1s ease;
 }
 
 .piano-key__label {
@@ -730,11 +732,12 @@ export default {
   color: #6b7280;
 }
 
-.piano-key--white.piano-key--pressed .piano-key__label {
+.piano-key--white.piano-key--pressed .piano-key__label,
+.piano-key--white:active .piano-key__label {
   color: #ffffff;
 }
 
-.piano-key--white.piano-key--sustained .piano-key__label {
+.piano-key--white.piano-key--sustained:not(:active) .piano-key__label {
   color: #1e40af;
 }
 
@@ -750,11 +753,12 @@ export default {
   z-index: 2;
 }
 
-.piano-key--black.piano-key--pressed .piano-key__label {
+.piano-key--black.piano-key--pressed .piano-key__label,
+.piano-key--black:active .piano-key__label {
   color: #1e3a8a;
 }
 
-.piano-key--black.piano-key--sustained .piano-key__label {
+.piano-key--black.piano-key--sustained:not(:active) .piano-key__label {
   color: #1e40af;
 }
 
@@ -773,12 +777,13 @@ export default {
   background: linear-gradient(180deg, #ffffff 0%, #ececec 100%);
 }
 
-.piano-key--white.piano-key--pressed {
+.piano-key--white.piano-key--pressed,
+.piano-key--white:active {
   background: #1d4ed8 !important;
   border-color: #1e3a8a !important;
 }
 
-.piano-key--white.piano-key--sustained {
+.piano-key--white.piano-key--sustained:not(:active) {
   background: #dbeafe !important;
   border-color: #bfdbfe !important;
 }
@@ -804,22 +809,40 @@ export default {
   background: linear-gradient(180deg, #3a3a3a 0%, #111111 100%);
 }
 
-.piano-key--black.piano-key--pressed {
+.piano-key--black.piano-key--pressed,
+.piano-key--black:active {
   background: #1d4ed8 !important;
   border-color: #1e3a8a !important;
 }
 
-.piano-key--black.piano-key--sustained {
+.piano-key--black.piano-key--sustained:not(:active) {
   background: #60a5fa !important;
   border-color: #93c5fd !important;
 }
 
 .recorder-section {
+  --neu-surface: #25252d;
+  --neu-light: rgba(255, 255, 255, 0.07);
+  --neu-dark: rgba(0, 0, 0, 0.5);
+  --neu-raised:
+    6px 6px 12px var(--neu-dark),
+    -6px -6px 12px var(--neu-light);
+  --neu-raised-sm:
+    4px 4px 8px var(--neu-dark),
+    -4px -4px 8px var(--neu-light);
+  --neu-pressed:
+    inset 4px 4px 8px var(--neu-dark),
+    inset -4px -4px 8px var(--neu-light);
+  --neu-pressed-deep:
+    inset 6px 6px 12px var(--neu-dark),
+    inset -6px -6px 12px var(--neu-light);
+
   width: 100%;
-  padding: 14px 20px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 18px 22px;
+  border-radius: 20px;
+  border: none;
+  background: #1e1e24;
+  box-shadow: var(--neu-pressed-deep);
 }
 
 .recorder-section__inner {
@@ -831,9 +854,13 @@ export default {
 }
 
 .recorder-section__divider {
-  width: 1px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.12);
+  width: 2px;
+  height: 36px;
+  border-radius: 1px;
+  background: var(--neu-surface);
+  box-shadow:
+    inset 1px 0 2px var(--neu-dark),
+    inset -1px 0 1px var(--neu-light);
 }
 
 .recorder-section__label {
@@ -842,7 +869,8 @@ export default {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(243, 244, 246, 0.72);
+  color: rgba(243, 244, 246, 0.65);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .recorder-section__button {
@@ -850,18 +878,26 @@ export default {
   height: 44px;
   margin: 0;
   padding: 0;
-  border: 2px solid rgba(255, 255, 255, 0.16);
+  border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
 }
 
 .recorder-section__button:hover {
-  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow:
+    5px 5px 10px var(--neu-dark),
+    -5px -5px 10px var(--neu-light);
+}
+
+.recorder-section__button:active {
+  box-shadow: var(--neu-pressed);
+  transform: scale(0.97);
 }
 
 .recorder-section__button:focus-visible {
@@ -870,8 +906,9 @@ export default {
 }
 
 .recorder-section__button--recording {
-  border-color: rgba(239, 68, 68, 0.65);
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 14px rgba(239, 68, 68, 0.35);
 }
 
 .recorder-section__button--play:focus-visible {
@@ -888,7 +925,10 @@ export default {
   height: 16px;
   border-radius: 50%;
   background: #ef4444;
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.55);
+  box-shadow:
+    0 0 8px rgba(239, 68, 68, 0.55),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.25),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .recorder-section__icon--stop {
@@ -924,20 +964,28 @@ export default {
   height: 36px;
   margin: 0;
   padding: 0 14px;
-  border: 2px solid rgba(255, 255, 255, 0.16);
+  border: none;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: rgba(243, 244, 246, 0.72);
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  transition: box-shadow 0.15s ease, color 0.15s ease, transform 0.12s ease;
 }
 
 .recorder-section__pill:hover {
-  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow:
+    5px 5px 10px var(--neu-dark),
+    -5px -5px 10px var(--neu-light);
+}
+
+.recorder-section__pill:active {
+  box-shadow: var(--neu-pressed);
+  transform: scale(0.98);
 }
 
 .recorder-section__pill:focus-visible {
@@ -946,9 +994,10 @@ export default {
 }
 
 .recorder-section__pill--active {
-  border-color: rgba(59, 130, 246, 0.65);
-  background: rgba(59, 130, 246, 0.15);
-  color: #bfdbfe;
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 12px rgba(59, 130, 246, 0.12);
+  color: #93c5fd;
 }
 
 .recorder-section__pill--notation {
@@ -987,7 +1036,8 @@ export default {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
   transition:
     background-color 0.08s ease,
     box-shadow 0.08s ease,
@@ -995,13 +1045,17 @@ export default {
 }
 
 .recorder-section__beat-dot--strong {
-  background: #ca8a04;
-  box-shadow: 0 0 6px rgba(202, 138, 4, 0.35);
+  background: #a16207;
+  box-shadow:
+    var(--neu-raised-sm),
+    0 0 6px rgba(202, 138, 4, 0.35);
 }
 
 .recorder-section__beat-dot--current {
   background: #f59e0b;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+  box-shadow:
+    var(--neu-pressed),
+    0 0 10px rgba(245, 158, 11, 0.65);
   transform: scale(1.2);
 }
 
@@ -1011,8 +1065,9 @@ export default {
 }
 
 .recorder-section__button--metronome-active {
-  border-color: rgba(245, 158, 11, 0.65);
-  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 14px rgba(245, 158, 11, 0.35);
 }
 
 .recorder-section__icon--metronome-play {
@@ -1043,20 +1098,36 @@ export default {
   height: 32px;
   margin: 0;
   padding: 0;
-  border: 2px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 10px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color: rgba(243, 244, 246, 0.85);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.recorder-section__bpm-step-glyph {
+  display: block;
   font-size: 1.125rem;
   font-weight: 600;
   line-height: 1;
-  color: rgba(243, 244, 246, 0.85);
-  cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transform: translateY(-2px);
 }
 
 .recorder-section__bpm-step:hover {
-  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow:
+    5px 5px 10px var(--neu-dark),
+    -5px -5px 10px var(--neu-light);
+}
+
+.recorder-section__bpm-step:active {
+  box-shadow: var(--neu-pressed);
+  transform: scale(0.96);
 }
 
 .recorder-section__bpm-step:focus-visible {
@@ -1067,22 +1138,24 @@ export default {
 .recorder-section__bpm-value {
   min-width: 72px;
   margin: 0;
-  padding: 6px 10px;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  background: transparent;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed);
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
   color: rgba(243, 244, 246, 0.85);
   text-align: center;
   cursor: text;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: box-shadow 0.15s ease;
 }
 
 .recorder-section__bpm-value:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 5px 5px 10px var(--neu-dark),
+    inset -5px -5px 10px var(--neu-light);
 }
 
 .recorder-section__bpm-value:focus-visible {
@@ -1095,15 +1168,20 @@ export default {
   align-items: center;
   gap: 6px;
   min-width: 72px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed);
 }
 
 .recorder-section__bpm-input {
   width: 44px;
   margin: 0;
   padding: 6px 8px;
-  border: 2px solid rgba(245, 158, 11, 0.65);
+  border: none;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed-deep);
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
@@ -1113,7 +1191,9 @@ export default {
 
 .recorder-section__bpm-input:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 0 2px rgba(245, 158, 11, 0.35);
 }
 
 .recorder-section__bpm-suffix {
