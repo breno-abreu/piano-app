@@ -26,45 +26,47 @@
 
       <div class="rhythmic-figures__toolbar-group">
         <span class="rhythmic-figures__label">Andamento</span>
-        <button
-          type="button"
-          class="rhythmic-figures__step"
-          aria-label="Diminuir andamento"
-          @click="changeBpm(-1)"
-        >
-          <span aria-hidden="true">−</span>
-        </button>
-        <button
-          v-if="!bpmEditing"
-          type="button"
-          class="rhythmic-figures__value rhythmic-figures__value--button"
-          aria-label="Editar andamento em BPM"
-          @click="startBpmEdit"
-        >
-          {{ bpm }} BPM
-        </button>
-        <span v-else class="rhythmic-figures__bpm-edit">
-          <input
-            ref="bpmInput"
-            v-model="bpmDraft"
-            type="text"
-            inputmode="numeric"
-            class="rhythmic-figures__bpm-input"
-            aria-label="Andamento em BPM"
-            @keydown.enter.prevent="commitBpm"
-            @keydown.esc.prevent="cancelBpmEdit"
-            @blur="commitBpm"
-          />
-          <span class="rhythmic-figures__bpm-suffix">BPM</span>
-        </span>
-        <button
-          type="button"
-          class="rhythmic-figures__step"
-          aria-label="Aumentar andamento"
-          @click="changeBpm(1)"
-        >
-          <span aria-hidden="true">+</span>
-        </button>
+        <div class="recorder-section__bpm">
+          <button
+            type="button"
+            class="recorder-section__bpm-step"
+            aria-label="Diminuir andamento"
+            @click="changeBpm(-1)"
+          >
+            <span class="recorder-section__bpm-step-glyph" aria-hidden="true">−</span>
+          </button>
+          <button
+            v-if="!bpmEditing"
+            type="button"
+            class="recorder-section__bpm-value"
+            aria-label="Editar andamento em BPM"
+            @click="startBpmEdit"
+          >
+            {{ bpm }} BPM
+          </button>
+          <span v-else class="recorder-section__bpm-edit">
+            <input
+              ref="bpmInput"
+              v-model="bpmDraft"
+              type="text"
+              inputmode="numeric"
+              class="recorder-section__bpm-input"
+              aria-label="Andamento em BPM"
+              @keydown.enter.prevent="commitBpm"
+              @keydown.esc.prevent="cancelBpmEdit"
+              @blur="commitBpm"
+            />
+            <span class="recorder-section__bpm-suffix">BPM</span>
+          </span>
+          <button
+            type="button"
+            class="recorder-section__bpm-step"
+            aria-label="Aumentar andamento"
+            @click="changeBpm(1)"
+          >
+            <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
+          </button>
+        </div>
       </div>
 
       <div class="rhythmic-figures__toolbar-group">
@@ -76,6 +78,7 @@
           class="rhythmic-figures__pill"
           :class="{ 'rhythmic-figures__pill--active': timeSignature === signature }"
           :aria-pressed="timeSignature === signature"
+          @click="changeTimeSignature(signature)"
         >
           {{ signature }}
         </button>
@@ -100,6 +103,27 @@
             aria-hidden="true"
           />
         </button>
+        <button
+          type="button"
+          class="rhythmic-figures__reset-btn"
+          aria-label="Limpar pauta rítmica"
+          @click="resetScore"
+        >
+          <svg
+            class="rhythmic-figures__reset-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          <span class="rhythmic-figures__reset-label">Limpar</span>
+        </button>
       </div>
     </div>
 
@@ -114,16 +138,17 @@
           class="rhythmic-figures__measure"
         >
           <span class="rhythmic-figures__measure-number">{{ measureIndex + 1 }}</span>
-          <div class="rhythmic-figures__beats">
+          <div
+            class="rhythmic-figures__beats"
+            :style="{ gridTemplateColumns: `repeat(${beatsPerBar}, minmax(42px, 1fr))` }"
+          >
             <div
               v-for="(slot, beatIndex) in measure"
-              v-if="!isBeatContinuation(measureIndex, beatIndex)"
               :key="`beat-${measureIndex}-${beatIndex}`"
               class="rhythmic-figures__beat"
               :class="beatCellClass(measureIndex, beatIndex)"
-              :style="beatCellStyle(measureIndex, beatIndex)"
               :aria-label="beatAriaLabel(measureIndex, beatIndex)"
-              @dragover.prevent="onBeatDragOver(measureIndex, beatIndex)"
+              @dragover.prevent="onBeatDragOver(measureIndex, beatIndex, $event)"
               @dragleave="onBeatDragLeave"
               @drop.prevent="onBeatDrop(measureIndex, beatIndex, $event)"
             >
@@ -141,6 +166,36 @@
                   draggable="false"
                 />
               </button>
+              <span
+                v-else-if="isBeatContinuation(measureIndex, beatIndex)"
+                class="rhythmic-figures__slot-icon rhythmic-figures__slot-icon--blocked"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                  <rect x="5" y="11" width="14" height="9" rx="2" />
+                  <path d="M8 11V8.5a4 4 0 0 1 8 0V11" />
+                </svg>
+              </span>
+              <span
+                v-else-if="isDragOverInvalid(measureIndex, beatIndex)"
+                class="rhythmic-figures__slot-icon rhythmic-figures__slot-icon--forbidden"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M8 16 16 8" />
+                </svg>
+              </span>
+              <span
+                v-else-if="isDragPreviewContinuation(measureIndex, beatIndex)"
+                class="rhythmic-figures__slot-icon rhythmic-figures__slot-icon--blocked rhythmic-figures__slot-icon--preview"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                  <rect x="5" y="11" width="14" height="9" rx="2" />
+                  <path d="M8 11V8.5a4 4 0 0 1 8 0V11" />
+                </svg>
+              </span>
             </div>
           </div>
         </div>
@@ -182,7 +237,9 @@ import {
   RHYTHMIC_TIME_SIGNATURES,
   RHYTHMIC_DEFAULT_BPM,
   clampRhythmicBpm,
+  canPlaceRhythmicFigure,
   createEmptyRhythmicScore,
+  fillEmptyRhythmicSlotsWithRests,
   getRhythmicBeatsPerBar,
   getRhythmicFigure,
   getRhythmicPlacementAt,
@@ -230,6 +287,12 @@ export default {
       this.activeMeasureIndex = null
       this.activeBeatIndex = null
     },
+    resetScore() {
+      this.stopPlayback()
+      this.score = createEmptyRhythmicScore(this.measureCount, this.beatsPerBar)
+      this.draggedFigureId = null
+      this.dragOverTarget = null
+    },
     async togglePlayback() {
       if (this.playbackRunning) {
         this.stopPlayback()
@@ -256,6 +319,12 @@ export default {
         this.activeBeatIndex = null
       })
 
+      this.score = fillEmptyRhythmicSlotsWithRests(
+        this.score,
+        this.measureCount,
+        this.beatsPerBar,
+      )
+
       await this.rhythmicPlayer.start(
         this.score,
         this.measureCount,
@@ -274,6 +343,12 @@ export default {
       )
       this.measureCount = nextCount
       this.score = trimRhythmicScore(this.score, nextCount, this.beatsPerBar)
+    },
+    changeTimeSignature(signature) {
+      if (this.timeSignature === signature) return
+      this.stopPlayback()
+      this.timeSignature = signature
+      this.score = trimRhythmicScore(this.score, this.measureCount, this.beatsPerBar)
     },
     changeBpm(delta) {
       this.bpm = clampRhythmicBpm(this.bpm + delta)
@@ -311,10 +386,22 @@ export default {
       this.draggedFigureId = null
       this.dragOverTarget = null
     },
-    onBeatDragOver(measureIndex, beatIndex) {
+    onBeatDragOver(measureIndex, beatIndex, event) {
       this.dragOverTarget = { measureIndex, beatIndex }
+
+      if (event?.dataTransfer && this.draggedFigureId) {
+        const canDrop = canPlaceRhythmicFigure(
+          this.score,
+          measureIndex,
+          beatIndex,
+          this.draggedFigureId,
+        )
+        event.dataTransfer.dropEffect = canDrop ? 'copy' : 'none'
+      }
     },
-    onBeatDragLeave() {
+    onBeatDragLeave(event) {
+      const relatedTarget = event.relatedTarget
+      if (relatedTarget?.closest?.('.rhythmic-figures__beats')) return
       this.dragOverTarget = null
     },
     onBeatDrop(measureIndex, beatIndex, event) {
@@ -346,38 +433,64 @@ export default {
       const placement = this.placementAt(measureIndex, beatIndex)
       return Boolean(placement?.isContinuation)
     },
+    canDropAt(measureIndex, beatIndex, figureId = this.draggedFigureId) {
+      if (!figureId) return false
+      return canPlaceRhythmicFigure(
+        this.score,
+        measureIndex,
+        beatIndex,
+        figureId,
+      )
+    },
+    isDragOverInvalid(measureIndex, beatIndex) {
+      if (!this.draggedFigureId || !this.dragOverTarget) return false
+      if (
+        this.dragOverTarget.measureIndex !== measureIndex
+        || this.dragOverTarget.beatIndex !== beatIndex
+      ) {
+        return false
+      }
+      return !this.canDropAt(measureIndex, beatIndex)
+    },
+    isDragPreviewContinuation(measureIndex, beatIndex) {
+      if (!this.draggedFigureId || !this.dragOverTarget) return false
+
+      const { measureIndex: overMeasure, beatIndex: overBeat } = this.dragOverTarget
+      if (!this.canDropAt(overMeasure, overBeat)) return false
+
+      const figure = getRhythmicFigure(this.draggedFigureId)
+      if (!figure || figure.beats <= 1) return false
+      if (measureIndex !== overMeasure) return false
+
+      return beatIndex > overBeat && beatIndex < overBeat + figure.beats
+    },
     beatCellClass(measureIndex, beatIndex) {
       const placement = this.placementAt(measureIndex, beatIndex)
       const isDragOver =
         this.dragOverTarget?.measureIndex === measureIndex
         && this.dragOverTarget?.beatIndex === beatIndex
+      const isDragOverValid = isDragOver && this.canDropAt(measureIndex, beatIndex)
+      const isDragOverInvalid = this.isDragOverInvalid(measureIndex, beatIndex)
+      const isDragPreview = this.isDragPreviewContinuation(measureIndex, beatIndex)
 
       const isCountInPlaying =
         this.playbackPhase === 'count-in'
         && measureIndex === 0
         && this.activeBeatIndex === beatIndex
 
-      const isPlaying =
-        this.playbackPhase === 'sequence'
-        && this.activeMeasureIndex === measureIndex
+      const isActiveBeat =
+        this.activeMeasureIndex === measureIndex
         && this.activeBeatIndex === beatIndex
 
       return {
-        'rhythmic-figures__beat--occupied': Boolean(placement),
-        'rhythmic-figures__beat--drag-over': isDragOver,
+        'rhythmic-figures__beat--occupied': Boolean(placement && !placement.isContinuation),
+        'rhythmic-figures__beat--continuation': this.isBeatContinuation(measureIndex, beatIndex),
+        'rhythmic-figures__beat--drag-over': isDragOverValid,
+        'rhythmic-figures__beat--drag-invalid': isDragOverInvalid,
+        'rhythmic-figures__beat--drag-preview': isDragPreview,
         'rhythmic-figures__beat--count-in': isCountInPlaying,
-        'rhythmic-figures__beat--playing': isPlaying,
-      }
-    },
-    beatCellStyle(measureIndex, beatIndex) {
-      const placement = this.placementAt(measureIndex, beatIndex)
-      if (!placement || placement.isContinuation) return null
-
-      const figure = getRhythmicFigure(placement.figureId)
-      if (!figure || figure.beats <= 1) return null
-
-      return {
-        gridColumn: `span ${figure.beats}`,
+        'rhythmic-figures__beat--playing':
+          this.playbackPhase === 'sequence' && isActiveBeat,
       }
     },
     placedFigureImage(measureIndex, beatIndex) {
@@ -397,7 +510,10 @@ export default {
       }
       const figure = getRhythmicFigure(placement.figureId)
       if (placement.isContinuation) {
-        return `Compasso ${measureIndex + 1}, tempo ${beatIndex + 1}, ocupado`
+        return `Compasso ${measureIndex + 1}, tempo ${beatIndex + 1}, bloqueado`
+      }
+      if (this.isDragOverInvalid(measureIndex, beatIndex)) {
+        return `Compasso ${measureIndex + 1}, tempo ${beatIndex + 1}, não é possível colocar aqui`
       }
       return `Compasso ${measureIndex + 1}, tempo ${beatIndex + 1}, ${figure?.label ?? 'figura'}`
     },
@@ -458,7 +574,8 @@ export default {
 
 .rhythmic-figures__step,
 .rhythmic-figures__pill,
-.rhythmic-figures__playback-btn {
+.rhythmic-figures__playback-btn,
+.rhythmic-figures__reset-btn {
   margin: 0;
   border: none;
   background: var(--neu-surface);
@@ -478,13 +595,15 @@ export default {
 
 .rhythmic-figures__step:hover:not(:disabled),
 .rhythmic-figures__pill:hover,
-.rhythmic-figures__playback-btn:hover {
+.rhythmic-figures__playback-btn:hover,
+.rhythmic-figures__reset-btn:hover {
   box-shadow: var(--neu-raised);
 }
 
 .rhythmic-figures__step:active:not(:disabled),
 .rhythmic-figures__pill:active,
-.rhythmic-figures__playback-btn:active {
+.rhythmic-figures__playback-btn:active,
+.rhythmic-figures__reset-btn:active {
   box-shadow: var(--neu-pressed);
   transform: scale(0.97);
 }
@@ -503,41 +622,120 @@ export default {
   color: rgba(243, 244, 246, 0.92);
 }
 
-.rhythmic-figures__value--button {
+.recorder-section__bpm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recorder-section__bpm-step {
+  width: 32px;
+  height: 32px;
   margin: 0;
-  padding: 6px 12px;
+  padding: 0;
   border: none;
   border-radius: 10px;
   background: var(--neu-surface);
   box-shadow: var(--neu-raised-sm);
-  cursor: pointer;
-}
-
-.rhythmic-figures__bpm-edit {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color: rgba(243, 244, 246, 0.85);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
 }
 
-.rhythmic-figures__bpm-input {
-  width: 3.5rem;
-  padding: 6px 8px;
+.recorder-section__bpm-step-glyph {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+
+.recorder-section__bpm-step:hover {
+  box-shadow:
+    5px 5px 10px var(--neu-dark),
+    -5px -5px 10px var(--neu-light);
+}
+
+.recorder-section__bpm-step:active {
+  box-shadow: var(--neu-pressed);
+  transform: scale(0.96);
+}
+
+.recorder-section__bpm-step:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.recorder-section__bpm-value {
+  min-width: 72px;
+  margin: 0;
+  padding: 8px 12px;
   border: none;
   border-radius: 10px;
   background: var(--neu-surface);
   box-shadow: var(--neu-pressed);
-  color: rgba(243, 244, 246, 0.92);
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
+  color: rgba(243, 244, 246, 0.85);
+  text-align: center;
+  cursor: text;
+  transition: box-shadow 0.15s ease;
+}
+
+.recorder-section__bpm-value:hover {
+  box-shadow:
+    inset 5px 5px 10px var(--neu-dark),
+    inset -5px -5px 10px var(--neu-light);
+}
+
+.recorder-section__bpm-value:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.recorder-section__bpm-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 72px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed);
+}
+
+.recorder-section__bpm-input {
+  width: 44px;
+  margin: 0;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 8px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed-deep);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f3f4f6;
   text-align: center;
 }
 
-.rhythmic-figures__bpm-suffix {
+.recorder-section__bpm-input:focus {
+  outline: none;
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 0 2px rgba(245, 158, 11, 0.35);
+}
+
+.recorder-section__bpm-suffix {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: rgba(243, 244, 246, 0.65);
+  color: rgba(243, 244, 246, 0.85);
 }
 
 .rhythmic-figures__pill {
@@ -587,6 +785,26 @@ export default {
   background: #f3f4f6;
 }
 
+.rhythmic-figures__reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  color: rgba(243, 244, 246, 0.82);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.rhythmic-figures__reset-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
 .rhythmic-figures__staff {
   width: 100%;
   padding: 8px 4px;
@@ -632,7 +850,6 @@ export default {
 
 .rhythmic-figures__beats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(42px, 1fr));
   align-items: stretch;
   gap: 6px;
   width: 100%;
@@ -664,9 +881,28 @@ export default {
   background: rgba(251, 191, 36, 0.08);
 }
 
+.rhythmic-figures__beat--drag-invalid {
+  border-color: rgba(239, 68, 68, 0.85);
+  background: rgba(239, 68, 68, 0.12);
+  cursor: not-allowed;
+}
+
+.rhythmic-figures__beat--drag-preview {
+  border-style: solid;
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.05);
+}
+
 .rhythmic-figures__beat--occupied {
   border-style: solid;
   border-color: rgba(243, 244, 246, 0.12);
+}
+
+.rhythmic-figures__beat--continuation {
+  border-style: solid;
+  border-color: rgba(243, 244, 246, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  cursor: not-allowed;
 }
 
 .rhythmic-figures__beat--count-in {
@@ -723,6 +959,32 @@ export default {
 
 .rhythmic-figures__figure-img--placed {
   max-height: 40px;
+}
+
+.rhythmic-figures__slot-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.rhythmic-figures__slot-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.rhythmic-figures__slot-icon--blocked {
+  color: rgba(243, 244, 246, 0.28);
+}
+
+.rhythmic-figures__slot-icon--preview {
+  color: rgba(251, 191, 36, 0.45);
+}
+
+.rhythmic-figures__slot-icon--forbidden {
+  color: rgba(239, 68, 68, 0.8);
 }
 
 .rhythmic-figures__palette {

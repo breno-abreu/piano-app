@@ -63,12 +63,17 @@ export function createMidiRecorder() {
   let events = []
   let startTime = 0
   let recording = false
+  let recordingBpm = 120
 
   return {
-    start() {
+    start(options = {}) {
       events = []
       startTime = performance.now()
+      recordingBpm = Math.max(1, Math.round(options.bpm ?? 120))
       recording = true
+    },
+    getRecordingBpm() {
+      return recordingBpm
     },
     recordMessage(data) {
       if (!recording || !data || data.length < 3) return

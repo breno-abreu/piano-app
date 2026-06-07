@@ -892,10 +892,6 @@
         :aria-label="visualSustainPedalDown ? 'Pedal pressionado' : 'Pedal solto'"
       >
         <span class="sustain-pedal__label">PEDAL</span>
-        <div
-          class="sustain-pedal__indicator"
-          :class="{ 'sustain-pedal__indicator--pressed': visualSustainPedalDown }"
-        />
       </div>
 
       <svg
@@ -1659,6 +1655,18 @@ export default {
       this.metronomeBpm = Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(value)))
       this.metronome.setBpm(this.metronomeBpm)
     },
+    applyLoadedMidiBpm(bpm) {
+      const clampedBpm = Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(bpm)))
+      this.midiRecordedBpm = clampedBpm
+      this.playbackBpm = clampedBpm
+      this.playbackBpmEditing = false
+      this.playbackBpmDraft = ''
+      this.applyMetronomeBpm(clampedBpm)
+
+      if (this.midiPlayer) {
+        this.midiPlayer.setPlaybackRate(1)
+      }
+    },
     startMetronomeBpmEdit() {
       this.metronomeBpmDraft = String(this.metronomeBpm)
       this.metronomeBpmEditing = true
@@ -1705,11 +1713,8 @@ export default {
         this.midiParsedEvents = parsed.events
         this.pianoRollNotes = buildPianoRollNotes(parsed.events)
         this.midiDurationMs = parsed.durationMs
-        this.midiRecordedBpm = parsed.initialBpm
-        this.playbackBpm = parsed.initialBpm
-        this.playbackPositionMs = 0
         this.midiFileName = file.name
-        this.playbackStatus = 'ready'
+        this.playbackPositionMs = 0
         this.midiPlayer = createMidiPlayer(parsed.events, {
           onNoteOn: (midiNumber, velocity) => {
             this.handlePlaybackNoteOn(midiNumber, velocity)
@@ -1740,7 +1745,8 @@ export default {
             this.resetPlaybackVisuals()
           },
         })
-        this.midiPlayer.setPlaybackRate(1)
+        this.applyLoadedMidiBpm(parsed.initialBpm)
+        this.playbackStatus = 'ready'
       } catch (error) {
         console.warn('Não foi possível ler o arquivo MIDI.', error)
         this.clearMidiFile()
@@ -2014,7 +2020,7 @@ export default {
         return
       }
 
-      this.midiRecorder.start()
+      this.midiRecorder.start({ bpm: this.metronome.getBpm() })
       this.isRecording = true
     },
     async toggleScreenRecording() {
@@ -2079,7 +2085,7 @@ export default {
       }
 
       const blob = createMidiBlob(events, {
-        tempo: bpmToTempo(this.metronomeBpm),
+        tempo: bpmToTempo(this.metronome.getBpm()),
       })
       const filename = `pianoapp-${formatRecordingFilename()}`
 
@@ -3320,20 +3326,6 @@ export default {
   font-weight: 600;
   letter-spacing: 0.14em;
   color: #f3f4f6;
-}
-
-.sustain-pedal__indicator {
-  width: 52px;
-  height: 18px;
-  border-radius: 999px;
-  background: #ef4444;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.45);
-  transition: background-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.sustain-pedal__indicator--pressed {
-  background: #22c55e;
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.55);
 }
 
 .pedal-visual {

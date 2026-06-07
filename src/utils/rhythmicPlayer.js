@@ -1,5 +1,6 @@
 import {
   getRhythmicFigure,
+  getRhythmicHitOffsets,
   getRhythmicPlacementAt,
 } from './rhythmicFigures.js'
 
@@ -38,9 +39,28 @@ export function buildRhythmicTickEvents(score, measureCount, beatsPerBar, bpm) {
         ? getRhythmicFigure(placement.figureId)
         : null
       const beatSpan = figure?.beats ?? 1
-      const hits = figure?.hits ?? 0
+      const hitOffsets = figure ? getRhythmicHitOffsets(figure) : []
 
-      if (hits <= 0) {
+      if (beatSpan > 1) {
+        for (let offset = 0; offset < beatSpan; offset += 1) {
+          const playSound = hitOffsets.some(
+            (hitOffset) => Math.floor(hitOffset * beatSpan) === offset,
+          )
+
+          events.push({
+            offsetSec: time + offset * beatDuration,
+            measureIndex,
+            beatIndex: beatIndex + offset,
+            playSound,
+            phase: 'sequence',
+          })
+        }
+
+        time += beatDuration * beatSpan
+        continue
+      }
+
+      if (hitOffsets.length === 0) {
         events.push({
           offsetSec: time,
           measureIndex,
@@ -48,14 +68,13 @@ export function buildRhythmicTickEvents(score, measureCount, beatsPerBar, bpm) {
           playSound: false,
           phase: 'sequence',
         })
-        time += beatDuration * beatSpan
+        time += beatDuration
         continue
       }
 
-      const subDuration = beatDuration / hits
-      for (let hitIndex = 0; hitIndex < hits; hitIndex += 1) {
+      for (const hitOffset of hitOffsets) {
         events.push({
-          offsetSec: time + hitIndex * subDuration,
+          offsetSec: time + hitOffset * beatDuration,
           measureIndex,
           beatIndex,
           playSound: true,
@@ -63,7 +82,7 @@ export function buildRhythmicTickEvents(score, measureCount, beatsPerBar, bpm) {
         })
       }
 
-      time += beatDuration * beatSpan
+      time += beatDuration
     }
   }
 

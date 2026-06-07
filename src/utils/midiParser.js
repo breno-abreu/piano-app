@@ -52,11 +52,6 @@ function parseTrackEvents(data, start, end) {
 
     let status = data[offset]
 
-    if (status >= 0xf8) {
-      offset++
-      continue
-    }
-
     if (status === 0xff) {
       offset++
       if (offset >= end) break
@@ -75,6 +70,11 @@ function parseTrackEvents(data, start, end) {
       }
 
       offset = metaEnd
+      continue
+    }
+
+    if (status >= 0xf8) {
+      offset++
       continue
     }
 
