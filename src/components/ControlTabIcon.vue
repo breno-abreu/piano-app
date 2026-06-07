@@ -1,10 +1,6 @@
 <template>
   <svg
     class="control-tab-icon"
-    :class="{
-      'control-tab-icon--playback': name === 'playback',
-      'control-tab-icon--harmonic': name === 'harmonic',
-    }"
     :viewBox="name === 'harmonic' ? '0 0 640 640' : '0 0 24 24'"
     :fill="name === 'harmonic' ? 'currentColor' : 'none'"
     :stroke="name === 'harmonic' ? 'none' : 'currentColor'"
@@ -48,6 +44,21 @@
         d="M532 71C539.6 77.1 544 86.3 544 96L544 400C544 444.2 501 480 448 480C395 480 352 444.2 352 400C352 355.8 395 320 448 320C459.2 320 470 321.6 480 324.6L480 207.9L256 257.7L256 464C256 508.2 213 544 160 544C107 544 64 508.2 64 464C64 419.8 107 384 160 384C171.2 384 182 385.6 192 388.6L192 160C192 145 202.4 132 217.1 128.8L505.1 64.8C514.6 62.7 524.5 65 532.1 71.1z"
       />
     </template>
+
+    <!-- Dicionário de acordes -->
+    <template v-else-if="name === 'chord-dictionary'">
+      <path d="M6.5 5.75h11a1.25 1.25 0 0 1 1.25 1.25v13a1.25 1.25 0 0 1-1.25 1.25h-11A1.25 1.25 0 0 1 5.25 20V7A1.25 1.25 0 0 1 6.5 5.75Z" />
+      <path d="M8.25 9.5h7.5M8.25 12h5.5M8.25 14.5h6.75" />
+      <circle cx="16.25" cy="16.25" r="2.75" />
+      <path d="M16.25 14.1v4.3M14.6 16.25h3.3" />
+    </template>
+
+    <!-- Figuras rítmicas -->
+    <template v-else-if="name === 'rhythmic-figures'">
+      <path d="M5.5 6.25h13v11.5H5.5z" />
+      <path d="M8 9.25h1.75v5.5M10.5 10.75h1.75v3.5M13 9.75h1.75v4.5M15.5 11.25h1.75v2.5" />
+      <path d="M7.25 17.75h9.5" />
+    </template>
   </svg>
 </template>
 
@@ -59,7 +70,15 @@ export default {
       type: String,
       required: true,
       validator: (value) =>
-        ['playback', 'options', 'metronome', 'screen', 'harmonic'].includes(
+        [
+          'playback',
+          'options',
+          'metronome',
+          'screen',
+          'harmonic',
+          'chord-dictionary',
+          'rhythmic-figures',
+        ].includes(
           value,
         ),
     },
@@ -69,19 +88,9 @@ export default {
 
 <style scoped>
 .control-tab-icon {
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.25rem;
+  height: 1.25rem;
   flex-shrink: 0;
   shape-rendering: geometricPrecision;
-}
-
-.control-tab-icon--playback {
-  width: 1.45rem;
-  height: 1.45rem;
-}
-
-.control-tab-icon--harmonic {
-  width: 1.05rem;
-  height: 1.05rem;
 }
 </style>

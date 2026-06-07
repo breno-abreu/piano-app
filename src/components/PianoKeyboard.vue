@@ -1,6 +1,10 @@
 <template>
   <div class="piano-wrapper" :style="viewZoomStyle">
-    <section class="recorder-section" aria-label="Controles da performance">
+    <section
+      class="recorder-section"
+      :class="{ 'recorder-section--rhythmic-tab': controlsTab === 'rhythmicFigures' }"
+      aria-label="Controles da performance"
+    >
       <div class="recorder-section__nav">
         <div
           class="recorder-section__tabs"
@@ -71,6 +75,32 @@
         >
           <ControlTabIcon name="harmonic" />
           <span class="recorder-section__tab-label">Campos harmônicos</span>
+        </button>
+        <button
+          id="controls-tab-chord-dictionary"
+          type="button"
+          role="tab"
+          class="recorder-section__tab"
+          :class="{ 'recorder-section__tab--active': controlsTab === 'chordDictionary' }"
+          :aria-selected="controlsTab === 'chordDictionary'"
+          aria-controls="controls-panel-chord-dictionary"
+          @click="controlsTab = 'chordDictionary'"
+        >
+          <ControlTabIcon name="chord-dictionary" />
+          <span class="recorder-section__tab-label">Dicionário de acordes</span>
+        </button>
+        <button
+          id="controls-tab-rhythmic-figures"
+          type="button"
+          role="tab"
+          class="recorder-section__tab"
+          :class="{ 'recorder-section__tab--active': controlsTab === 'rhythmicFigures' }"
+          :aria-selected="controlsTab === 'rhythmicFigures'"
+          aria-controls="controls-panel-rhythmic-figures"
+          @click="controlsTab = 'rhythmicFigures'"
+        >
+          <ControlTabIcon name="rhythmic-figures" />
+          <span class="recorder-section__tab-label">Figuras rítmicas</span>
         </button>
         </div>
       </div>
@@ -253,6 +283,17 @@
           >
             {{ keyLabelNotation === 'western' ? 'C4' : 'Dó4' }}
           </button>
+          <button
+            v-for="notation in accidentalNotations"
+            :key="notation.id"
+            type="button"
+            class="recorder-section__pill"
+            :class="{ 'recorder-section__pill--active': accidentalNotation === notation.id }"
+            :aria-pressed="accidentalNotation === notation.id"
+            @click="setAccidentalNotation(notation.id)"
+          >
+            {{ notation.label }}
+          </button>
 
           <span class="recorder-section__divider" aria-hidden="true" />
 
@@ -323,6 +364,40 @@
               100%
             </button>
           </div>
+
+          <span class="recorder-section__divider" aria-hidden="true" />
+
+          <span class="recorder-section__label">Volume piano</span>
+          <div class="recorder-section__volume">
+            <input
+              v-model.number="pianoVolume"
+              type="range"
+              class="recorder-section__volume-slider"
+              :style="volumeSliderStyle(pianoVolume)"
+              min="0"
+              max="100"
+              step="1"
+              aria-label="Volume do piano"
+              @input="applyPianoVolume"
+            />
+            <span class="recorder-section__volume-value">{{ pianoVolume }}%</span>
+          </div>
+
+          <span class="recorder-section__label">Volume metrônomo</span>
+          <div class="recorder-section__volume">
+            <input
+              v-model.number="metronomeVolume"
+              type="range"
+              class="recorder-section__volume-slider"
+              :style="volumeSliderStyle(metronomeVolume)"
+              min="0"
+              max="100"
+              step="1"
+              aria-label="Volume do metrônomo"
+              @input="applyMetronomeVolume"
+            />
+            <span class="recorder-section__volume-value">{{ metronomeVolume }}%</span>
+          </div>
         </div>
       </div>
 
@@ -334,6 +409,21 @@
         aria-labelledby="controls-tab-harmonic"
       >
         <div class="recorder-section__inner recorder-section__harmonic">
+          <div class="recorder-section__harmonic-row">
+            <span class="recorder-section__label">Notação</span>
+            <button
+              v-for="notation in accidentalNotations"
+              :key="`harmonic-${notation.id}`"
+              type="button"
+              class="recorder-section__pill"
+              :class="{ 'recorder-section__pill--active': accidentalNotation === notation.id }"
+              :aria-pressed="accidentalNotation === notation.id"
+              @click="setAccidentalNotation(notation.id)"
+            >
+              {{ notation.label }}
+            </button>
+          </div>
+
           <div class="recorder-section__harmonic-row">
             <span class="recorder-section__label">Campo</span>
             <button
@@ -375,10 +465,10 @@
                 'recorder-section__pill--tonic-enh': tonic.includes('#'),
               }"
               :aria-pressed="harmonicTonic === tonic"
-              :aria-label="`Tom ${formatHarmonicTonicLabel(tonic)}`"
+              :aria-label="`Tom ${formatAccidentalRootLabel(tonic)}`"
               @click="setHarmonicTonic(tonic)"
             >
-              {{ formatHarmonicTonicLabel(tonic) }}
+              {{ formatAccidentalRootLabel(tonic) }}
             </button>
           </div>
 
@@ -393,15 +483,165 @@
                 class="harmonic-chords__item"
                 :class="{ 'harmonic-chords__item--active': harmonicSelectedChordId === chord.id }"
                 :aria-pressed="harmonicSelectedChordId === chord.id"
-                :aria-label="`Acorde ${chord.degree}, ${chord.symbol}`"
+                :aria-label="`Acorde ${chord.degree}, ${formatHarmonicChordSymbol(chord.symbol)}`"
                 @click="toggleHarmonicChord(chord.id)"
               >
                 <span class="harmonic-chords__degree">{{ chord.degree }}</span>
-                <span class="harmonic-chords__symbol">{{ chord.symbol }}</span>
+                <span class="harmonic-chords__symbol">{{ formatHarmonicChordSymbol(chord.symbol) }}</span>
               </button>
             </div>
           </div>
         </div>
+      </div>
+
+      <div
+        v-show="controlsTab === 'chordDictionary'"
+        id="controls-panel-chord-dictionary"
+        role="tabpanel"
+        class="recorder-section__panel recorder-section__panel--chord-dictionary"
+        aria-labelledby="controls-tab-chord-dictionary"
+      >
+        <div class="recorder-section__inner recorder-section__chord-dict">
+          <div class="recorder-section__chord-dict-row">
+            <span class="recorder-section__label">Notação</span>
+            <button
+              v-for="notation in accidentalNotations"
+              :key="`chord-dict-${notation.id}`"
+              type="button"
+              class="recorder-section__pill"
+              :class="{ 'recorder-section__pill--active': accidentalNotation === notation.id }"
+              :aria-pressed="accidentalNotation === notation.id"
+              @click="setAccidentalNotation(notation.id)"
+            >
+              {{ notation.label }}
+            </button>
+          </div>
+
+          <div class="recorder-section__chord-dict-row recorder-section__chord-dict-row--tonic">
+            <span class="recorder-section__label">Tom</span>
+            <button
+              v-for="root in chordDictRoots"
+              :key="root"
+              type="button"
+              class="recorder-section__pill recorder-section__pill--tonic"
+              :class="{
+                'recorder-section__pill--active': chordDictRoot === root,
+                'recorder-section__pill--tonic-enh': root.includes('#'),
+              }"
+              :aria-pressed="chordDictRoot === root"
+              :aria-label="`Tom ${formatAccidentalRootLabel(root)}`"
+              @click="setChordDictRoot(root)"
+            >
+              {{ formatAccidentalRootLabel(root) }}
+            </button>
+          </div>
+
+          <div class="recorder-section__chord-dict-row recorder-section__chord-dict-row--variations">
+            <span class="recorder-section__label">Variações</span>
+            <div class="chord-dict-variations">
+              <button
+                v-for="quality in chordDictQualities"
+                :key="quality.id"
+                type="button"
+                class="recorder-section__pill chord-dict-variations__pill"
+                :class="{
+                  'recorder-section__pill--active':
+                    chordDictQualityId === quality.id,
+                }"
+                :aria-pressed="chordDictQualityId === quality.id"
+                :aria-label="`Acorde ${formatChordQualityLabel(chordDictRoot, quality, accidentalNotation)}`"
+                @click="setChordDictQuality(quality.id)"
+              >
+                {{ formatChordQualityLabel(chordDictRoot, quality, accidentalNotation) }}
+              </button>
+            </div>
+          </div>
+
+          <div class="recorder-section__chord-dict-row recorder-section__chord-dict-row--bass">
+            <span class="recorder-section__label">Baixos</span>
+            <button
+              v-for="bassRoot in chordDictBassRoots"
+              :key="bassRoot"
+              type="button"
+              class="recorder-section__pill recorder-section__pill--tonic"
+              :class="{
+                'recorder-section__pill--active': chordDictActiveBassRoot === bassRoot,
+                'recorder-section__pill--tonic-enh': bassRoot.includes('#'),
+              }"
+              :aria-pressed="chordDictActiveBassRoot === bassRoot"
+              :aria-label="`Baixo ${formatAccidentalRootLabel(bassRoot)}`"
+              @click="setChordDictBassRoot(bassRoot)"
+            >
+              {{ formatAccidentalRootLabel(bassRoot) }}
+            </button>
+          </div>
+
+          <div class="recorder-section__chord-dict-row recorder-section__chord-dict-row--inversions">
+            <span class="recorder-section__label">Inv. baixo</span>
+            <div class="chord-dict-inversion">
+              <button
+                type="button"
+                class="recorder-section__bpm-step chord-dict-inversion__step"
+                :disabled="!chordDictBassCanInvert"
+                aria-label="Inversão anterior do baixo"
+                @click="shiftChordDictBassInversion(-1)"
+              >
+                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">←</span>
+              </button>
+              <span class="chord-dict-inversion__status">{{ chordDictBassInversionLabel }}</span>
+              <button
+                type="button"
+                class="recorder-section__bpm-step chord-dict-inversion__step"
+                :disabled="!chordDictBassCanInvert"
+                aria-label="Próxima inversão do baixo"
+                @click="shiftChordDictBassInversion(1)"
+              >
+                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">→</span>
+              </button>
+            </div>
+
+            <span class="recorder-section__divider" aria-hidden="true" />
+
+            <span class="recorder-section__label">Inv. agudos</span>
+            <div class="chord-dict-inversion">
+              <button
+                type="button"
+                class="recorder-section__bpm-step chord-dict-inversion__step"
+                :disabled="!chordDictCanInvert"
+                aria-label="Inversão anterior dos agudos"
+                @click="shiftChordDictInversion(-1)"
+              >
+                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">←</span>
+              </button>
+              <span class="chord-dict-inversion__status">{{ chordDictInversionLabel }}</span>
+              <button
+                type="button"
+                class="recorder-section__bpm-step chord-dict-inversion__step"
+                :disabled="!chordDictCanInvert"
+                aria-label="Próxima inversão dos agudos"
+                @click="shiftChordDictInversion(1)"
+              >
+                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+
+          <p class="recorder-section__chord-dict-generated">
+            <span class="recorder-section__chord-dict-generated-symbol">
+              {{ chordDictFinalLabel }}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div
+        v-show="controlsTab === 'rhythmicFigures'"
+        id="controls-panel-rhythmic-figures"
+        role="tabpanel"
+        class="recorder-section__panel recorder-section__panel--rhythmic-figures"
+        aria-labelledby="controls-tab-rhythmic-figures"
+      >
+        <RhythmicFiguresPanel />
       </div>
 
       <div
@@ -598,6 +838,8 @@
             'piano-key--harmonic-scale':
               isHarmonicScaleNote(key.note) && !isHarmonicChordNote(key.note),
             'piano-key--harmonic-chord': isHarmonicChordNote(key.note),
+            'piano-key--chord-dict': isChordDictTrebleNote(key.note),
+            'piano-key--chord-dict-bass': isChordDictBassNote(key.note),
           }"
           :aria-label="key.note"
           :aria-pressed="isKeyActive(key.note)"
@@ -624,6 +866,8 @@
           'piano-key--harmonic-scale':
             isHarmonicScaleNote(key.note) && !isHarmonicChordNote(key.note),
           'piano-key--harmonic-chord': isHarmonicChordNote(key.note),
+          'piano-key--chord-dict': isChordDictTrebleNote(key.note),
+          'piano-key--chord-dict-bass': isChordDictBassNote(key.note),
         }"
           :style="blackKeyStyle(key)"
           :aria-label="key.note"
@@ -703,13 +947,19 @@
 
 <script>
 import { buildPianoKeys } from '../utils/pianoKeys.js'
-import { formatNoteLabels, formatSolfege, formatWestern } from '../utils/noteNames.js'
+import {
+  formatNoteLabels,
+  formatSolfege,
+  formatWestern,
+  parseNote,
+} from '../utils/noteNames.js'
 import { bindMidiInputs, isMidiSupported, requestMidiAccess } from '../utils/midiConnection.js'
 import { isPianoMidiNote, midiNumberToNote, noteToMidiNumber, SUSTAIN_PEDAL_CC } from '../utils/midiNotes.js'
 import {
   playPianoNote,
   releasePianoNote,
   releaseSustainedPianoNotes,
+  setPianoVolume,
   stopAllPianoNotes,
 } from '../utils/pianoAudio.js'
 import {
@@ -730,12 +980,30 @@ import { parseMidiFile } from '../utils/midiParser.js'
 import { createMidiPlayer } from '../utils/midiPlayer.js'
 import { buildPianoRollNotes } from '../utils/midiPianoRoll.js'
 import {
+  ACCIDENTAL_NOTATIONS,
   buildHarmonicField,
   formatHarmonicTonicLabel,
+  formatRootNotation,
   HARMONIC_SCALE_TYPES,
   HARMONIC_TONICS,
   isNoteInPitchClassSet,
 } from '../utils/harmonicField.js'
+import {
+  CHORD_DICTIONARY_BASS_ROOTS,
+  CHORD_DICTIONARY_QUALITIES,
+  CHORD_DICTIONARY_ROOTS,
+  formatChordDictionaryLabel,
+  formatChordQualityLabel,
+  formatChordWithBass,
+  findChordQualitySuffix,
+  findChordBassInversionIndex,
+  formatInversionLabel,
+  getBassInversionCount,
+  getBassVoicingNotes,
+  getChordBassInversionCount,
+  getChordBassInversionNotes,
+  getChordVoicingNotes,
+} from '../utils/chordDictionary.js'
 import {
   loadOptionsPreferences,
   saveOptionsPreferences,
@@ -743,6 +1011,8 @@ import {
   VIEW_ZOOM_MAX,
   VIEW_ZOOM_MIN,
   VIEW_ZOOM_STEP,
+  VOLUME_MAX,
+  VOLUME_MIN,
 } from '../utils/userPreferences.js'
 import {
   createScreenRecorder,
@@ -754,6 +1024,7 @@ import {
 } from '../utils/screenRecorder.js'
 import ControlTabIcon from './ControlTabIcon.vue'
 import PianoRoll from './PianoRoll.vue'
+import RhythmicFiguresPanel from './RhythmicFiguresPanel.vue'
 
 const piano = buildPianoKeys()
 
@@ -776,6 +1047,7 @@ export default {
   components: {
     ControlTabIcon,
     PianoRoll,
+    RhythmicFiguresPanel,
   },
   data() {
     return {
@@ -820,6 +1092,12 @@ export default {
       viewZoom: storedOptionsPreferences.viewZoom,
       viewZoomStep: VIEW_ZOOM_STEP,
       viewZoomDefault: VIEW_ZOOM_DEFAULT,
+      pianoVolume: storedOptionsPreferences.pianoVolume,
+      metronomeVolume: storedOptionsPreferences.metronomeVolume,
+      volumeMin: VOLUME_MIN,
+      volumeMax: VOLUME_MAX,
+      accidentalNotations: ACCIDENTAL_NOTATIONS,
+      accidentalNotation: storedOptionsPreferences.accidentalNotation,
       screenRecorder: createScreenRecorder(),
       isScreenRecording: false,
       screenRecordingElapsedMs: 0,
@@ -829,6 +1107,16 @@ export default {
       harmonicScaleType: 'major',
       harmonicTonic: 'C',
       harmonicSelectedChordId: null,
+      chordDictRoots: CHORD_DICTIONARY_ROOTS,
+      chordDictQualities: CHORD_DICTIONARY_QUALITIES,
+      chordDictRoot: 'C',
+      chordDictQualityId: 'maj',
+      chordDictInversion: 0,
+      chordDictBassRoots: CHORD_DICTIONARY_BASS_ROOTS,
+      chordDictBassRoot: 'C',
+      chordDictBassInversion: 0,
+      chordDictBassManual: false,
+      chordDictBassManualRoot: 'C',
     }
   },
   computed: {
@@ -845,6 +1133,83 @@ export default {
         this.harmonicChords.find(
           (chord) => chord.id === this.harmonicSelectedChordId,
         ) ?? null
+      )
+    },
+    chordDictInversionCount() {
+      return getChordVoicingNotes(this.chordDictRoot, this.chordDictQualityId, 0).length
+    },
+    chordDictCanInvert() {
+      return this.chordDictInversionCount > 1
+    },
+    chordDictTrebleNotes() {
+      return getChordVoicingNotes(
+        this.chordDictRoot,
+        this.chordDictQualityId,
+        this.chordDictInversion,
+      )
+    },
+    chordDictTrebleNoteSet() {
+      return new Set(this.chordDictTrebleNotes)
+    },
+    chordDictBassInversionCount() {
+      if (this.chordDictBassManual) {
+        return getBassInversionCount(this.chordDictBassManualRoot)
+      }
+
+      return getChordBassInversionCount(
+        this.chordDictRoot,
+        this.chordDictQualityId,
+      )
+    },
+    chordDictBassCanInvert() {
+      return this.chordDictBassInversionCount > 1
+    },
+    chordDictBassNotes() {
+      if (this.chordDictBassManual) {
+        return getBassVoicingNotes(
+          this.chordDictBassManualRoot,
+          this.chordDictBassInversion,
+        )
+      }
+
+      return getChordBassInversionNotes(
+        this.chordDictRoot,
+        this.chordDictQualityId,
+        this.chordDictBassInversion,
+      )
+    },
+    chordDictActiveBassRoot() {
+      const bassNote = this.chordDictBassNotes[0]
+
+      if (!bassNote) return this.chordDictBassRoot
+
+      const parsed = parseNote(bassNote)
+
+      if (!parsed) return this.chordDictBassRoot
+
+      return `${parsed.letter}${parsed.sharp}`
+    },
+    chordDictBassNoteSet() {
+      return new Set(this.chordDictBassNotes)
+    },
+    chordDictFinalLabel() {
+      return formatChordWithBass(
+        this.chordDictRoot,
+        this.chordDictQualityId,
+        this.chordDictActiveBassRoot,
+        this.accidentalNotation,
+      )
+    },
+    chordDictInversionLabel() {
+      return formatInversionLabel(
+        this.chordDictInversion,
+        this.chordDictInversionCount,
+      )
+    },
+    chordDictBassInversionLabel() {
+      return formatInversionLabel(
+        this.chordDictBassInversion,
+        this.chordDictBassInversionCount,
       )
     },
     screenRecordingSupported() {
@@ -965,8 +1330,19 @@ export default {
     viewZoom() {
       this.persistOptionsPreferences()
     },
+    pianoVolume() {
+      this.persistOptionsPreferences()
+    },
+    metronomeVolume() {
+      this.persistOptionsPreferences()
+    },
+    accidentalNotation() {
+      this.persistOptionsPreferences()
+    },
   },
   mounted() {
+    setPianoVolume(this.pianoVolume)
+    this.metronome.setVolume(this.metronomeVolume)
     this.metronome.setOnTick((beatIndex) => {
       this.metronomeCurrentBeat = beatIndex
     })
@@ -993,6 +1369,22 @@ export default {
   },
   methods: {
     formatHarmonicTonicLabel,
+    formatChordDictionaryLabel,
+    formatChordQualityLabel,
+    formatAccidentalRootLabel(root) {
+      return formatRootNotation(root, this.accidentalNotation)
+    },
+    formatHarmonicChordSymbol(symbol) {
+      const match = symbol.match(/^([A-G]#?)(.*)$/)
+      if (!match) return symbol
+
+      const [, root, suffix] = match
+
+      return `${formatRootNotation(root, this.accidentalNotation)}${suffix}`
+    },
+    setAccidentalNotation(notation) {
+      this.accidentalNotation = notation
+    },
     handleRecordingKeydown(event) {
       if (this.isPlaybackBlockingLive) return
       if (event.key !== 'r' && event.key !== 'R') return
@@ -1051,6 +1443,82 @@ export default {
 
       return isNoteInPitchClassSet(note, [tonicPitchClass])
     },
+    isChordDictTrebleNote(note) {
+      if (this.controlsTab !== 'chordDictionary') return false
+
+      return this.chordDictTrebleNoteSet.has(note)
+    },
+    isChordDictBassNote(note) {
+      if (this.controlsTab !== 'chordDictionary') return false
+
+      return this.chordDictBassNoteSet.has(note)
+    },
+    setChordDictRoot(root) {
+      this.chordDictRoot = root
+      this.chordDictInversion = 0
+      this.chordDictBassRoot = root
+      this.chordDictBassInversion = 0
+      this.chordDictBassManual = false
+    },
+    setChordDictQuality(qualityId) {
+      this.chordDictQualityId = qualityId
+      this.chordDictInversion = 0
+
+      if (!this.chordDictBassManual) {
+        this.chordDictBassInversion = 0
+      } else {
+        const index = findChordBassInversionIndex(
+          this.chordDictRoot,
+          qualityId,
+          this.chordDictBassManualRoot,
+        )
+
+        if (index >= 0) {
+          this.chordDictBassManual = false
+          this.chordDictBassInversion = index
+          this.chordDictBassRoot = this.chordDictBassManualRoot
+        }
+      }
+    },
+    setChordDictBassRoot(bassRoot) {
+      this.chordDictBassRoot = bassRoot
+
+      const chordToneIndex = findChordBassInversionIndex(
+        this.chordDictRoot,
+        this.chordDictQualityId,
+        bassRoot,
+      )
+
+      if (chordToneIndex >= 0) {
+        this.chordDictBassManual = false
+        this.chordDictBassInversion = chordToneIndex
+        return
+      }
+
+      this.chordDictBassManual = true
+      this.chordDictBassManualRoot = bassRoot
+      this.chordDictBassInversion = 0
+    },
+    shiftChordDictInversion(delta) {
+      const count = this.chordDictInversionCount
+
+      if (count < 2) return
+
+      this.chordDictInversion =
+        (this.chordDictInversion + delta + count) % count
+    },
+    shiftChordDictBassInversion(delta) {
+      const count = this.chordDictBassInversionCount
+
+      if (count < 2) return
+
+      this.chordDictBassInversion =
+        (this.chordDictBassInversion + delta + count) % count
+
+      if (!this.chordDictBassManual) {
+        this.chordDictBassRoot = this.chordDictActiveBassRoot
+      }
+    },
     toggleHarmonicDisplay() {
       this.harmonicDisplayEnabled = !this.harmonicDisplayEnabled
 
@@ -1072,8 +1540,8 @@ export default {
     },
     keyLabel(note) {
       return this.keyLabelNotation === 'western'
-        ? formatWestern(note)
-        : formatSolfege(note)
+        ? formatWestern(note, this.accidentalNotation)
+        : formatSolfege(note, this.accidentalNotation)
     },
     persistOptionsPreferences() {
       saveOptionsPreferences({
@@ -1081,7 +1549,19 @@ export default {
         keyLabelNotation: this.keyLabelNotation,
         keyboardHeight: this.keyboardHeight,
         viewZoom: this.viewZoom,
+        pianoVolume: this.pianoVolume,
+        metronomeVolume: this.metronomeVolume,
+        accidentalNotation: this.accidentalNotation,
       })
+    },
+    applyPianoVolume() {
+      setPianoVolume(this.pianoVolume)
+    },
+    applyMetronomeVolume() {
+      this.metronome.setVolume(this.metronomeVolume)
+    },
+    volumeSliderStyle(percent) {
+      return { '--volume-fill': `${percent}%` }
     },
     changeViewZoom(delta) {
       const next =
@@ -1895,6 +2375,42 @@ export default {
   color: #fecaca;
 }
 
+.piano-key--white.piano-key--chord-dict:not(.piano-key--pressed):not(:active) {
+  background: #fca5a5 !important;
+  border-color: #ef4444 !important;
+}
+
+.piano-key--black.piano-key--chord-dict:not(.piano-key--pressed):not(:active) {
+  background: #dc2626 !important;
+  border-color: #f87171 !important;
+}
+
+.piano-key--white.piano-key--chord-dict .piano-key__label {
+  color: #991b1b;
+}
+
+.piano-key--black.piano-key--chord-dict .piano-key__label {
+  color: #fecaca;
+}
+
+.piano-key--white.piano-key--chord-dict-bass:not(.piano-key--pressed):not(:active) {
+  background: #93c5fd !important;
+  border-color: #3b82f6 !important;
+}
+
+.piano-key--black.piano-key--chord-dict-bass:not(.piano-key--pressed):not(:active) {
+  background: #2563eb !important;
+  border-color: #60a5fa !important;
+}
+
+.piano-key--white.piano-key--chord-dict-bass .piano-key__label {
+  color: #1e3a8a;
+}
+
+.piano-key--black.piano-key--chord-dict-bass .piano-key__label {
+  color: #dbeafe;
+}
+
 .recorder-section {
   --neu-surface: #25252d;
   --neu-light: rgba(255, 255, 255, 0.07);
@@ -1964,7 +2480,7 @@ export default {
 
 .recorder-section__tabs {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
@@ -1975,8 +2491,11 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-sizing: border-box;
+  min-height: 44px;
+  height: 44px;
   margin: 0;
-  padding: 10px 16px;
+  padding: 0 16px;
   border: none;
   border-radius: 8px;
   background: var(--neu-surface);
@@ -2017,6 +2536,19 @@ export default {
 
 .recorder-section__panel--metronome .recorder-section__metronome {
   width: 100%;
+}
+
+.recorder-section__panel--rhythmic-figures {
+  width: 100%;
+  overflow: visible;
+}
+
+.recorder-section--rhythmic-tab {
+  overflow: visible;
+}
+
+.recorder-section--rhythmic-tab .recorder-section__body {
+  overflow: visible;
 }
 
 .recorder-section__harmonic {
@@ -2109,6 +2641,89 @@ export default {
   color: #fca5a5;
 }
 
+.recorder-section__chord-dict {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  gap: 12px;
+}
+
+.recorder-section__chord-dict-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.recorder-section__chord-dict-row--variations,
+.recorder-section__chord-dict-row--bass,
+.recorder-section__chord-dict-row--inversions {
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.recorder-section__chord-dict-row--inversions {
+  justify-content: center;
+  gap: 16px;
+}
+
+.chord-dict-variations {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.chord-dict-variations__pill {
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.chord-dict-inversion {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chord-dict-inversion__step {
+  flex-shrink: 0;
+}
+
+.chord-dict-inversion__status {
+  min-width: 5.5rem;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(243, 244, 246, 0.85);
+  text-align: center;
+}
+
+.recorder-section__chord-dict-generated {
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.recorder-section__chord-dict-generated-symbol {
+  display: block;
+  font-size: 1.125rem;
+  color: #fbbf24;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
 .recorder-section__progress {
   width: 100%;
   margin-top: 14px;
@@ -2160,6 +2775,95 @@ export default {
   box-shadow:
     inset 1px 0 2px var(--neu-dark),
     inset -1px 0 1px var(--neu-light);
+}
+
+.recorder-section__volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 10.5rem;
+}
+
+.recorder-section__volume-value {
+  min-width: 2.75rem;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(243, 244, 246, 0.85);
+  text-align: right;
+}
+
+.recorder-section__volume-slider {
+  width: 8.5rem;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  display: block;
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #ca8a04 0%,
+    #fbbf24 var(--volume-fill, 0%),
+    var(--neu-surface) var(--volume-fill, 0%),
+    var(--neu-surface) 100%
+  );
+  box-shadow: var(--neu-pressed-deep);
+  cursor: pointer;
+}
+
+.recorder-section__volume-slider::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.recorder-section__volume-slider::-moz-range-track {
+  height: 10px;
+  border: none;
+  border-radius: 999px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed-deep);
+}
+
+.recorder-section__volume-slider::-moz-range-progress {
+  height: 10px;
+  border-radius: 999px 0 0 999px;
+  background: linear-gradient(90deg, #ca8a04 0%, #fbbf24 100%);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.28);
+}
+
+.recorder-section__volume-slider:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.recorder-section__volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -3px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 0 8px rgba(251, 191, 36, 0.35);
+  cursor: pointer;
+}
+
+.recorder-section__volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 0 8px rgba(251, 191, 36, 0.35);
+  cursor: pointer;
 }
 
 .recorder-section__label {

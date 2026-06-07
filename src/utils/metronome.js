@@ -11,6 +11,7 @@ const BEATS_PER_BAR = {
 
 const SCHEDULE_AHEAD_SEC = 0.1
 const LOOKAHEAD_MS = 25
+const METRONOME_BASE_VOLUME = 0.45
 
 export function getMetronomeBeatsPerBar(timeSignature) {
   return BEATS_PER_BAR[timeSignature] ?? 4
@@ -19,6 +20,7 @@ export function getMetronomeBeatsPerBar(timeSignature) {
 export function createMetronome() {
   let audioContext = null
   let masterGain = null
+  let userVolume = 1
   let schedulerTimer = null
   let nextTickTime = 0
   let tickIndex = 0
@@ -32,7 +34,7 @@ export function createMetronome() {
     if (!audioContext) {
       audioContext = new AudioContext()
       masterGain = audioContext.createGain()
-      masterGain.gain.value = 0.45
+      masterGain.gain.value = METRONOME_BASE_VOLUME * userVolume
       masterGain.connect(audioContext.destination)
     }
 
@@ -165,6 +167,18 @@ export function createMetronome() {
 
     isRunning() {
       return running
+    },
+
+    setVolume(percent) {
+      userVolume = Math.max(0, Math.min(100, Math.round(percent))) / 100
+
+      if (masterGain) {
+        masterGain.gain.value = METRONOME_BASE_VOLUME * userVolume
+      }
+    },
+
+    getVolume() {
+      return Math.round(userVolume * 100)
     },
 
     dispose() {

@@ -27,6 +27,19 @@ const TONIC_FLAT_NAMES = {
   'A#': 'Bb',
 }
 
+export const ACCIDENTAL_NOTATIONS = [
+  { id: 'sharp', label: 'Sustenidos (♯)' },
+  { id: 'flat', label: 'Bemóis (♭)' },
+]
+
+export function formatRootNotation(root, notation = 'sharp') {
+  if (notation === 'flat' && TONIC_FLAT_NAMES[root]) {
+    return TONIC_FLAT_NAMES[root]
+  }
+
+  return root
+}
+
 export function formatHarmonicTonicLabel(tonic) {
   const flatName = TONIC_FLAT_NAMES[tonic]
 

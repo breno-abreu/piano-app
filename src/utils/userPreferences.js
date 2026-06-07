@@ -5,11 +5,18 @@ export const VIEW_ZOOM_MIN = 0.25
 export const VIEW_ZOOM_MAX = 2
 export const VIEW_ZOOM_STEP = 0.05
 
+export const VOLUME_MIN = 0
+export const VOLUME_MAX = 100
+export const VOLUME_STEP = 1
+
 export const OPTIONS_PREFERENCE_DEFAULTS = {
   showKeyLabels: false,
   keyLabelNotation: 'western',
   keyboardHeight: 220,
   viewZoom: VIEW_ZOOM_DEFAULT,
+  pianoVolume: 100,
+  metronomeVolume: 100,
+  accidentalNotation: 'sharp',
 }
 
 function clampViewZoom(value, fallback = VIEW_ZOOM_DEFAULT) {
@@ -37,6 +44,14 @@ function clampKeyboardHeight(
   return min + steps * step
 }
 
+function clampVolume(value, fallback = 100) {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return fallback
+  }
+
+  return Math.max(VOLUME_MIN, Math.min(VOLUME_MAX, Math.round(value)))
+}
+
 function sanitizeOptionsPreferences(raw, bounds) {
   const prefs = { ...OPTIONS_PREFERENCE_DEFAULTS }
 
@@ -50,6 +65,12 @@ function sanitizeOptionsPreferences(raw, bounds) {
 
   prefs.keyboardHeight = clampKeyboardHeight(raw?.keyboardHeight, bounds)
   prefs.viewZoom = clampViewZoom(raw?.viewZoom)
+  prefs.pianoVolume = clampVolume(raw?.pianoVolume)
+  prefs.metronomeVolume = clampVolume(raw?.metronomeVolume)
+  prefs.accidentalNotation =
+    raw?.accidentalNotation === 'flat' || raw?.chordDictNotation === 'flat'
+      ? 'flat'
+      : 'sharp'
 
   return prefs
 }

@@ -10,6 +10,22 @@ const activeNotes = new Map()
 const sustainedNotes = new Set()
 
 const MASTER_VOLUME = 4
+let userVolume = 1
+
+function applyMasterVolume() {
+  if (!masterGain) return
+
+  masterGain.gain.value = MASTER_VOLUME * userVolume
+}
+
+export function setPianoVolume(percent) {
+  userVolume = Math.max(0, Math.min(100, Math.round(percent))) / 100
+  applyMasterVolume()
+}
+
+export function getPianoVolume() {
+  return Math.round(userVolume * 100)
+}
 
 function velocityToGain(velocity) {
   const normalized = Math.max(0, Math.min(127, velocity)) / 127
@@ -30,7 +46,7 @@ export async function ensurePianoAudio() {
   initPromise = (async () => {
     audioContext = new AudioContext()
     masterGain = audioContext.createGain()
-    masterGain.gain.value = MASTER_VOLUME
+    applyMasterVolume()
     masterGain.connect(audioContext.destination)
     recordDestination = audioContext.createMediaStreamDestination()
     masterGain.connect(recordDestination)
