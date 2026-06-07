@@ -89,8 +89,8 @@ export default {
 .piano-roll {
   position: relative;
   width: 100%;
-  flex: 1;
-  min-height: 140px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
   border-radius: 16px 16px 0 0;
   background: linear-gradient(180deg, #14141a 0%, #1a1a22 55%, #1e1e28 100%);

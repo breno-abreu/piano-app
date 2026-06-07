@@ -1,806 +1,207 @@
-<template>
+﻿<template>
   <div class="piano-wrapper" :style="viewZoomStyle">
     <section
-      class="recorder-section"
-      :class="{ 'recorder-section--rhythmic-tab': controlsTab === 'rhythmicFigures' }"
+      class="recorder-section recorder-section--sidebar-layout"
+      :class="{
+        'recorder-section--rhythmic-tab': controlsTab === 'rhythmicFigures',
+        'recorder-section--nav-compact': sidebarNavCompact,
+        'recorder-section--piano-roll-layout': midiPlaybackReady,
+      }"
       aria-label="Controles da performance"
     >
-      <div class="recorder-section__nav">
-        <div
-          class="recorder-section__tabs"
-          role="tablist"
-          aria-label="Seções de controles"
-        >
-        <button
-          id="controls-tab-playback"
-          type="button"
-          role="tab"
-          class="recorder-section__tab"
-          :class="{ 'recorder-section__tab--active': controlsTab === 'playback' }"
-          :aria-selected="controlsTab === 'playback'"
-          aria-controls="controls-panel-playback"
-          @click="controlsTab = 'playback'"
-        >
-          <ControlTabIcon name="playback" />
-          <span class="recorder-section__tab-label">Gravação e reprodução</span>
-        </button>
-        <button
-          id="controls-tab-options"
-          type="button"
-          role="tab"
-          class="recorder-section__tab"
-          :class="{ 'recorder-section__tab--active': controlsTab === 'options' }"
-          :aria-selected="controlsTab === 'options'"
-          aria-controls="controls-panel-options"
-          @click="controlsTab = 'options'"
-        >
-          <ControlTabIcon name="options" />
-          <span class="recorder-section__tab-label">Opções</span>
-        </button>
-        <button
-          id="controls-tab-metronome"
-          type="button"
-          role="tab"
-          class="recorder-section__tab"
-          :class="{ 'recorder-section__tab--active': controlsTab === 'metronome' }"
-          :aria-selected="controlsTab === 'metronome'"
-          aria-controls="controls-panel-metronome"
-          @click="controlsTab = 'metronome'"
-        >
-          <ControlTabIcon name="metronome" />
-          <span class="recorder-section__tab-label">Metrônomo</span>
-        </button>
-        <button
-          id="controls-tab-screen"
-          type="button"
-          role="tab"
-          class="recorder-section__tab"
-          :class="{ 'recorder-section__tab--active': controlsTab === 'screen' }"
-          :aria-selected="controlsTab === 'screen'"
-          aria-controls="controls-panel-screen"
-          @click="controlsTab = 'screen'"
-        >
-          <ControlTabIcon name="screen" />
-          <span class="recorder-section__tab-label">Vídeo da tela</span>
-        </button>
-        <button
-          id="controls-tab-harmonic"
-          type="button"
-          role="tab"
-          class="recorder-section__tab"
-          :class="{ 'recorder-section__tab--active': controlsTab === 'harmonic' }"
-          :aria-selected="controlsTab === 'harmonic'"
-          aria-controls="controls-panel-harmonic"
-          @click="controlsTab = 'harmonic'"
-        >
-          <ControlTabIcon name="harmonic" />
-          <span class="recorder-section__tab-label">Campos harmônicos</span>
-        </button>
-        <button
-          id="controls-tab-chord-dictionary"
-          type="button"
-          role="tab"
-          class="recorder-section__tab"
-          :class="{ 'recorder-section__tab--active': controlsTab === 'chordDictionary' }"
-          :aria-selected="controlsTab === 'chordDictionary'"
-          aria-controls="controls-panel-chord-dictionary"
-          @click="controlsTab = 'chordDictionary'"
-        >
-          <ControlTabIcon name="chord-dictionary" />
-          <span class="recorder-section__tab-label">Dicionário de acordes</span>
-        </button>
-        <button
-          id="controls-tab-rhythmic-figures"
-          type="button"
-          role="tab"
-          class="recorder-section__tab"
-          :class="{ 'recorder-section__tab--active': controlsTab === 'rhythmicFigures' }"
-          :aria-selected="controlsTab === 'rhythmicFigures'"
-          aria-controls="controls-panel-rhythmic-figures"
-          @click="controlsTab = 'rhythmicFigures'"
-        >
-          <ControlTabIcon name="rhythmic-figures" />
-          <span class="recorder-section__tab-label">Figuras rítmicas</span>
-        </button>
+      <nav class="recorder-section__nav" aria-label="Seções de controles">
+        <AppTooltip :text="sidebarNavToggleTooltip" placement="right">
+          <button
+            type="button"
+            class="recorder-section__nav-toggle"
+            :aria-label="sidebarNavToggleTooltip"
+            :aria-pressed="sidebarNavCompact"
+            @click="toggleSidebarNavCompact"
+          >
+            <svg
+              class="recorder-section__nav-toggle-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <template v-if="sidebarNavCompact">
+                <path d="M16 6l-3.5 6 3.5 6" />
+                <path d="M11 6l-3.5 6 3.5 6" />
+              </template>
+              <template v-else>
+                <path d="M8 6l3.5 6L8 18" />
+                <path d="M13 6l3.5 6L13 18" />
+              </template>
+            </svg>
+          </button>
+        </AppTooltip>
+
+        <div class="recorder-section__tabs" role="tablist">
+          <div class="recorder-section__tabs-main">
+            <button
+              v-for="tab in controlMainTabs"
+              :id="tab.idAttr"
+              :key="tab.id"
+              type="button"
+              role="tab"
+              class="recorder-section__tab"
+              :class="{ 'recorder-section__tab--active': controlsTab === tab.id }"
+              :aria-selected="controlsTab === tab.id"
+              :aria-controls="tab.panelId"
+              :aria-label="tab.label"
+              @click="controlsTab = tab.id"
+            >
+              <ControlTabIcon :name="tab.icon" />
+              <span class="recorder-section__tab-label">{{ tab.label }}</span>
+            </button>
+          </div>
+
+          <div class="recorder-section__tabs-footer">
+            <div class="recorder-section__nav-separator" aria-hidden="true" />
+            <button
+              :id="controlOptionsTab.idAttr"
+              type="button"
+              role="tab"
+              class="recorder-section__tab"
+              :class="{ 'recorder-section__tab--active': controlsTab === controlOptionsTab.id }"
+              :aria-selected="controlsTab === controlOptionsTab.id"
+              :aria-controls="controlOptionsTab.panelId"
+              :aria-label="controlOptionsTab.label"
+              @click="controlsTab = controlOptionsTab.id"
+            >
+              <ControlTabIcon :name="controlOptionsTab.icon" />
+              <span class="recorder-section__tab-label">{{ controlOptionsTab.label }}</span>
+            </button>
+          </div>
         </div>
-      </div>
+      </nav>
 
       <div class="recorder-section__nav-divider" aria-hidden="true" />
 
+      <div class="recorder-section__main">
       <div class="recorder-section__body">
-      <div
-        v-show="controlsTab === 'playback'"
-        id="controls-panel-playback"
-        role="tabpanel"
-        class="recorder-section__panel"
-        aria-labelledby="controls-tab-playback"
-      >
-        <div class="recorder-section__inner">
-          <span class="recorder-section__label">Gravação</span>
-          <button
-            type="button"
-            class="recorder-section__button"
-            :class="{ 'recorder-section__button--recording': isRecording }"
-            :aria-label="isRecording ? 'Parar gravação MIDI' : 'Gravar performance MIDI'"
-            @click="toggleRecording"
-          >
-            <span
-              v-if="!isRecording"
-              class="recorder-section__icon recorder-section__icon--record"
-            />
-            <span
-              v-else
-              class="recorder-section__icon recorder-section__icon--stop"
-            />
-          </button>
-          <span
-            class="recorder-section__hint"
-            :class="{ 'recorder-section__hint--active': isRecording }"
-          >
-            {{ isRecording ? 'Gravando…' : 'Tecla R' }}
-          </span>
+        <RecordingTabPanel
+          v-show="controlsTab === 'recording'"
+          :is-recording="isRecording"
+          :is-screen-recording="isScreenRecording"
+          :screen-recording-supported="screenRecordingSupported"
+          :screen-record-aria-label="screenRecordAriaLabel"
+          :screen-recording-hint="screenRecordingHint"
+          :screen-recording-idle-hint="screenRecordingIdleHint"
+          :metronome-running="metronomeRunning"
+          :metronome-bpm="metronomeBpm"
+          :metronome-time-signatures="metronomeTimeSignatures"
+          :metronome-time-signature="metronomeTimeSignature"
+          :metronome-beat-count="metronomeBeatCount"
+          :metronome-current-beat="metronomeCurrentBeat"
+          @toggle-recording="toggleRecording"
+          @toggle-screen-recording="toggleScreenRecording"
+          @toggle-metronome="toggleMetronome"
+          @change-metronome-bpm="changeMetronomeBpm"
+          @update:metronome-bpm="applyMetronomeBpm"
+          @set-metronome-time-signature="setMetronomeTimeSignature"
+        />
 
-          <span class="recorder-section__divider" aria-hidden="true" />
+        <PlaybackTabPanel
+          v-show="controlsTab === 'playback'"
+          :midi-file-name="midiFileName"
+          :midi-playback-ready="midiPlaybackReady"
+          :playback-status="playbackStatus"
+          :midi-playback-can-stop="midiPlaybackCanStop"
+          :playback-bpm="playbackBpm"
+          :midi-recorded-bpm="midiRecordedBpm"
+          :is-playback-at-original-bpm="isPlaybackAtOriginalBpm"
+          :playback-bpm-aria-label="playbackBpmAriaLabel"
+          :show-progress="midiPlaybackReady"
+          :playback-progress-percent="playbackProgressPercent"
+          :playback-progress-aria-label="playbackProgressAriaLabel"
+          :playback-position-ms="playbackPositionMs"
+          :midi-duration-ms="midiDurationMs"
+          @file-selected="onMidiFileSelected"
+          @remove-file="removeMidiFile"
+          @toggle-play-pause="togglePlaybackPlayPause"
+          @stop="stopPlayback"
+          @change-playback-bpm="changePlaybackBpm"
+          @update:playback-bpm="applyPlaybackBpm"
+          @reset-playback-bpm="resetPlaybackBpm"
+          @seek="seekPlaybackFromEvent"
+        />
 
-          <span class="recorder-section__label">Reprodução</span>
-          <input
-            ref="midiFileInput"
-            type="file"
-            accept=".mid,audio/midi,audio/x-midi"
-            class="recorder-section__file-input"
-            @change="onMidiFileSelected"
-          />
-          <button
-            type="button"
-            class="recorder-section__pill recorder-section__pill--file"
-            @click="openMidiFilePicker"
-          >
-            Arquivo
-          </button>
-          <span
-            v-if="midiFileName"
-            class="recorder-section__file-name"
-            :title="midiFileName"
-          >
-            {{ midiFileName }}
-          </span>
-          <button
-            v-if="midiPlaybackReady"
-            type="button"
-            class="recorder-section__pill recorder-section__pill--remove-file"
-            aria-label="Remover arquivo MIDI carregado"
-            @click="removeMidiFile"
-          >
-            Remover
-          </button>
-          <button
-            type="button"
-            class="recorder-section__button recorder-section__button--play"
-            :class="{ 'recorder-section__button--pause-mode': playbackStatus === 'playing' }"
-            :disabled="!midiPlaybackReady"
-            :aria-label="playbackStatus === 'playing' ? 'Pausar reprodução MIDI' : 'Reproduzir arquivo MIDI'"
-            @click="togglePlaybackPlayPause"
-          >
-            <span
-              v-if="playbackStatus !== 'playing'"
-              class="recorder-section__icon recorder-section__icon--play"
-            />
-            <span
-              v-else
-              class="recorder-section__icon recorder-section__icon--pause"
-            />
-          </button>
-          <button
-            type="button"
-            class="recorder-section__button recorder-section__button--stop-playback"
-            :disabled="!midiPlaybackCanStop"
-            aria-label="Parar reprodução MIDI"
-            @click="stopPlayback"
-          >
-            <span class="recorder-section__icon recorder-section__icon--stop" />
-          </button>
-          <template v-if="midiPlaybackReady">
-            <span class="recorder-section__label">Velocidade</span>
-            <div class="recorder-section__bpm">
-              <button
-                type="button"
-                class="recorder-section__bpm-step"
-                aria-label="Diminuir velocidade da reprodução"
-                @click="changePlaybackBpm(-1)"
-              >
-                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">−</span>
-              </button>
-              <button
-                v-if="!playbackBpmEditing"
-                type="button"
-                class="recorder-section__bpm-value"
-                :aria-label="playbackBpmAriaLabel"
-                @click="startPlaybackBpmEdit"
-              >
-                {{ playbackBpm }} BPM
-              </button>
-              <span v-else class="recorder-section__bpm-edit">
-                <input
-                  ref="playbackBpmInput"
-                  v-model="playbackBpmDraft"
-                  type="text"
-                  inputmode="numeric"
-                  class="recorder-section__bpm-input"
-                  aria-label="Velocidade da reprodução em BPM"
-                  @keydown.enter.prevent="commitPlaybackBpm"
-                  @keydown.esc.prevent="cancelPlaybackBpmEdit"
-                  @blur="commitPlaybackBpm"
-                />
-                <span class="recorder-section__bpm-suffix">BPM</span>
-              </span>
-              <button
-                type="button"
-                class="recorder-section__bpm-step"
-                aria-label="Aumentar velocidade da reprodução"
-                @click="changePlaybackBpm(1)"
-              >
-                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
-              </button>
-              <button
-                type="button"
-                class="recorder-section__pill recorder-section__pill--bpm-reset"
-                :disabled="isPlaybackAtOriginalBpm"
-                :aria-label="`Restaurar velocidade original (${midiRecordedBpm} BPM)`"
-                :title="`Voltar para ${midiRecordedBpm} BPM`"
-                @click="resetPlaybackBpm"
-              >
-                Original
-              </button>
-            </div>
-          </template>
-        </div>
+        <OptionsTabPanel
+          v-show="controlsTab === 'options'"
+          :show-key-labels="showKeyLabels"
+          :key-label-notation="keyLabelNotation"
+          :accidental-notations="accidentalNotations"
+          :accidental-notation="accidentalNotation"
+          :keyboard-height="keyboardHeight"
+          :keyboard-height-step="keyboardHeightStep"
+          :can-decrease-keyboard-height="canDecreaseKeyboardHeight"
+          :can-increase-keyboard-height="canIncreaseKeyboardHeight"
+          :view-zoom="viewZoom"
+          :view-zoom-step="viewZoomStep"
+          :view-zoom-default="viewZoomDefault"
+          :view-zoom-percent="viewZoomPercent"
+          :can-decrease-view-zoom="canDecreaseViewZoom"
+          :can-increase-view-zoom="canIncreaseViewZoom"
+          :piano-volume="pianoVolume"
+          :metronome-volume="metronomeVolume"
+          @toggle-show-key-labels="toggleShowKeyLabels"
+          @update:key-label-notation="setKeyLabelNotation"
+          @update:accidental-notation="setAccidentalNotation"
+          @change-keyboard-height="changeKeyboardHeight"
+          @change-view-zoom="changeViewZoom"
+          @reset-view-zoom="resetViewZoom"
+          @update:piano-volume="onPianoVolumeChange"
+          @update:metronome-volume="onMetronomeVolumeChange"
+        />
+
+        <HarmonicTabPanel
+          v-show="controlsTab === 'harmonic'"
+          :accidental-notations="accidentalNotations"
+          :accidental-notation="accidentalNotation"
+          :harmonic-display-enabled="harmonicDisplayEnabled"
+          :harmonic-scale-types="harmonicScaleTypes"
+          :harmonic-scale-type="harmonicScaleType"
+          :harmonic-tonics="harmonicTonics"
+          :harmonic-tonic="harmonicTonic"
+          :harmonic-chords="harmonicChords"
+          :harmonic-selected-chord-id="harmonicSelectedChordId"
+          @update:accidental-notation="setAccidentalNotation"
+          @toggle-harmonic-display="toggleHarmonicDisplay"
+          @update:harmonic-scale-type="setHarmonicScaleType"
+          @update:harmonic-tonic="setHarmonicTonic"
+          @toggle-harmonic-chord="toggleHarmonicChord"
+        />
+
+        <ChordDictionaryTabPanel
+          v-show="controlsTab === 'chordDictionary'"
+          :accidental-notations="accidentalNotations"
+          :accidental-notation="accidentalNotation"
+          :chord-dict-roots="chordDictRoots"
+          :chord-dict-qualities="chordDictQualities"
+          :chord-dict-root="chordDictRoot"
+          :chord-dict-quality-id="chordDictQualityId"
+          :chord-dict-bass-roots="chordDictBassRoots"
+          :chord-dict-active-bass-root="chordDictActiveBassRoot"
+          :chord-dict-can-invert="chordDictCanInvert"
+          :chord-dict-bass-can-invert="chordDictBassCanInvert"
+          :chord-dict-inversion-label="chordDictInversionLabel"
+          :chord-dict-bass-inversion-label="chordDictBassInversionLabel"
+          :chord-dict-final-label="chordDictFinalLabel"
+          @update:accidental-notation="setAccidentalNotation"
+          @set-chord-dict-root="setChordDictRoot"
+          @set-chord-dict-quality="setChordDictQuality"
+          @set-chord-dict-bass-root="setChordDictBassRoot"
+          @shift-chord-dict-inversion="shiftChordDictInversion"
+          @shift-chord-dict-bass-inversion="shiftChordDictBassInversion"
+        />
+
+        <RhythmicFiguresTabPanel v-show="controlsTab === 'rhythmicFigures'" />
       </div>
-
-      <div
-        v-show="controlsTab === 'options'"
-        id="controls-panel-options"
-        role="tabpanel"
-        class="recorder-section__panel"
-        aria-labelledby="controls-tab-options"
-      >
-        <div class="recorder-section__inner">
-          <span class="recorder-section__label">Notas</span>
-          <button
-            type="button"
-            class="recorder-section__pill"
-            :class="{ 'recorder-section__pill--active': showKeyLabels }"
-            :aria-pressed="showKeyLabels"
-            :aria-label="showKeyLabels ? 'Ocultar nomes nas teclas' : 'Mostrar nomes nas teclas'"
-            @click="toggleShowKeyLabels"
-          >
-            {{ showKeyLabels ? 'Visível' : 'Oculto' }}
-          </button>
-          <button
-            type="button"
-            class="recorder-section__pill recorder-section__pill--notation"
-            :aria-label="keyLabelNotation === 'western' ? 'Notação ocidental. Alternar para solfejo.' : 'Solfejo. Alternar para notação ocidental.'"
-            @click="toggleKeyLabelNotation"
-          >
-            {{ keyLabelNotation === 'western' ? 'C4' : 'Dó4' }}
-          </button>
-          <button
-            v-for="notation in accidentalNotations"
-            :key="notation.id"
-            type="button"
-            class="recorder-section__pill"
-            :class="{ 'recorder-section__pill--active': accidentalNotation === notation.id }"
-            :aria-pressed="accidentalNotation === notation.id"
-            @click="setAccidentalNotation(notation.id)"
-          >
-            {{ notation.label }}
-          </button>
-
-          <span class="recorder-section__divider" aria-hidden="true" />
-
-          <span class="recorder-section__label">Altura das teclas</span>
-          <div class="recorder-section__bpm">
-            <button
-              type="button"
-              class="recorder-section__bpm-step"
-              aria-label="Diminuir altura do teclado"
-              :disabled="!canDecreaseKeyboardHeight"
-              @click="changeKeyboardHeight(-keyboardHeightStep)"
-            >
-              <span class="recorder-section__bpm-step-glyph" aria-hidden="true">−</span>
-            </button>
-            <span
-              class="recorder-section__bpm-value recorder-section__bpm-value--readonly"
-              aria-live="polite"
-            >
-              {{ keyboardHeight }} px
-            </span>
-            <button
-              type="button"
-              class="recorder-section__bpm-step"
-              aria-label="Aumentar altura do teclado"
-              :disabled="!canIncreaseKeyboardHeight"
-              @click="changeKeyboardHeight(keyboardHeightStep)"
-            >
-              <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
-            </button>
-          </div>
-
-          <span class="recorder-section__divider" aria-hidden="true" />
-
-          <span class="recorder-section__label">Zoom</span>
-          <div class="recorder-section__bpm">
-            <button
-              type="button"
-              class="recorder-section__bpm-step"
-              aria-label="Diminuir zoom da tela"
-              :disabled="!canDecreaseViewZoom"
-              @click="changeViewZoom(-viewZoomStep)"
-            >
-              <span class="recorder-section__bpm-step-glyph" aria-hidden="true">−</span>
-            </button>
-            <span
-              class="recorder-section__bpm-value recorder-section__bpm-value--readonly"
-              aria-live="polite"
-            >
-              {{ viewZoomPercent }}%
-            </span>
-            <button
-              type="button"
-              class="recorder-section__bpm-step"
-              aria-label="Aumentar zoom da tela"
-              :disabled="!canIncreaseViewZoom"
-              @click="changeViewZoom(viewZoomStep)"
-            >
-              <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
-            </button>
-            <button
-              type="button"
-              class="recorder-section__pill recorder-section__pill--bpm-reset"
-              :disabled="viewZoom === viewZoomDefault"
-              aria-label="Restaurar zoom para 100%"
-              title="Voltar para 100%"
-              @click="resetViewZoom"
-            >
-              100%
-            </button>
-          </div>
-
-          <span class="recorder-section__divider" aria-hidden="true" />
-
-          <span class="recorder-section__label">Volume piano</span>
-          <div class="recorder-section__volume">
-            <input
-              v-model.number="pianoVolume"
-              type="range"
-              class="recorder-section__volume-slider"
-              :style="volumeSliderStyle(pianoVolume)"
-              min="0"
-              max="100"
-              step="1"
-              aria-label="Volume do piano"
-              @input="applyPianoVolume"
-            />
-            <span class="recorder-section__volume-value">{{ pianoVolume }}%</span>
-          </div>
-
-          <span class="recorder-section__label">Volume metrônomo</span>
-          <div class="recorder-section__volume">
-            <input
-              v-model.number="metronomeVolume"
-              type="range"
-              class="recorder-section__volume-slider"
-              :style="volumeSliderStyle(metronomeVolume)"
-              min="0"
-              max="100"
-              step="1"
-              aria-label="Volume do metrônomo"
-              @input="applyMetronomeVolume"
-            />
-            <span class="recorder-section__volume-value">{{ metronomeVolume }}%</span>
-          </div>
-        </div>
-      </div>
-
-      <div
-        v-show="controlsTab === 'harmonic'"
-        id="controls-panel-harmonic"
-        role="tabpanel"
-        class="recorder-section__panel recorder-section__panel--harmonic"
-        aria-labelledby="controls-tab-harmonic"
-      >
-        <div class="recorder-section__inner recorder-section__harmonic">
-          <div class="recorder-section__harmonic-row">
-            <span class="recorder-section__label">Notação</span>
-            <button
-              v-for="notation in accidentalNotations"
-              :key="`harmonic-${notation.id}`"
-              type="button"
-              class="recorder-section__pill"
-              :class="{ 'recorder-section__pill--active': accidentalNotation === notation.id }"
-              :aria-pressed="accidentalNotation === notation.id"
-              @click="setAccidentalNotation(notation.id)"
-            >
-              {{ notation.label }}
-            </button>
-          </div>
-
-          <div class="recorder-section__harmonic-row">
-            <span class="recorder-section__label">Campo</span>
-            <button
-              type="button"
-              class="recorder-section__pill"
-              :class="{ 'recorder-section__pill--active': harmonicDisplayEnabled }"
-              :aria-pressed="harmonicDisplayEnabled"
-              :aria-label="harmonicDisplayEnabled ? 'Ocultar campo harmônico no teclado' : 'Mostrar campo harmônico no teclado'"
-              @click="toggleHarmonicDisplay"
-            >
-              {{ harmonicDisplayEnabled ? 'Ativo' : 'Inativo' }}
-            </button>
-
-            <span class="recorder-section__divider" aria-hidden="true" />
-
-            <span class="recorder-section__label">Escala</span>
-            <button
-              v-for="scale in harmonicScaleTypes"
-              :key="scale.id"
-              type="button"
-              class="recorder-section__pill"
-              :class="{ 'recorder-section__pill--active': harmonicScaleType === scale.id }"
-              :aria-pressed="harmonicScaleType === scale.id"
-              @click="setHarmonicScaleType(scale.id)"
-            >
-              {{ scale.label }}
-            </button>
-
-            <span class="recorder-section__divider" aria-hidden="true" />
-
-            <span class="recorder-section__label">Tom</span>
-            <button
-              v-for="tonic in harmonicTonics"
-              :key="tonic"
-              type="button"
-              class="recorder-section__pill recorder-section__pill--tonic"
-              :class="{
-                'recorder-section__pill--active': harmonicTonic === tonic,
-                'recorder-section__pill--tonic-enh': tonic.includes('#'),
-              }"
-              :aria-pressed="harmonicTonic === tonic"
-              :aria-label="`Tom ${formatAccidentalRootLabel(tonic)}`"
-              @click="setHarmonicTonic(tonic)"
-            >
-              {{ formatAccidentalRootLabel(tonic) }}
-            </button>
-          </div>
-
-          <div class="recorder-section__harmonic-row recorder-section__harmonic-row--chords">
-            <span class="recorder-section__label">Acordes</span>
-            <div class="harmonic-chords" role="list">
-              <button
-                v-for="chord in harmonicChords"
-                :key="chord.id"
-                type="button"
-                role="listitem"
-                class="harmonic-chords__item"
-                :class="{ 'harmonic-chords__item--active': harmonicSelectedChordId === chord.id }"
-                :aria-pressed="harmonicSelectedChordId === chord.id"
-                :aria-label="`Acorde ${chord.degree}, ${formatHarmonicChordSymbol(chord.symbol)}`"
-                @click="toggleHarmonicChord(chord.id)"
-              >
-                <span class="harmonic-chords__degree">{{ chord.degree }}</span>
-                <span class="harmonic-chords__symbol">{{ formatHarmonicChordSymbol(chord.symbol) }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        v-show="controlsTab === 'chordDictionary'"
-        id="controls-panel-chord-dictionary"
-        role="tabpanel"
-        class="recorder-section__panel recorder-section__panel--chord-dictionary"
-        aria-labelledby="controls-tab-chord-dictionary"
-      >
-        <div class="recorder-section__inner recorder-section__chord-dict">
-          <div class="recorder-section__chord-dict-row">
-            <span class="recorder-section__label">Notação</span>
-            <button
-              v-for="notation in accidentalNotations"
-              :key="`chord-dict-${notation.id}`"
-              type="button"
-              class="recorder-section__pill"
-              :class="{ 'recorder-section__pill--active': accidentalNotation === notation.id }"
-              :aria-pressed="accidentalNotation === notation.id"
-              @click="setAccidentalNotation(notation.id)"
-            >
-              {{ notation.label }}
-            </button>
-          </div>
-
-          <div class="recorder-section__chord-dict-row recorder-section__chord-dict-row--tonic">
-            <span class="recorder-section__label">Tom</span>
-            <button
-              v-for="root in chordDictRoots"
-              :key="root"
-              type="button"
-              class="recorder-section__pill recorder-section__pill--tonic"
-              :class="{
-                'recorder-section__pill--active': chordDictRoot === root,
-                'recorder-section__pill--tonic-enh': root.includes('#'),
-              }"
-              :aria-pressed="chordDictRoot === root"
-              :aria-label="`Tom ${formatAccidentalRootLabel(root)}`"
-              @click="setChordDictRoot(root)"
-            >
-              {{ formatAccidentalRootLabel(root) }}
-            </button>
-          </div>
-
-          <div class="recorder-section__chord-dict-row recorder-section__chord-dict-row--variations">
-            <span class="recorder-section__label">Variações</span>
-            <div class="chord-dict-variations">
-              <button
-                v-for="quality in chordDictQualities"
-                :key="quality.id"
-                type="button"
-                class="recorder-section__pill chord-dict-variations__pill"
-                :class="{
-                  'recorder-section__pill--active':
-                    chordDictQualityId === quality.id,
-                }"
-                :aria-pressed="chordDictQualityId === quality.id"
-                :aria-label="`Acorde ${formatChordQualityLabel(chordDictRoot, quality, accidentalNotation)}`"
-                @click="setChordDictQuality(quality.id)"
-              >
-                {{ formatChordQualityLabel(chordDictRoot, quality, accidentalNotation) }}
-              </button>
-            </div>
-          </div>
-
-          <div class="recorder-section__chord-dict-row recorder-section__chord-dict-row--bass">
-            <span class="recorder-section__label">Baixos</span>
-            <button
-              v-for="bassRoot in chordDictBassRoots"
-              :key="bassRoot"
-              type="button"
-              class="recorder-section__pill recorder-section__pill--tonic"
-              :class="{
-                'recorder-section__pill--active': chordDictActiveBassRoot === bassRoot,
-                'recorder-section__pill--tonic-enh': bassRoot.includes('#'),
-              }"
-              :aria-pressed="chordDictActiveBassRoot === bassRoot"
-              :aria-label="`Baixo ${formatAccidentalRootLabel(bassRoot)}`"
-              @click="setChordDictBassRoot(bassRoot)"
-            >
-              {{ formatAccidentalRootLabel(bassRoot) }}
-            </button>
-          </div>
-
-          <div class="recorder-section__chord-dict-row recorder-section__chord-dict-row--inversions">
-            <span class="recorder-section__label">Inv. baixo</span>
-            <div class="chord-dict-inversion">
-              <button
-                type="button"
-                class="recorder-section__bpm-step chord-dict-inversion__step"
-                :disabled="!chordDictBassCanInvert"
-                aria-label="Inversão anterior do baixo"
-                @click="shiftChordDictBassInversion(-1)"
-              >
-                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">←</span>
-              </button>
-              <span class="chord-dict-inversion__status">{{ chordDictBassInversionLabel }}</span>
-              <button
-                type="button"
-                class="recorder-section__bpm-step chord-dict-inversion__step"
-                :disabled="!chordDictBassCanInvert"
-                aria-label="Próxima inversão do baixo"
-                @click="shiftChordDictBassInversion(1)"
-              >
-                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">→</span>
-              </button>
-            </div>
-
-            <span class="recorder-section__divider" aria-hidden="true" />
-
-            <span class="recorder-section__label">Inv. agudos</span>
-            <div class="chord-dict-inversion">
-              <button
-                type="button"
-                class="recorder-section__bpm-step chord-dict-inversion__step"
-                :disabled="!chordDictCanInvert"
-                aria-label="Inversão anterior dos agudos"
-                @click="shiftChordDictInversion(-1)"
-              >
-                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">←</span>
-              </button>
-              <span class="chord-dict-inversion__status">{{ chordDictInversionLabel }}</span>
-              <button
-                type="button"
-                class="recorder-section__bpm-step chord-dict-inversion__step"
-                :disabled="!chordDictCanInvert"
-                aria-label="Próxima inversão dos agudos"
-                @click="shiftChordDictInversion(1)"
-              >
-                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">→</span>
-              </button>
-            </div>
-          </div>
-
-          <p class="recorder-section__chord-dict-generated">
-            <span class="recorder-section__chord-dict-generated-symbol">
-              {{ chordDictFinalLabel }}
-            </span>
-          </p>
-        </div>
-      </div>
-
-      <div
-        v-show="controlsTab === 'rhythmicFigures'"
-        id="controls-panel-rhythmic-figures"
-        role="tabpanel"
-        class="recorder-section__panel recorder-section__panel--rhythmic-figures"
-        aria-labelledby="controls-tab-rhythmic-figures"
-      >
-        <RhythmicFiguresPanel />
-      </div>
-
-      <div
-        v-show="controlsTab === 'screen'"
-        id="controls-panel-screen"
-        role="tabpanel"
-        class="recorder-section__panel"
-        aria-labelledby="controls-tab-screen"
-      >
-        <div class="recorder-section__inner">
-          <span class="recorder-section__label">Gravação de tela</span>
-          <button
-            type="button"
-            class="recorder-section__button"
-            :class="{ 'recorder-section__button--recording': isScreenRecording }"
-            :disabled="!screenRecordingSupported"
-            :aria-label="isScreenRecording ? 'Parar gravação de tela' : screenRecordAriaLabel"
-            @click="toggleScreenRecording"
-          >
-            <span
-              v-if="!isScreenRecording"
-              class="recorder-section__icon recorder-section__icon--record"
-            />
-            <span
-              v-else
-              class="recorder-section__icon recorder-section__icon--stop"
-            />
-          </button>
-          <span
-            class="recorder-section__hint"
-            :class="{ 'recorder-section__hint--active': isScreenRecording }"
-          >
-            <template v-if="isScreenRecording">
-              {{ screenRecordingHint }}
-            </template>
-            <template v-else-if="screenRecordingSupported">
-              {{ screenRecordingIdleHint }}
-            </template>
-            <template v-else>
-              Não suportado neste navegador
-            </template>
-          </span>
-        </div>
-      </div>
-
-      <div
-        v-show="controlsTab === 'metronome'"
-        id="controls-panel-metronome"
-        role="tabpanel"
-        class="recorder-section__panel recorder-section__panel--metronome"
-        aria-labelledby="controls-tab-metronome"
-      >
-        <div class="recorder-section__metronome">
-          <div class="recorder-section__inner recorder-section__metronome-controls">
-            <button
-              type="button"
-              class="recorder-section__button recorder-section__button--metronome"
-              :class="{ 'recorder-section__button--metronome-active': metronomeRunning }"
-              :aria-label="metronomeRunning ? 'Parar metrônomo' : 'Iniciar metrônomo'"
-              @click="toggleMetronome"
-            >
-              <span
-                v-if="!metronomeRunning"
-                class="recorder-section__icon recorder-section__icon--metronome-play"
-              />
-              <span
-                v-else
-                class="recorder-section__icon recorder-section__icon--metronome-stop"
-              />
-            </button>
-            <div class="recorder-section__bpm">
-              <button
-                type="button"
-                class="recorder-section__bpm-step"
-                aria-label="Diminuir andamento"
-                @click="changeMetronomeBpm(-1)"
-              >
-                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">−</span>
-              </button>
-              <button
-                v-if="!metronomeBpmEditing"
-                type="button"
-                class="recorder-section__bpm-value"
-                aria-label="Editar andamento em BPM"
-                @click="startMetronomeBpmEdit"
-              >
-                {{ metronomeBpm }} BPM
-              </button>
-              <span v-else class="recorder-section__bpm-edit">
-                <input
-                  ref="metronomeBpmInput"
-                  v-model="metronomeBpmDraft"
-                  type="text"
-                  inputmode="numeric"
-                  class="recorder-section__bpm-input"
-                  aria-label="Andamento em BPM"
-                  @keydown.enter.prevent="commitMetronomeBpm"
-                  @keydown.esc.prevent="cancelMetronomeBpmEdit"
-                  @blur="commitMetronomeBpm"
-                />
-                <span class="recorder-section__bpm-suffix">BPM</span>
-              </span>
-              <button
-                type="button"
-                class="recorder-section__bpm-step"
-                aria-label="Aumentar andamento"
-                @click="changeMetronomeBpm(1)"
-              >
-                <span class="recorder-section__bpm-step-glyph" aria-hidden="true">+</span>
-              </button>
-            </div>
-            <button
-              v-for="signature in metronomeTimeSignatures"
-              :key="signature"
-              type="button"
-              class="recorder-section__pill recorder-section__pill--time"
-              :class="{ 'recorder-section__pill--active': metronomeTimeSignature === signature }"
-              :aria-pressed="metronomeTimeSignature === signature"
-              @click="setMetronomeTimeSignature(signature)"
-            >
-              {{ signature }}
-            </button>
-          </div>
-          <div
-            v-if="metronomeRunning"
-            class="recorder-section__beat-dots"
-            aria-hidden="true"
-          >
-            <span
-              v-for="beatIndex in metronomeBeatCount"
-              :key="beatIndex"
-              class="recorder-section__beat-dot"
-              :class="metronomeBeatDotClass(beatIndex - 1)"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div
-        v-if="midiPlaybackReady"
-        class="recorder-section__progress"
-      >
-        <button
-          type="button"
-          class="recorder-section__progress-track"
-          :aria-label="playbackProgressAriaLabel"
-          :aria-valuenow="Math.round(playbackPositionMs)"
-          aria-valuemin="0"
-          :aria-valuemax="Math.round(midiDurationMs)"
-          @click="seekPlaybackFromEvent"
-        >
-          <span
-            class="recorder-section__progress-fill"
-            :style="{ width: `${playbackProgressPercent}%` }"
-          />
-        </button>
-      </div>
-      </div>
-    </section>
 
     <div
       class="piano-stage"
@@ -938,6 +339,8 @@
       </svg>
     </div>
     </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -979,7 +382,6 @@ import {
   ACCIDENTAL_NOTATIONS,
   buildHarmonicField,
   formatHarmonicTonicLabel,
-  formatRootNotation,
   HARMONIC_SCALE_TYPES,
   HARMONIC_TONICS,
   isNoteInPitchClassSet,
@@ -1018,9 +420,15 @@ import {
   isScreenRecordingSupported,
   saveScreenRecording,
 } from '../utils/screenRecorder.js'
+import AppTooltip from './AppTooltip.vue'
 import ControlTabIcon from './ControlTabIcon.vue'
 import PianoRoll from './PianoRoll.vue'
-import RhythmicFiguresPanel from './RhythmicFiguresPanel.vue'
+import RecordingTabPanel from './tabs/RecordingTabPanel.vue'
+import PlaybackTabPanel from './tabs/PlaybackTabPanel.vue'
+import OptionsTabPanel from './tabs/OptionsTabPanel.vue'
+import HarmonicTabPanel from './tabs/HarmonicTabPanel.vue'
+import ChordDictionaryTabPanel from './tabs/ChordDictionaryTabPanel.vue'
+import RhythmicFiguresTabPanel from './tabs/RhythmicFiguresTabPanel.vue'
 
 const piano = buildPianoKeys()
 
@@ -1038,12 +446,64 @@ const keyboardHeightBounds = {
 
 const storedOptionsPreferences = loadOptionsPreferences(keyboardHeightBounds)
 
+const CONTROL_TABS = [
+  {
+    id: 'recording',
+    label: 'Gravação',
+    icon: 'recording',
+    idAttr: 'controls-tab-recording',
+    panelId: 'controls-panel-recording',
+  },
+  {
+    id: 'playback',
+    label: 'Reprodução',
+    icon: 'playback',
+    idAttr: 'controls-tab-playback',
+    panelId: 'controls-panel-playback',
+  },
+  {
+    id: 'harmonic',
+    label: 'Campos harmônicos',
+    icon: 'harmonic',
+    idAttr: 'controls-tab-harmonic',
+    panelId: 'controls-panel-harmonic',
+  },
+  {
+    id: 'chordDictionary',
+    label: 'Dicionário de acordes',
+    icon: 'chord-dictionary',
+    idAttr: 'controls-tab-chord-dictionary',
+    panelId: 'controls-panel-chord-dictionary',
+  },
+  {
+    id: 'rhythmicFigures',
+    label: 'Figuras rítmicas',
+    icon: 'rhythmic-figures',
+    idAttr: 'controls-tab-rhythmic-figures',
+    panelId: 'controls-panel-rhythmic-figures',
+  },
+]
+
+const CONTROL_OPTIONS_TAB = {
+  id: 'options',
+  label: 'Opções',
+  icon: 'options',
+  idAttr: 'controls-tab-options',
+  panelId: 'controls-panel-options',
+}
+
 export default {
   name: 'PianoKeyboard',
   components: {
+    AppTooltip,
     ControlTabIcon,
     PianoRoll,
-    RhythmicFiguresPanel,
+    RecordingTabPanel,
+    PlaybackTabPanel,
+    OptionsTabPanel,
+    HarmonicTabPanel,
+    ChordDictionaryTabPanel,
+    RhythmicFiguresTabPanel,
   },
   data() {
     return {
@@ -1063,8 +523,6 @@ export default {
       metronome: createMetronome(),
       metronomeRunning: false,
       metronomeBpm: 120,
-      metronomeBpmEditing: false,
-      metronomeBpmDraft: '',
       metronomeTimeSignature: '4/4',
       metronomeTimeSignatures: METRONOME_TIME_SIGNATURES,
       metronomeCurrentBeat: -1,
@@ -1080,9 +538,9 @@ export default {
       playbackPositionMs: 0,
       midiRecordedBpm: 120,
       playbackBpm: 120,
-      playbackBpmEditing: false,
-      playbackBpmDraft: '',
-      controlsTab: 'playback',
+      controlsTab: 'recording',
+      controlOptionsTab: CONTROL_OPTIONS_TAB,
+      sidebarNavCompact: storedOptionsPreferences.sidebarNavCompact,
       keyboardHeight: storedOptionsPreferences.keyboardHeight,
       keyboardHeightStep: KEYBOARD_HEIGHT_STEP,
       viewZoom: storedOptionsPreferences.viewZoom,
@@ -1116,6 +574,9 @@ export default {
     }
   },
   computed: {
+    controlMainTabs() {
+      return CONTROL_TABS
+    },
     harmonicField() {
       return buildHarmonicField(this.harmonicTonic, this.harmonicScaleType)
     },
@@ -1312,6 +773,11 @@ export default {
     isPlaybackAtOriginalBpm() {
       return this.playbackBpm === this.midiRecordedBpm
     },
+    sidebarNavToggleTooltip() {
+      return this.sidebarNavCompact
+        ? 'Mostrar ícones e textos nas abas'
+        : 'Mostrar apenas ícones nas abas'
+    },
   },
   watch: {
     showKeyLabels() {
@@ -1333,6 +799,9 @@ export default {
       this.persistOptionsPreferences()
     },
     accidentalNotation() {
+      this.persistOptionsPreferences()
+    },
+    sidebarNavCompact() {
       this.persistOptionsPreferences()
     },
   },
@@ -1367,17 +836,6 @@ export default {
     formatHarmonicTonicLabel,
     formatChordDictionaryLabel,
     formatChordQualityLabel,
-    formatAccidentalRootLabel(root) {
-      return formatRootNotation(root, this.accidentalNotation)
-    },
-    formatHarmonicChordSymbol(symbol) {
-      const match = symbol.match(/^([A-G]#?)(.*)$/)
-      if (!match) return symbol
-
-      const [, root, suffix] = match
-
-      return `${formatRootNotation(root, this.accidentalNotation)}${suffix}`
-    },
     setAccidentalNotation(notation) {
       this.accidentalNotation = notation
     },
@@ -1548,16 +1006,19 @@ export default {
         pianoVolume: this.pianoVolume,
         metronomeVolume: this.metronomeVolume,
         accidentalNotation: this.accidentalNotation,
+        sidebarNavCompact: this.sidebarNavCompact,
       })
     },
-    applyPianoVolume() {
-      setPianoVolume(this.pianoVolume)
+    toggleSidebarNavCompact() {
+      this.sidebarNavCompact = !this.sidebarNavCompact
     },
-    applyMetronomeVolume() {
-      this.metronome.setVolume(this.metronomeVolume)
+    onPianoVolumeChange(value) {
+      this.pianoVolume = value
+      setPianoVolume(value)
     },
-    volumeSliderStyle(percent) {
-      return { '--volume-fill': `${percent}%` }
+    onMetronomeVolumeChange(value) {
+      this.metronomeVolume = value
+      this.metronome.setVolume(value)
     },
     changeViewZoom(delta) {
       const next =
@@ -1574,8 +1035,10 @@ export default {
     toggleShowKeyLabels() {
       this.showKeyLabels = !this.showKeyLabels
     },
-    toggleKeyLabelNotation() {
-      this.keyLabelNotation = this.keyLabelNotation === 'western' ? 'solfege' : 'western'
+    setKeyLabelNotation(notation) {
+      if (notation === 'western' || notation === 'solfege') {
+        this.keyLabelNotation = notation
+      }
     },
     changeKeyboardHeight(delta) {
       const next = this.keyboardHeight + delta
@@ -1615,39 +1078,6 @@ export default {
       const rate = bpm / this.midiRecordedBpm
       this.midiPlayer.setPlaybackRate(rate)
     },
-    startPlaybackBpmEdit() {
-      this.playbackBpmDraft = String(this.playbackBpm)
-      this.playbackBpmEditing = true
-
-      this.$nextTick(() => {
-        const input = this.$refs.playbackBpmInput
-        if (input instanceof HTMLInputElement) {
-          input.focus()
-          input.select()
-        }
-      })
-    },
-    commitPlaybackBpm() {
-      if (!this.playbackBpmEditing) return
-
-      const parsed = Number.parseInt(this.playbackBpmDraft, 10)
-      if (Number.isFinite(parsed)) {
-        this.applyPlaybackBpm(parsed)
-      }
-
-      this.playbackBpmEditing = false
-    },
-    cancelPlaybackBpmEdit() {
-      this.playbackBpmEditing = false
-    },
-    metronomeBeatDotClass(beatIndex) {
-      const isCurrent = this.metronomeCurrentBeat === beatIndex
-
-      return {
-        'recorder-section__beat-dot--current': isCurrent,
-        'recorder-section__beat-dot--strong': beatIndex === 0 && !isCurrent,
-      }
-    },
     changeMetronomeBpm(delta) {
       this.applyMetronomeBpm(this.metronomeBpm + delta)
     },
@@ -1659,49 +1089,17 @@ export default {
       const clampedBpm = Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(bpm)))
       this.midiRecordedBpm = clampedBpm
       this.playbackBpm = clampedBpm
-      this.playbackBpmEditing = false
-      this.playbackBpmDraft = ''
       this.applyMetronomeBpm(clampedBpm)
 
       if (this.midiPlayer) {
         this.midiPlayer.setPlaybackRate(1)
       }
     },
-    startMetronomeBpmEdit() {
-      this.metronomeBpmDraft = String(this.metronomeBpm)
-      this.metronomeBpmEditing = true
-
-      this.$nextTick(() => {
-        const input = this.$refs.metronomeBpmInput
-        if (!input) return
-
-        input.focus()
-        input.select()
-      })
-    },
-    commitMetronomeBpm() {
-      if (!this.metronomeBpmEditing) return
-
-      const parsed = Number.parseInt(this.metronomeBpmDraft, 10)
-      if (Number.isFinite(parsed)) {
-        this.applyMetronomeBpm(parsed)
-      }
-
-      this.metronomeBpmEditing = false
-    },
-    cancelMetronomeBpmEdit() {
-      this.metronomeBpmEditing = false
-    },
     setMetronomeTimeSignature(signature) {
       this.metronomeTimeSignature = signature
       this.metronome.setTimeSignature(signature)
     },
-    openMidiFilePicker() {
-      this.$refs.midiFileInput?.click()
-    },
-    async onMidiFileSelected(event) {
-      const input = event.target
-      const file = input?.files?.[0]
+    async onMidiFileSelected(file) {
       if (!file) return
 
       try {
@@ -1751,8 +1149,6 @@ export default {
         console.warn('Não foi possível ler o arquivo MIDI.', error)
         this.clearMidiFile()
       }
-
-      input.value = ''
     },
     clearMidiFile() {
       this.stopPlayback()
@@ -1763,17 +1159,11 @@ export default {
       this.midiDurationMs = 0
       this.midiRecordedBpm = 120
       this.playbackBpm = 120
-      this.playbackBpmEditing = false
       this.playbackPositionMs = 0
       this.playbackStatus = 'idle'
     },
     removeMidiFile() {
       this.clearMidiFile()
-
-      const input = this.$refs.midiFileInput
-      if (input) {
-        input.value = ''
-      }
     },
     disposeMidiPlayer() {
       if (this.midiPlayer) {
@@ -2149,24 +1539,52 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 16px 20px 0;
+  padding: 0;
   box-sizing: border-box;
+  min-height: 0;
+}
+
+.piano-wrapper :deep(.recorder-section--sidebar-layout) {
+  border-radius: 0 20px 20px 0;
+  border-left: none;
+}
+
+.piano-wrapper :deep(.recorder-section--piano-roll-layout .recorder-section__main) {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.piano-wrapper :deep(.recorder-section--piano-roll-layout .recorder-section__body) {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+  padding-bottom: 10px;
+}
+
+.piano-wrapper :deep(.recorder-section--piano-roll-layout .recorder-section__progress) {
+  margin-top: 10px;
+  padding-top: 10px;
 }
 
 .piano-stage {
-  margin-top: auto;
+  flex-shrink: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   gap: 20px;
-  padding-bottom: 24px;
+  padding: 0 20px 20px;
+  box-sizing: border-box;
 }
 
 .piano-stage--with-roll {
-  flex: 1;
+  flex: none;
   min-height: 0;
-  margin-top: 16px;
-  gap: 20px;
+  height: 100%;
+  gap: 12px;
+  justify-content: flex-start;
+  padding-top: 0;
+  overflow: hidden;
 }
 
 .piano-playfield {
@@ -2179,6 +1597,7 @@ export default {
   flex: 1;
   min-height: 0;
   gap: 0;
+  overflow: hidden;
 }
 
 .piano-playfield--with-roll .piano-keyboard {
@@ -2415,894 +1834,6 @@ export default {
 
 .piano-key--black.piano-key--chord-dict-bass .piano-key__label {
   color: #dbeafe;
-}
-
-.recorder-section {
-  --neu-surface: #25252d;
-  --neu-light: rgba(255, 255, 255, 0.07);
-  --neu-dark: rgba(0, 0, 0, 0.5);
-  --neu-raised:
-    6px 6px 12px var(--neu-dark),
-    -6px -6px 12px var(--neu-light);
-  --neu-raised-lg:
-    10px 10px 22px var(--neu-dark),
-    -10px -10px 22px var(--neu-light);
-  --neu-raised-sm:
-    4px 4px 8px var(--neu-dark),
-    -4px -4px 8px var(--neu-light);
-  --neu-pressed:
-    inset 4px 4px 8px var(--neu-dark),
-    inset -4px -4px 8px var(--neu-light);
-  --neu-pressed-deep:
-    inset 6px 6px 12px var(--neu-dark),
-    inset -6px -6px 12px var(--neu-light);
-
-  width: 100%;
-  padding: 0;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: #1e1e24;
-  box-shadow: var(--neu-raised-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  overflow: hidden;
-}
-
-.recorder-section__nav {
-  position: relative;
-  z-index: 2;
-  padding: 14px 18px 12px;
-  background: #25252d;
-  box-shadow:
-    var(--neu-raised-sm),
-    0 6px 14px rgba(0, 0, 0, 0.28);
-}
-
-.recorder-section__nav-divider {
-  flex-shrink: 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.45),
-    0 -1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.recorder-section__body {
-  position: relative;
-  z-index: 1;
-  padding: 16px 22px 18px;
-  background: #1a1a20;
-  box-shadow: inset 0 8px 14px rgba(0, 0, 0, 0.38);
-}
-
-.recorder-section__inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.recorder-section__tabs {
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.recorder-section__tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-sizing: border-box;
-  min-height: 44px;
-  height: 44px;
-  margin: 0;
-  padding: 0 16px;
-  border: none;
-  border-radius: 8px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-raised-sm);
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  line-height: 1.2;
-  color: rgba(243, 244, 246, 0.55);
-  cursor: pointer;
-  transition:
-    color 0.12s ease,
-    box-shadow 0.12s ease;
-}
-
-.recorder-section__tab-label {
-  white-space: nowrap;
-}
-
-.recorder-section__tab:hover {
-  color: rgba(243, 244, 246, 0.85);
-}
-
-.recorder-section__tab:focus-visible {
-  outline: 2px solid #f59e0b;
-  outline-offset: 3px;
-}
-
-.recorder-section__tab--active {
-  color: #fbbf24;
-  box-shadow: var(--neu-pressed);
-}
-
-.recorder-section__panel {
-  width: 100%;
-}
-
-.recorder-section__panel--metronome .recorder-section__metronome {
-  width: 100%;
-}
-
-.recorder-section__panel--rhythmic-figures {
-  width: 100%;
-  overflow: visible;
-}
-
-.recorder-section--rhythmic-tab {
-  overflow: visible;
-}
-
-.recorder-section--rhythmic-tab .recorder-section__body {
-  overflow: visible;
-}
-
-.recorder-section__harmonic {
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 14px;
-}
-
-.recorder-section__harmonic-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  width: 100%;
-  max-width: 100%;
-}
-
-.recorder-section__harmonic-row--chords {
-  gap: 12px;
-}
-
-.recorder-section__pill--tonic {
-  min-width: 2.5rem;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-.recorder-section__pill--tonic-enh {
-  min-width: 4.75rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-}
-
-.harmonic-chords {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
-
-.harmonic-chords__item {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  margin: 0;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 12px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-raised-sm);
-  cursor: pointer;
-  transition:
-    box-shadow 0.12s ease,
-    color 0.12s ease;
-}
-
-.harmonic-chords__item:hover {
-  box-shadow: var(--neu-raised);
-}
-
-.harmonic-chords__item:focus-visible {
-  outline: 2px solid #f59e0b;
-  outline-offset: 2px;
-}
-
-.harmonic-chords__item--active {
-  box-shadow: var(--neu-pressed-deep);
-  background: #3f1d1d;
-}
-
-.harmonic-chords__degree {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: rgba(251, 191, 36, 0.85);
-}
-
-.harmonic-chords__symbol {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: #f3f4f6;
-}
-
-.harmonic-chords__item--active .harmonic-chords__symbol {
-  color: #fca5a5;
-}
-
-.recorder-section__chord-dict {
-  flex-direction: column;
-  align-items: stretch;
-  width: 100%;
-  gap: 12px;
-}
-
-.recorder-section__chord-dict-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  width: 100%;
-}
-
-.recorder-section__chord-dict-row--variations,
-.recorder-section__chord-dict-row--bass,
-.recorder-section__chord-dict-row--inversions {
-  padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.recorder-section__chord-dict-row--inversions {
-  justify-content: center;
-  gap: 16px;
-}
-
-.chord-dict-variations {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.chord-dict-variations__pill {
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-}
-
-.chord-dict-inversion {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.chord-dict-inversion__step {
-  flex-shrink: 0;
-}
-
-.chord-dict-inversion__status {
-  min-width: 5.5rem;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: rgba(243, 244, 246, 0.85);
-  text-align: center;
-}
-
-.recorder-section__chord-dict-generated {
-  width: 100%;
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.22);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.5;
-  letter-spacing: 0.02em;
-  text-align: center;
-}
-
-.recorder-section__chord-dict-generated-symbol {
-  display: block;
-  font-size: 1.125rem;
-  color: #fbbf24;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-
-.recorder-section__progress {
-  width: 100%;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.recorder-section__progress-track {
-  display: block;
-  width: 100%;
-  height: 10px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-pressed-deep);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-
-.recorder-section__progress-track:hover {
-  box-shadow:
-    var(--neu-pressed-deep),
-    inset 0 0 0 1px rgba(251, 191, 36, 0.2);
-}
-
-.recorder-section__progress-track:focus-visible {
-  outline: 2px solid #fbbf24;
-  outline-offset: 3px;
-}
-
-.recorder-section__progress-fill {
-  display: block;
-  height: 100%;
-  min-width: 0;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #ca8a04 0%, #fbbf24 100%);
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.35);
-  pointer-events: none;
-}
-
-.recorder-section__divider {
-  width: 2px;
-  height: 36px;
-  border-radius: 1px;
-  background: var(--neu-surface);
-  box-shadow:
-    inset 1px 0 2px var(--neu-dark),
-    inset -1px 0 1px var(--neu-light);
-}
-
-.recorder-section__volume {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 10.5rem;
-}
-
-.recorder-section__volume-value {
-  min-width: 2.75rem;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: rgba(243, 244, 246, 0.85);
-  text-align: right;
-}
-
-.recorder-section__volume-slider {
-  width: 8.5rem;
-  height: 16px;
-  margin: 0;
-  padding: 0;
-  display: block;
-  appearance: none;
-  border: none;
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    #ca8a04 0%,
-    #fbbf24 var(--volume-fill, 0%),
-    var(--neu-surface) var(--volume-fill, 0%),
-    var(--neu-surface) 100%
-  );
-  box-shadow: var(--neu-pressed-deep);
-  cursor: pointer;
-}
-
-.recorder-section__volume-slider::-webkit-slider-runnable-track {
-  height: 10px;
-  border-radius: 999px;
-  background: transparent;
-}
-
-.recorder-section__volume-slider::-moz-range-track {
-  height: 10px;
-  border: none;
-  border-radius: 999px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-pressed-deep);
-}
-
-.recorder-section__volume-slider::-moz-range-progress {
-  height: 10px;
-  border-radius: 999px 0 0 999px;
-  background: linear-gradient(90deg, #ca8a04 0%, #fbbf24 100%);
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.28);
-}
-
-.recorder-section__volume-slider:focus-visible {
-  outline: 2px solid #fbbf24;
-  outline-offset: 3px;
-}
-
-.recorder-section__volume-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  margin-top: -3px;
-  border: none;
-  border-radius: 50%;
-  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.35),
-    0 0 8px rgba(251, 191, 36, 0.35);
-  cursor: pointer;
-}
-
-.recorder-section__volume-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border: none;
-  border-radius: 50%;
-  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.35),
-    0 0 8px rgba(251, 191, 36, 0.35);
-  cursor: pointer;
-}
-
-.recorder-section__label {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(243, 244, 246, 0.65);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-
-.recorder-section__button {
-  width: 44px;
-  height: 44px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-raised-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: box-shadow 0.15s ease, transform 0.12s ease;
-}
-
-.recorder-section__button:hover {
-  box-shadow:
-    5px 5px 10px var(--neu-dark),
-    -5px -5px 10px var(--neu-light);
-}
-
-.recorder-section__button:active {
-  box-shadow: var(--neu-pressed);
-  transform: scale(0.97);
-}
-
-.recorder-section__button:focus-visible {
-  outline: 2px solid #ef4444;
-  outline-offset: 3px;
-}
-
-.recorder-section__button--recording {
-  box-shadow:
-    var(--neu-pressed-deep),
-    0 0 14px rgba(239, 68, 68, 0.35);
-}
-
-.recorder-section__button--play:focus-visible {
-  outline: 2px solid #22c55e;
-  outline-offset: 3px;
-}
-
-.recorder-section__button--pause-mode {
-  box-shadow:
-    var(--neu-pressed-deep),
-    inset 0 0 0 1px rgba(251, 191, 36, 0.35);
-}
-
-.recorder-section__button--pause-mode:focus-visible {
-  outline: 2px solid #fbbf24;
-  outline-offset: 3px;
-}
-
-.recorder-section__icon--pause {
-  position: relative;
-  width: 14px;
-  height: 14px;
-}
-
-.recorder-section__icon--pause::before,
-.recorder-section__icon--pause::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  width: 4px;
-  height: 14px;
-  border-radius: 1px;
-  background: #fbbf24;
-  box-shadow: 0 0 5px rgba(251, 191, 36, 0.55);
-}
-
-.recorder-section__icon--pause::before {
-  left: 1px;
-}
-
-.recorder-section__icon--pause::after {
-  right: 1px;
-}
-
-.recorder-section__button:disabled {
-  opacity: 0.42;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: var(--neu-pressed);
-}
-
-.recorder-section__button:disabled:hover {
-  box-shadow: var(--neu-pressed);
-}
-
-.recorder-section__file-input {
-  display: none;
-}
-
-.recorder-section__pill--file {
-  min-width: 72px;
-}
-
-.recorder-section__pill--bpm-reset {
-  min-width: 72px;
-  margin-left: 4px;
-}
-
-.recorder-section__pill--remove-file {
-  min-width: 72px;
-  color: rgba(252, 165, 165, 0.9);
-}
-
-.recorder-section__pill--remove-file:hover {
-  color: #fecaca;
-}
-
-.recorder-section__file-name {
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: rgba(243, 244, 246, 0.5);
-}
-
-.recorder-section__button--stop-playback:focus-visible {
-  outline: 2px solid rgba(243, 244, 246, 0.55);
-  outline-offset: 3px;
-}
-
-.recorder-section__icon {
-  display: block;
-}
-
-.recorder-section__icon--record {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #ef4444;
-  box-shadow:
-    0 0 8px rgba(239, 68, 68, 0.55),
-    inset 1px 1px 2px rgba(255, 255, 255, 0.25),
-    inset -1px -1px 2px rgba(0, 0, 0, 0.35);
-}
-
-.recorder-section__icon--stop {
-  width: 14px;
-  height: 14px;
-  border-radius: 2px;
-  background: #f3f4f6;
-}
-
-.recorder-section__icon--play {
-  width: 0;
-  height: 0;
-  margin-left: 3px;
-  border-style: solid;
-  border-width: 8px 0 8px 14px;
-  border-color: transparent transparent transparent #22c55e;
-  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.45));
-}
-
-.recorder-section__hint {
-  min-width: 72px;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: rgba(243, 244, 246, 0.45);
-}
-
-.recorder-section__hint--active {
-  color: #fca5a5;
-}
-
-.recorder-section__pill {
-  height: 36px;
-  margin: 0;
-  padding: 0 14px;
-  border: none;
-  border-radius: 999px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-raised-sm);
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: rgba(243, 244, 246, 0.72);
-  cursor: pointer;
-  transition: box-shadow 0.15s ease, color 0.15s ease, transform 0.12s ease;
-}
-
-.recorder-section__pill:hover {
-  box-shadow:
-    5px 5px 10px var(--neu-dark),
-    -5px -5px 10px var(--neu-light);
-}
-
-.recorder-section__pill:active {
-  box-shadow: var(--neu-pressed);
-  transform: scale(0.98);
-}
-
-.recorder-section__pill:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 3px;
-}
-
-.recorder-section__pill--active {
-  box-shadow:
-    var(--neu-pressed-deep),
-    inset 0 0 12px rgba(59, 130, 246, 0.12);
-  color: #93c5fd;
-}
-
-.recorder-section__pill--notation {
-  min-width: 52px;
-}
-
-.recorder-section__pill--time {
-  min-width: 46px;
-  padding: 0 12px;
-}
-
-.recorder-section__metronome {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.recorder-section__metronome-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.recorder-section__beat-dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 10px;
-}
-
-.recorder-section__beat-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-raised-sm);
-  transition:
-    background-color 0.08s ease,
-    box-shadow 0.08s ease,
-    transform 0.08s ease;
-}
-
-.recorder-section__beat-dot--strong {
-  background: #a16207;
-  box-shadow:
-    var(--neu-raised-sm),
-    0 0 6px rgba(202, 138, 4, 0.35);
-}
-
-.recorder-section__beat-dot--current {
-  background: #f59e0b;
-  box-shadow:
-    var(--neu-pressed),
-    0 0 10px rgba(245, 158, 11, 0.65);
-  transform: scale(1.2);
-}
-
-.recorder-section__button--metronome:focus-visible {
-  outline: 2px solid #f59e0b;
-  outline-offset: 3px;
-}
-
-.recorder-section__button--metronome-active {
-  box-shadow:
-    var(--neu-pressed-deep),
-    0 0 14px rgba(245, 158, 11, 0.35);
-}
-
-.recorder-section__icon--metronome-play {
-  width: 0;
-  height: 0;
-  margin-left: 3px;
-  border-style: solid;
-  border-width: 9px 0 9px 16px;
-  border-color: transparent transparent transparent #f59e0b;
-  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.45));
-}
-
-.recorder-section__icon--metronome-stop {
-  width: 14px;
-  height: 14px;
-  border-radius: 2px;
-  background: #f3f4f6;
-}
-
-.recorder-section__bpm {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.recorder-section__bpm-step {
-  width: 32px;
-  height: 32px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 10px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-raised-sm);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  color: rgba(243, 244, 246, 0.85);
-  cursor: pointer;
-  transition: box-shadow 0.15s ease, transform 0.12s ease;
-}
-
-.recorder-section__bpm-step-glyph {
-  display: block;
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1;
-  transform: translateY(-2px);
-}
-
-.recorder-section__bpm-step:hover {
-  box-shadow:
-    5px 5px 10px var(--neu-dark),
-    -5px -5px 10px var(--neu-light);
-}
-
-.recorder-section__bpm-step:active {
-  box-shadow: var(--neu-pressed);
-  transform: scale(0.96);
-}
-
-.recorder-section__bpm-step:focus-visible {
-  outline: 2px solid #f59e0b;
-  outline-offset: 2px;
-}
-
-.recorder-section__bpm-value {
-  min-width: 72px;
-  margin: 0;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 10px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-pressed);
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: rgba(243, 244, 246, 0.85);
-  text-align: center;
-  cursor: text;
-  transition: box-shadow 0.15s ease;
-}
-
-.recorder-section__bpm-value--readonly {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: default;
-}
-
-.recorder-section__bpm-value:hover {
-  box-shadow:
-    inset 5px 5px 10px var(--neu-dark),
-    inset -5px -5px 10px var(--neu-light);
-}
-
-.recorder-section__bpm-value:focus-visible {
-  outline: 2px solid #f59e0b;
-  outline-offset: 2px;
-}
-
-.recorder-section__bpm-edit {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 72px;
-  padding: 4px 8px;
-  border-radius: 10px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-pressed);
-}
-
-.recorder-section__bpm-input {
-  width: 44px;
-  margin: 0;
-  padding: 6px 8px;
-  border: none;
-  border-radius: 8px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-pressed-deep);
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #f3f4f6;
-  text-align: center;
-}
-
-.recorder-section__bpm-input:focus {
-  outline: none;
-  box-shadow:
-    var(--neu-pressed-deep),
-    0 0 0 2px rgba(245, 158, 11, 0.35);
-}
-
-.recorder-section__bpm-suffix {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: rgba(243, 244, 246, 0.85);
 }
 
 .sustain-pedal {

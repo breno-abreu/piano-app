@@ -10,10 +10,14 @@
     aria-hidden="true"
     focusable="false"
   >
-    <!-- Gravação e reprodução -->
-    <template v-if="name === 'playback'">
-      <circle cx="7.75" cy="12" r="3.65" />
-      <path d="M14.5 9.35 19.25 12l-4.75 2.65V9.35Z" />
+    <!-- Gravação -->
+    <template v-if="name === 'recording'">
+      <circle cx="12" cy="12" r="4.25" />
+    </template>
+
+    <!-- Reprodução -->
+    <template v-else-if="name === 'playback'">
+      <path d="M9.5 7.75 17.25 12 9.5 16.25V7.75Z" />
     </template>
 
     <!-- Opções -->
@@ -22,20 +26,6 @@
       <path
         d="M12 3.25v2.1M12 18.65v2.1M5.01 5.01l1.49 1.49M17.5 17.5l1.49 1.49M3.25 12h2.1M18.65 12h2.1M5.01 18.99l1.49-1.49M17.5 6.5l1.49-1.49"
       />
-    </template>
-
-    <!-- Metrônomo -->
-    <template v-else-if="name === 'metronome'">
-      <path d="M12 3.5v1.75M8.25 5.75l1.05 1.45M15.75 5.75l-1.05 1.45" />
-      <path d="M7.25 19.75h9.5L15.6 10.5H8.4L7.25 19.75Z" />
-      <path d="M12 10.75v5.25" />
-      <circle cx="12" cy="10.75" r="1" fill="currentColor" stroke="none" />
-    </template>
-
-    <!-- Vídeo da tela -->
-    <template v-else-if="name === 'screen'">
-      <rect x="3.75" y="5.75" width="16.5" height="10.5" rx="1.5" />
-      <path d="M8.25 18.75h7.5" />
     </template>
 
     <!-- Campos harmônicos — Font Awesome Free (piano) -->
@@ -71,10 +61,9 @@ export default {
       required: true,
       validator: (value) =>
         [
+          'recording',
           'playback',
           'options',
-          'metronome',
-          'screen',
           'harmonic',
           'chord-dictionary',
           'rhythmic-figures',

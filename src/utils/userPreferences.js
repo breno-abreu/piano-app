@@ -1,6 +1,6 @@
 const STORAGE_KEY = 'pianoapp:preferences'
 
-export const VIEW_ZOOM_DEFAULT = 1
+export const VIEW_ZOOM_DEFAULT = 0.85
 export const VIEW_ZOOM_MIN = 0.25
 export const VIEW_ZOOM_MAX = 2
 export const VIEW_ZOOM_STEP = 0.05
@@ -17,6 +17,7 @@ export const OPTIONS_PREFERENCE_DEFAULTS = {
   pianoVolume: 100,
   metronomeVolume: 100,
   accidentalNotation: 'sharp',
+  sidebarNavCompact: false,
 }
 
 function clampViewZoom(value, fallback = VIEW_ZOOM_DEFAULT) {
@@ -71,6 +72,10 @@ function sanitizeOptionsPreferences(raw, bounds) {
     raw?.accidentalNotation === 'flat' || raw?.chordDictNotation === 'flat'
       ? 'flat'
       : 'sharp'
+
+  if (typeof raw?.sidebarNavCompact === 'boolean') {
+    prefs.sidebarNavCompact = raw.sidebarNavCompact
+  }
 
   return prefs
 }

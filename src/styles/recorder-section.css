@@ -1,0 +1,1096 @@
+﻿.recorder-section {
+  --neu-surface: #25252d;
+  --neu-light: rgba(255, 255, 255, 0.07);
+  --neu-dark: rgba(0, 0, 0, 0.5);
+  --neu-raised:
+    6px 6px 12px var(--neu-dark),
+    -6px -6px 12px var(--neu-light);
+  --neu-raised-lg:
+    10px 10px 22px var(--neu-dark),
+    -10px -10px 22px var(--neu-light);
+  --neu-raised-sm:
+    4px 4px 8px var(--neu-dark),
+    -4px -4px 8px var(--neu-light);
+  --neu-pressed:
+    inset 4px 4px 8px var(--neu-dark),
+    inset -4px -4px 8px var(--neu-light);
+  --neu-pressed-deep:
+    inset 6px 6px 12px var(--neu-dark),
+    inset -6px -6px 12px var(--neu-light);
+
+  width: 100%;
+  padding: 0;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #1e1e24;
+  box-shadow: var(--neu-raised-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+}
+
+.recorder-section--sidebar-layout {
+  flex: 1;
+  min-height: 0;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.recorder-section__main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #1a1a20;
+  box-shadow: inset 6px 0 14px rgba(0, 0, 0, 0.32);
+}
+
+.recorder-section__nav {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  width: 12.75rem;
+  padding: 14px 10px 12px;
+  background: #222228;
+  box-shadow:
+    inset -5px 0 12px rgba(0, 0, 0, 0.22),
+    4px 0 10px rgba(0, 0, 0, 0.18);
+  transition: width 0.18s ease;
+}
+
+.recorder-section__nav-divider {
+  flex-shrink: 0;
+  width: 1px;
+  align-self: stretch;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    1px 0 0 rgba(0, 0, 0, 0.45),
+    -1px 0 0 rgba(255, 255, 255, 0.04);
+}
+
+.recorder-section__body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  padding: 16px 22px 18px;
+  background: transparent;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.recorder-section__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.recorder-section__tabs {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+.recorder-section__tabs-main {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.recorder-section__tabs-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.recorder-section__nav-separator {
+  height: 1px;
+  margin: 0 6px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.4),
+    0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.recorder-section__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  height: auto;
+  margin: 0;
+  padding: 10px 12px 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: rgba(243, 244, 246, 0.52);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    color 0.12s ease,
+    box-shadow 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.recorder-section__tab-label {
+  white-space: normal;
+}
+
+.recorder-section__tab .control-tab-icon {
+  flex-shrink: 0;
+  opacity: 0.72;
+  transition: opacity 0.12s ease;
+}
+
+.recorder-section__tab:hover {
+  color: rgba(243, 244, 246, 0.88);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: var(--neu-raised-sm);
+}
+
+.recorder-section__tab:hover .control-tab-icon {
+  opacity: 0.95;
+}
+
+.recorder-section__tab:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.recorder-section__tab--active {
+  color: #fbbf24;
+  background: #2a2a32;
+  box-shadow: var(--neu-pressed);
+  transition: none;
+}
+
+.recorder-section__tab--active:hover {
+  color: #fbbf24;
+  background: #2a2a32;
+  box-shadow: var(--neu-pressed);
+}
+
+.recorder-section__tab--active::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.45);
+}
+
+.recorder-section__tab--active .control-tab-icon {
+  opacity: 1;
+  transition: none;
+}
+
+.recorder-section__tab--active:hover .control-tab-icon {
+  opacity: 1;
+}
+
+.recorder-section__nav-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  margin: 0 0 10px;
+  padding: 8px;
+  border: none;
+  border-radius: 10px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  color: rgba(243, 244, 246, 0.72);
+  cursor: pointer;
+  transition:
+    box-shadow 0.12s ease,
+    color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.recorder-section__nav-toggle:hover {
+  color: rgba(243, 244, 246, 0.92);
+  box-shadow: var(--neu-raised);
+}
+
+.recorder-section__nav-toggle:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.recorder-section__nav-toggle[aria-pressed='true'] {
+  color: #fbbf24;
+  box-shadow: var(--neu-pressed);
+  transition: none;
+}
+
+.recorder-section__nav-toggle[aria-pressed='true']:hover {
+  color: #fbbf24;
+  box-shadow: var(--neu-pressed);
+}
+
+.recorder-section__nav-toggle-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.recorder-section--nav-compact .recorder-section__nav {
+  width: 4.25rem;
+  padding: 14px 8px 12px;
+}
+
+.recorder-section--nav-compact .recorder-section__tab {
+  justify-content: center;
+  padding: 10px 8px;
+}
+
+.recorder-section--nav-compact .recorder-section__tab-label {
+  display: none;
+}
+
+.recorder-section--nav-compact .recorder-section__tab--active::before {
+  left: 3px;
+}
+
+.recorder-section__panel {
+  width: 100%;
+}
+
+.recorder-section__panel--recording {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.recorder-section__panel--rhythmic-figures {
+  width: 100%;
+  overflow: visible;
+}
+
+.recorder-section--rhythmic-tab {
+  overflow: visible;
+}
+
+.recorder-section--rhythmic-tab .recorder-section__body,
+.recorder-section--rhythmic-tab .recorder-section__main {
+  overflow: visible;
+}
+
+.recorder-section__harmonic {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 14px;
+}
+
+.recorder-section__harmonic-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.recorder-section__harmonic-row--chords {
+  gap: 12px;
+}
+
+.recorder-section__pill--tonic {
+  min-width: 2.5rem;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.recorder-section__pill--tonic-enh {
+  min-width: 4.75rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.harmonic-chords {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.harmonic-chords__item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  cursor: pointer;
+  transition:
+    box-shadow 0.12s ease,
+    color 0.12s ease;
+}
+
+.harmonic-chords__item:hover {
+  box-shadow: var(--neu-raised);
+}
+
+.harmonic-chords__item:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.harmonic-chords__item--active {
+  box-shadow: var(--neu-pressed-deep);
+  background: #3f1d1d;
+  transition: none;
+}
+
+.harmonic-chords__item--active:hover {
+  box-shadow: var(--neu-pressed-deep);
+  background: #3f1d1d;
+}
+
+.harmonic-chords__degree {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(251, 191, 36, 0.85);
+}
+
+.harmonic-chords__symbol {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.harmonic-chords__item--active .harmonic-chords__symbol {
+  color: #fca5a5;
+}
+
+.recorder-section__chord-dict {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  gap: 12px;
+}
+
+.recorder-section__chord-dict-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.recorder-section__chord-dict-row--variations,
+.recorder-section__chord-dict-row--bass,
+.recorder-section__chord-dict-row--inversions {
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.recorder-section__chord-dict-row--inversions {
+  justify-content: center;
+  gap: 16px;
+}
+
+.chord-dict-variations {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.chord-dict-variations__pill {
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.chord-dict-inversion {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chord-dict-inversion__step {
+  flex-shrink: 0;
+}
+
+.chord-dict-inversion__status {
+  min-width: 5.5rem;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(243, 244, 246, 0.85);
+  text-align: center;
+}
+
+.recorder-section__chord-dict-generated {
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.recorder-section__chord-dict-generated-symbol {
+  display: block;
+  font-size: 1.125rem;
+  color: #fbbf24;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.recorder-section__progress {
+  width: 100%;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.recorder-section__progress-track {
+  display: block;
+  width: 100%;
+  height: 10px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed-deep);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.recorder-section__progress-track:hover {
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px rgba(251, 191, 36, 0.2);
+}
+
+.recorder-section__progress-track:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.recorder-section__progress-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ca8a04 0%, #fbbf24 100%);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.35);
+  pointer-events: none;
+}
+
+.recorder-section__divider {
+  width: 2px;
+  height: 36px;
+  border-radius: 1px;
+  background: var(--neu-surface);
+  box-shadow:
+    inset 1px 0 2px var(--neu-dark),
+    inset -1px 0 1px var(--neu-light);
+}
+
+.recorder-section__volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 10.5rem;
+}
+
+.recorder-section__volume-value {
+  min-width: 2.75rem;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(243, 244, 246, 0.85);
+  text-align: right;
+}
+
+.recorder-section__volume-slider {
+  width: 8.5rem;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  display: block;
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #ca8a04 0%,
+    #fbbf24 var(--volume-fill, 0%),
+    var(--neu-surface) var(--volume-fill, 0%),
+    var(--neu-surface) 100%
+  );
+  box-shadow: var(--neu-pressed-deep);
+  cursor: pointer;
+}
+
+.recorder-section__volume-slider::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.recorder-section__volume-slider::-moz-range-track {
+  height: 10px;
+  border: none;
+  border-radius: 999px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed-deep);
+}
+
+.recorder-section__volume-slider::-moz-range-progress {
+  height: 10px;
+  border-radius: 999px 0 0 999px;
+  background: linear-gradient(90deg, #ca8a04 0%, #fbbf24 100%);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.28);
+}
+
+.recorder-section__volume-slider:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.recorder-section__volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -3px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 0 8px rgba(251, 191, 36, 0.35);
+  cursor: pointer;
+}
+
+.recorder-section__volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 0 8px rgba(251, 191, 36, 0.35);
+  cursor: pointer;
+}
+
+.recorder-section__label {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(243, 244, 246, 0.65);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.recorder-section__button {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.recorder-section__button:hover {
+  box-shadow:
+    5px 5px 10px var(--neu-dark),
+    -5px -5px 10px var(--neu-light);
+}
+
+.recorder-section__button:active {
+  box-shadow: var(--neu-pressed);
+  transform: scale(0.97);
+}
+
+.recorder-section__button:focus-visible {
+  outline: 2px solid #ef4444;
+  outline-offset: 3px;
+}
+
+.recorder-section__button--recording {
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 14px rgba(239, 68, 68, 0.35);
+  transition: none;
+}
+
+.recorder-section__button--recording:hover,
+.recorder-section__button--recording:active {
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 14px rgba(239, 68, 68, 0.35);
+  transform: none;
+}
+
+.recorder-section__button--play:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 3px;
+}
+
+.recorder-section__button--pause-mode {
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px rgba(251, 191, 36, 0.35);
+  transition: none;
+}
+
+.recorder-section__button--pause-mode:hover,
+.recorder-section__button--pause-mode:active {
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px rgba(251, 191, 36, 0.35);
+  transform: none;
+}
+
+.recorder-section__button--pause-mode:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.recorder-section__icon--pause {
+  position: relative;
+  width: 14px;
+  height: 14px;
+}
+
+.recorder-section__icon--pause::before,
+.recorder-section__icon--pause::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 14px;
+  border-radius: 1px;
+  background: #fbbf24;
+  box-shadow: 0 0 5px rgba(251, 191, 36, 0.55);
+}
+
+.recorder-section__icon--pause::before {
+  left: 1px;
+}
+
+.recorder-section__icon--pause::after {
+  right: 1px;
+}
+
+.recorder-section__button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--neu-pressed);
+}
+
+.recorder-section__button:disabled:hover {
+  box-shadow: var(--neu-pressed);
+}
+
+.recorder-section__file-input {
+  display: none;
+}
+
+.recorder-section__pill--file {
+  min-width: 72px;
+}
+
+.recorder-section__pill--bpm-reset {
+  min-width: 72px;
+  margin-left: 4px;
+}
+
+.recorder-section__pill--remove-file {
+  min-width: 72px;
+  color: rgba(252, 165, 165, 0.9);
+}
+
+.recorder-section__pill--remove-file:hover {
+  color: #fecaca;
+}
+
+.recorder-section__file-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(243, 244, 246, 0.5);
+}
+
+.recorder-section__button--stop-playback:focus-visible {
+  outline: 2px solid rgba(243, 244, 246, 0.55);
+  outline-offset: 3px;
+}
+
+.recorder-section__icon {
+  display: block;
+}
+
+.recorder-section__icon--record {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow:
+    0 0 8px rgba(239, 68, 68, 0.55),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.25),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.recorder-section__icon--stop {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: #f3f4f6;
+}
+
+.recorder-section__icon--play {
+  width: 0;
+  height: 0;
+  margin-left: 3px;
+  border-style: solid;
+  border-width: 8px 0 8px 14px;
+  border-color: transparent transparent transparent #22c55e;
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.45));
+}
+
+.recorder-section__hint {
+  min-width: 72px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(243, 244, 246, 0.45);
+}
+
+.recorder-section__hint--active {
+  color: #fca5a5;
+}
+
+.recorder-section__pill {
+  height: 36px;
+  margin: 0;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(243, 244, 246, 0.72);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+
+.recorder-section__pill:hover {
+  box-shadow:
+    5px 5px 10px var(--neu-dark),
+    -5px -5px 10px var(--neu-light);
+}
+
+.recorder-section__pill:active {
+  box-shadow: var(--neu-pressed);
+  transform: scale(0.98);
+}
+
+.recorder-section__pill:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+.recorder-section__pill--active {
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 12px rgba(59, 130, 246, 0.12);
+  color: #93c5fd;
+  transition: none;
+}
+
+.recorder-section__pill--active:hover,
+.recorder-section__pill--active:active {
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 12px rgba(59, 130, 246, 0.12);
+  color: #93c5fd;
+  transform: none;
+}
+
+.recorder-section__pill--notation {
+  min-width: 52px;
+}
+
+.recorder-section__pill--time {
+  min-width: 46px;
+  padding: 0 12px;
+}
+
+.recorder-section__metronome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.recorder-section__metronome-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.recorder-section__beat-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 10px;
+}
+
+.recorder-section__beat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  transition:
+    background-color 0.08s ease,
+    box-shadow 0.08s ease,
+    transform 0.08s ease;
+}
+
+.recorder-section__beat-dot--strong {
+  background: #a16207;
+  box-shadow:
+    var(--neu-raised-sm),
+    0 0 6px rgba(202, 138, 4, 0.35);
+}
+
+.recorder-section__beat-dot--current {
+  background: #f59e0b;
+  box-shadow:
+    var(--neu-pressed),
+    0 0 10px rgba(245, 158, 11, 0.65);
+  transform: scale(1.2);
+}
+
+.recorder-section__button--metronome:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+.recorder-section__button--metronome-active {
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 14px rgba(245, 158, 11, 0.35);
+  transition: none;
+}
+
+.recorder-section__button--metronome-active:hover,
+.recorder-section__button--metronome-active:active {
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 14px rgba(245, 158, 11, 0.35);
+  transform: none;
+}
+
+.recorder-section__icon--metronome-play {
+  width: 0;
+  height: 0;
+  margin-left: 3px;
+  border-style: solid;
+  border-width: 9px 0 9px 16px;
+  border-color: transparent transparent transparent #f59e0b;
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.45));
+}
+
+.recorder-section__icon--metronome-stop {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: #f3f4f6;
+}
+
+.recorder-section__bpm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recorder-section__bpm-step {
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color: rgba(243, 244, 246, 0.85);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.recorder-section__bpm-step-glyph {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+
+.recorder-section__bpm-step:hover {
+  box-shadow:
+    5px 5px 10px var(--neu-dark),
+    -5px -5px 10px var(--neu-light);
+}
+
+.recorder-section__bpm-step:active {
+  box-shadow: var(--neu-pressed);
+  transform: scale(0.96);
+}
+
+.recorder-section__bpm-step:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.recorder-section__bpm-value {
+  min-width: 72px;
+  margin: 0;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(243, 244, 246, 0.85);
+  text-align: center;
+  cursor: text;
+  transition: box-shadow 0.15s ease;
+}
+
+.recorder-section__bpm-value--readonly {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.recorder-section__bpm-value:hover {
+  box-shadow:
+    inset 5px 5px 10px var(--neu-dark),
+    inset -5px -5px 10px var(--neu-light);
+}
+
+.recorder-section__bpm-value:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.recorder-section__bpm-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 72px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed);
+}
+
+.recorder-section__bpm-input {
+  width: 44px;
+  margin: 0;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 8px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-pressed-deep);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f3f4f6;
+  text-align: center;
+}
+
+.recorder-section__bpm-input:focus {
+  outline: none;
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 0 2px rgba(245, 158, 11, 0.35);
+}
+
+.recorder-section__bpm-suffix {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(243, 244, 246, 0.85);
+}

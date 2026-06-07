@@ -22,7 +22,7 @@ export default {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 20px 16px 0;
+  padding: 12px 0 0;
   overflow: hidden;
 }
 
