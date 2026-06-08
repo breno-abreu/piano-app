@@ -169,12 +169,12 @@
           :harmonic-tonics="harmonicTonics"
           :harmonic-tonic="harmonicTonic"
           :harmonic-chords="harmonicChords"
-          :harmonic-selected-chord-id="harmonicSelectedChordId"
+          :show-key-labels="showKeyLabels"
           @update:accidental-notation="setAccidentalNotation"
           @toggle-harmonic-display="toggleHarmonicDisplay"
           @update:harmonic-scale-type="setHarmonicScaleType"
           @update:harmonic-tonic="setHarmonicTonic"
-          @toggle-harmonic-chord="toggleHarmonicChord"
+          @toggle-show-key-labels="toggleShowKeyLabels"
         />
 
         <ChordDictionaryTabPanel
@@ -192,7 +192,9 @@
           :chord-dict-inversion-label="chordDictInversionLabel"
           :chord-dict-bass-inversion-label="chordDictBassInversionLabel"
           :chord-dict-final-label="chordDictFinalLabel"
+          :show-key-labels="showKeyLabels"
           @update:accidental-notation="setAccidentalNotation"
+          @toggle-show-key-labels="toggleShowKeyLabels"
           @set-chord-dict-root="setChordDictRoot"
           @set-chord-dict-quality="setChordDictQuality"
           @set-chord-dict-bass-root="setChordDictBassRoot"
@@ -236,8 +238,6 @@
           :class="{
             'piano-key--pressed': isKeyPressed(key.note),
             'piano-key--sustained': isKeySustained(key.note),
-            'piano-key--harmonic-scale':
-              isHarmonicScaleNote(key.note) && !isHarmonicChordNote(key.note),
             'piano-key--harmonic-chord': isHarmonicChordNote(key.note),
             'piano-key--chord-dict': isChordDictTrebleNote(key.note),
             'piano-key--chord-dict-bass': isChordDictBassNote(key.note),
@@ -248,7 +248,12 @@
         >
           <span
             v-if="isHarmonicTonicNote(key.note)"
-            class="piano-key__tonic-dot"
+            class="piano-key__harmonic-marker piano-key__harmonic-marker--tonic"
+            aria-hidden="true"
+          />
+          <span
+            v-else-if="isHarmonicScaleNote(key.note)"
+            class="piano-key__harmonic-marker piano-key__harmonic-marker--scale"
             aria-hidden="true"
           />
           <span v-if="showKeyLabels" class="piano-key__label">{{ keyLabel(key.note) }}</span>
@@ -264,20 +269,23 @@
         :class="{
           'piano-key--pressed': isKeyPressed(key.note),
           'piano-key--sustained': isKeySustained(key.note),
-          'piano-key--harmonic-scale':
-            isHarmonicScaleNote(key.note) && !isHarmonicChordNote(key.note),
           'piano-key--harmonic-chord': isHarmonicChordNote(key.note),
           'piano-key--chord-dict': isChordDictTrebleNote(key.note),
           'piano-key--chord-dict-bass': isChordDictBassNote(key.note),
         }"
-          :style="blackKeyStyle(key)"
-          :aria-label="key.note"
-          :aria-pressed="isKeyActive(key.note)"
-          @mousedown.prevent="pressKey(key.note, 'pointer')"
+        :style="blackKeyStyle(key)"
+        :aria-label="key.note"
+        :aria-pressed="isKeyActive(key.note)"
+        @mousedown.prevent="pressKey(key.note, 'pointer')"
         >
           <span
             v-if="isHarmonicTonicNote(key.note)"
-            class="piano-key__tonic-dot"
+            class="piano-key__harmonic-marker piano-key__harmonic-marker--tonic"
+            aria-hidden="true"
+          />
+          <span
+            v-else-if="isHarmonicScaleNote(key.note)"
+            class="piano-key__harmonic-marker piano-key__harmonic-marker--scale"
             aria-hidden="true"
           />
           <span v-if="showKeyLabels" class="piano-key__label">{{ keyLabel(key.note) }}</span>
@@ -560,7 +568,6 @@ export default {
       harmonicDisplayEnabled: false,
       harmonicScaleType: 'major',
       harmonicTonic: 'C',
-      harmonicSelectedChordId: null,
       chordDictRoots: CHORD_DICTIONARY_ROOTS,
       chordDictQualities: CHORD_DICTIONARY_QUALITIES,
       chordDictRoot: 'C',
@@ -582,15 +589,6 @@ export default {
     },
     harmonicChords() {
       return this.harmonicField.chords
-    },
-    harmonicSelectedChord() {
-      if (!this.harmonicSelectedChordId) return null
-
-      return (
-        this.harmonicChords.find(
-          (chord) => chord.id === this.harmonicSelectedChordId,
-        ) ?? null
-      )
     },
     chordDictInversionCount() {
       return getChordVoicingNotes(this.chordDictRoot, this.chordDictQualityId, 0).length
@@ -881,13 +879,10 @@ export default {
       return isNoteInPitchClassSet(note, this.harmonicField.scalePitchClasses)
     },
     isHarmonicChordNote(note) {
-      if (!this.harmonicDisplayEnabled || !this.harmonicSelectedChord) {
-        return false
-      }
+      if (!this.harmonicDisplayEnabled) return false
 
-      return isNoteInPitchClassSet(
-        note,
-        this.harmonicSelectedChord.pitchClasses,
+      return this.harmonicField.chords.some((chord) =>
+        isNoteInPitchClassSet(note, chord.pitchClasses),
       )
     },
     isHarmonicTonicNote(note) {
@@ -975,22 +970,12 @@ export default {
     },
     toggleHarmonicDisplay() {
       this.harmonicDisplayEnabled = !this.harmonicDisplayEnabled
-
-      if (!this.harmonicDisplayEnabled) {
-        this.harmonicSelectedChordId = null
-      }
     },
     setHarmonicScaleType(scaleType) {
       this.harmonicScaleType = scaleType
-      this.harmonicSelectedChordId = null
     },
     setHarmonicTonic(tonic) {
       this.harmonicTonic = tonic
-      this.harmonicSelectedChordId = null
-    },
-    toggleHarmonicChord(chordId) {
-      this.harmonicSelectedChordId =
-        this.harmonicSelectedChordId === chordId ? null : chordId
     },
     keyLabel(note) {
       return this.keyLabelNotation === 'western'
@@ -1635,27 +1620,57 @@ export default {
   transition: border-color 0.1s ease;
 }
 
-.piano-key__tonic-dot {
+.piano-key__harmonic-marker {
   position: absolute;
   bottom: 8px;
   left: 50%;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #9a3412;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 1;
 }
 
-.piano-key--white:has(.piano-key__label) .piano-key__tonic-dot {
+.piano-key__harmonic-marker--scale {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ea580c;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.piano-key__harmonic-marker--tonic {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 9px solid #ea580c;
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.55));
+}
+
+.piano-key--white:has(.piano-key__label) .piano-key__harmonic-marker {
   bottom: 22px;
 }
 
-.piano-key--black .piano-key__tonic-dot {
+.piano-key--black .piano-key__harmonic-marker {
   bottom: 6px;
+}
+
+.piano-key--black .piano-key__harmonic-marker--scale {
+  background: #fb923c;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.piano-key--black .piano-key__harmonic-marker--tonic {
+  border-bottom-color: #fb923c;
+}
+
+.piano-key--harmonic-chord .piano-key__harmonic-marker--scale {
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.piano-key--harmonic-chord .piano-key__harmonic-marker--tonic {
+  border-bottom-color: #fff;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
 }
 
 .piano-key__label {
@@ -1766,23 +1781,9 @@ export default {
   border-color: #93c5fd !important;
 }
 
-.piano-key--white.piano-key--harmonic-scale:not(.piano-key--pressed):not(:active):not(
-    .piano-key--harmonic-chord
-  ) {
-  background: #fdba74 !important;
-  border-color: #fb923c !important;
-}
-
 .piano-key--white.piano-key--harmonic-chord:not(.piano-key--pressed):not(:active) {
   background: #f87171 !important;
   border-color: #ef4444 !important;
-}
-
-.piano-key--black.piano-key--harmonic-scale:not(.piano-key--pressed):not(:active):not(
-    .piano-key--harmonic-chord
-  ) {
-  background: #ea580c !important;
-  border-color: #f97316 !important;
 }
 
 .piano-key--black.piano-key--harmonic-chord:not(.piano-key--pressed):not(:active) {
@@ -1790,12 +1791,10 @@ export default {
   border-color: #f87171 !important;
 }
 
-.piano-key--white.piano-key--harmonic-scale .piano-key__label,
 .piano-key--white.piano-key--harmonic-chord .piano-key__label {
-  color: #9a3412;
+  color: #991b1b;
 }
 
-.piano-key--black.piano-key--harmonic-scale .piano-key__label,
 .piano-key--black.piano-key--harmonic-chord .piano-key__label {
   color: #fecaca;
 }

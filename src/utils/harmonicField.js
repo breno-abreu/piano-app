@@ -5,7 +5,12 @@ const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 
 const SCALE_INTERVALS = {
   major: [0, 2, 4, 5, 7, 9, 11],
   minor: [0, 2, 3, 5, 7, 8, 10],
-  pentatonic: [0, 2, 4, 7, 9],
+  pentatonicMajor: [0, 2, 4, 7, 9],
+  pentatonicMinor: [0, 3, 5, 7, 10],
+}
+
+export function isPentatonicScale(scaleType) {
+  return scaleType === 'pentatonicMajor' || scaleType === 'pentatonicMinor'
 }
 
 const ROMAN_NUMERALS_7 = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII']
@@ -14,7 +19,8 @@ const ROMAN_NUMERALS_5 = ['I', 'II', 'III', 'IV', 'V']
 export const HARMONIC_SCALE_TYPES = [
   { id: 'major', label: 'Maior' },
   { id: 'minor', label: 'Menor' },
-  { id: 'pentatonic', label: 'Pentatônica' },
+  { id: 'pentatonicMajor', label: 'Pentatônica maior' },
+  { id: 'pentatonicMinor', label: 'Pentatônica menor' },
 ]
 
 export const HARMONIC_TONICS = NOTE_NAMES
@@ -89,8 +95,9 @@ function buildChordSymbol(rootPc, thirdPc, fifthPc) {
 }
 
 function formatRomanNumeral(index, quality, scaleType) {
-  const numerals =
-    scaleType === 'pentatonic' ? ROMAN_NUMERALS_5 : ROMAN_NUMERALS_7
+  const numerals = isPentatonicScale(scaleType)
+    ? ROMAN_NUMERALS_5
+    : ROMAN_NUMERALS_7
   let numeral = numerals[index]
 
   if (scaleType === 'major') {
