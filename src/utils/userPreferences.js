@@ -9,6 +9,11 @@ export const VOLUME_MIN = 0
 export const VOLUME_MAX = 100
 export const VOLUME_STEP = 1
 
+export const DESIGN_THEMES = [
+  { id: 'neumorphic', label: 'Neumorfista' },
+  { id: 'flat', label: 'Flat' },
+]
+
 export const OPTIONS_PREFERENCE_DEFAULTS = {
   showKeyLabels: false,
   keyLabelNotation: 'western',
@@ -18,6 +23,7 @@ export const OPTIONS_PREFERENCE_DEFAULTS = {
   metronomeVolume: 100,
   accidentalNotation: 'sharp',
   sidebarNavCompact: false,
+  designTheme: 'neumorphic',
 }
 
 function clampViewZoom(value, fallback = VIEW_ZOOM_DEFAULT) {
@@ -75,6 +81,10 @@ function sanitizeOptionsPreferences(raw, bounds) {
 
   if (typeof raw?.sidebarNavCompact === 'boolean') {
     prefs.sidebarNavCompact = raw.sidebarNavCompact
+  }
+
+  if (raw?.designTheme === 'flat' || raw?.designTheme === 'neumorphic') {
+    prefs.designTheme = raw.designTheme
   }
 
   return prefs

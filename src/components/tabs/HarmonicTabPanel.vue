@@ -22,7 +22,7 @@
 
           Configure o campo no teclado, escolha escala e tom.
 
-          <template v-if="showHarmonicChordsCard"> Os acordes abaixo são apenas referência.</template>
+          <template v-if="showHarmonicChordsCard"> Clique em um acorde para vê-lo no teclado.</template>
 
         </p>
 
@@ -262,21 +262,27 @@
 
 
 
-        <AppTooltip text="Referência dos acordes diatônicos do campo. Não é possível selecioná-los — use o teclado para ver as notas da escala.">
+        <AppTooltip text="Clique em um acorde para destacar suas notas em vermelho no teclado. Clique novamente para desmarcar.">
 
-          <div class="harmonic-panel__chords" role="list" aria-label="Acordes do campo harmônico">
+          <div class="harmonic-panel__chords" role="group" aria-label="Acordes do campo harmônico">
 
-            <div
+            <button
 
               v-for="chord in harmonicChords"
 
               :key="chord.id"
 
-              role="listitem"
+              type="button"
 
-              class="harmonic-chords__item harmonic-chords__item--display"
+              class="harmonic-chords__item"
+
+              :class="{ 'harmonic-chords__item--active': harmonicSelectedChordId === chord.id }"
+
+              :aria-pressed="harmonicSelectedChordId === chord.id"
 
               :aria-label="`Acorde ${chord.degree}, ${formatHarmonicChordSymbol(chord.symbol)}`"
+
+              @click="$emit('toggle-harmonic-chord', chord.id)"
 
             >
 
@@ -284,7 +290,7 @@
 
               <span class="harmonic-chords__symbol">{{ formatHarmonicChordSymbol(chord.symbol) }}</span>
 
-            </div>
+            </button>
 
           </div>
 
@@ -350,6 +356,8 @@ export default {
 
     harmonicChords: { type: Array, required: true },
 
+    harmonicSelectedChordId: { type: String, default: null },
+
     showKeyLabels: { type: Boolean, required: true },
 
   },
@@ -363,6 +371,8 @@ export default {
     'update:harmonic-scale-type',
 
     'update:harmonic-tonic',
+
+    'toggle-harmonic-chord',
 
     'toggle-show-key-labels',
 
@@ -731,24 +741,6 @@ export default {
   gap: 10px;
 
   width: 100%;
-
-}
-
-
-
-.harmonic-panel__chords :deep(.harmonic-chords__item--display) {
-
-  cursor: default;
-
-  pointer-events: none;
-
-}
-
-
-
-.harmonic-panel__chords :deep(.harmonic-chords__item--display:hover) {
-
-  box-shadow: var(--neu-raised-sm);
 
 }
 

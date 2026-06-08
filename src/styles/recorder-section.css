@@ -1,23 +1,4 @@
 ﻿.recorder-section {
-  --neu-surface: #25252d;
-  --neu-light: rgba(255, 255, 255, 0.07);
-  --neu-dark: rgba(0, 0, 0, 0.5);
-  --neu-raised:
-    6px 6px 12px var(--neu-dark),
-    -6px -6px 12px var(--neu-light);
-  --neu-raised-lg:
-    10px 10px 22px var(--neu-dark),
-    -10px -10px 22px var(--neu-light);
-  --neu-raised-sm:
-    4px 4px 8px var(--neu-dark),
-    -4px -4px 8px var(--neu-light);
-  --neu-pressed:
-    inset 4px 4px 8px var(--neu-dark),
-    inset -4px -4px 8px var(--neu-light);
-  --neu-pressed-deep:
-    inset 6px 6px 12px var(--neu-dark),
-    inset -6px -6px 12px var(--neu-light);
-
   width: 100%;
   padding: 0;
   border-radius: 20px;

@@ -1,0 +1,98 @@
+:root {
+  --neu-surface: #25252d;
+  --neu-light: rgba(255, 255, 255, 0.07);
+  --neu-dark: rgba(0, 0, 0, 0.5);
+  --neu-raised:
+    6px 6px 12px var(--neu-dark),
+    -6px -6px 12px var(--neu-light);
+  --neu-raised-lg:
+    10px 10px 22px var(--neu-dark),
+    -10px -10px 22px var(--neu-light);
+  --neu-raised-sm:
+    4px 4px 8px var(--neu-dark),
+    -4px -4px 8px var(--neu-light);
+  --neu-pressed:
+    inset 4px 4px 8px var(--neu-dark),
+    inset -4px -4px 8px var(--neu-light);
+  --neu-pressed-deep:
+    inset 6px 6px 12px var(--neu-dark),
+    inset -6px -6px 12px var(--neu-light);
+}
+
+[data-design-theme='flat'] {
+  --neu-surface: #2c2c34;
+  --neu-light: transparent;
+  --neu-dark: transparent;
+  --neu-raised: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  --neu-raised-lg: 0 0 0 1px rgba(255, 255, 255, 0.14);
+  --neu-raised-sm: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --neu-pressed: inset 0 0 0 1px rgba(251, 191, 36, 0.38);
+  --neu-pressed-deep: inset 0 0 0 1px rgba(251, 191, 36, 0.48);
+}
+
+[data-design-theme='flat'] .recorder-section {
+  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-design-theme='flat'] .recorder-section__main {
+  box-shadow: none;
+}
+
+[data-design-theme='flat'] .recorder-section__nav {
+  box-shadow: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-design-theme='flat'] .recorder-section__nav-divider,
+[data-design-theme='flat'] .recorder-section__nav-separator {
+  box-shadow: none;
+}
+
+[data-design-theme='flat'] .recorder-section__tab--active::before {
+  box-shadow: none;
+}
+
+[data-design-theme='flat'] .recorder-section__pill:hover,
+[data-design-theme='flat'] .recorder-section__button:hover,
+[data-design-theme='flat'] .recorder-section__bpm-step:hover,
+[data-design-theme='flat'] .recorder-section__nav-toggle:hover {
+  box-shadow: var(--neu-raised);
+}
+
+[data-design-theme='flat'] .recorder-section__bpm-value:hover {
+  box-shadow: var(--neu-pressed);
+}
+
+[data-design-theme='flat'] .recorder-section__divider {
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-design-theme='flat'] .recorder-section__label {
+  text-shadow: none;
+}
+
+[data-design-theme='flat'] .recorder-section__pill--active {
+  box-shadow: var(--neu-pressed-deep);
+}
+
+[data-design-theme='flat'] .recorder-section__pill--active:hover,
+[data-design-theme='flat'] .recorder-section__pill--active:active {
+  box-shadow: var(--neu-pressed-deep);
+}
+
+[data-design-theme='flat'] .harmonic-chords__item--active {
+  background: #3f2a2a;
+}
+
+[data-design-theme='flat'] .rhythmic-figures {
+  --rhythm-paper-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --rhythm-paper-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.15);
+  --rhythm-paper-shadow-pressed: inset 0 0 0 1px rgba(251, 191, 36, 0.35);
+  --rhythm-paper-shadow-lifted: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+[data-design-theme='flat'] .app-tooltip__bubble {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}

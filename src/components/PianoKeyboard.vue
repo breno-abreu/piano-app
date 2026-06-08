@@ -149,7 +149,10 @@
           :can-increase-view-zoom="canIncreaseViewZoom"
           :piano-volume="pianoVolume"
           :metronome-volume="metronomeVolume"
+          :design-themes="designThemes"
+          :design-theme="designTheme"
           @toggle-show-key-labels="toggleShowKeyLabels"
+          @update:design-theme="setDesignTheme"
           @update:key-label-notation="setKeyLabelNotation"
           @update:accidental-notation="setAccidentalNotation"
           @change-keyboard-height="changeKeyboardHeight"
@@ -169,11 +172,13 @@
           :harmonic-tonics="harmonicTonics"
           :harmonic-tonic="harmonicTonic"
           :harmonic-chords="harmonicChords"
+          :harmonic-selected-chord-id="harmonicSelectedChordId"
           :show-key-labels="showKeyLabels"
           @update:accidental-notation="setAccidentalNotation"
           @toggle-harmonic-display="toggleHarmonicDisplay"
           @update:harmonic-scale-type="setHarmonicScaleType"
           @update:harmonic-tonic="setHarmonicTonic"
+          @toggle-harmonic-chord="toggleHarmonicChord"
           @toggle-show-key-labels="toggleShowKeyLabels"
         />
 
@@ -411,6 +416,7 @@ import {
   getChordVoicingNotes,
 } from '../utils/chordDictionary.js'
 import {
+  DESIGN_THEMES,
   loadOptionsPreferences,
   saveOptionsPreferences,
   VIEW_ZOOM_DEFAULT,
@@ -549,6 +555,8 @@ export default {
       controlsTab: 'recording',
       controlOptionsTab: CONTROL_OPTIONS_TAB,
       sidebarNavCompact: storedOptionsPreferences.sidebarNavCompact,
+      designThemes: DESIGN_THEMES,
+      designTheme: storedOptionsPreferences.designTheme,
       keyboardHeight: storedOptionsPreferences.keyboardHeight,
       keyboardHeightStep: KEYBOARD_HEIGHT_STEP,
       viewZoom: storedOptionsPreferences.viewZoom,
@@ -568,6 +576,7 @@ export default {
       harmonicDisplayEnabled: false,
       harmonicScaleType: 'major',
       harmonicTonic: 'C',
+      harmonicSelectedChordId: null,
       chordDictRoots: CHORD_DICTIONARY_ROOTS,
       chordDictQualities: CHORD_DICTIONARY_QUALITIES,
       chordDictRoot: 'C',
@@ -589,6 +598,15 @@ export default {
     },
     harmonicChords() {
       return this.harmonicField.chords
+    },
+    harmonicSelectedChord() {
+      if (!this.harmonicSelectedChordId) return null
+
+      return (
+        this.harmonicChords.find(
+          (chord) => chord.id === this.harmonicSelectedChordId,
+        ) ?? null
+      )
     },
     chordDictInversionCount() {
       return getChordVoicingNotes(this.chordDictRoot, this.chordDictQualityId, 0).length
@@ -802,8 +820,13 @@ export default {
     sidebarNavCompact() {
       this.persistOptionsPreferences()
     },
+    designTheme() {
+      this.applyDesignTheme()
+      this.persistOptionsPreferences()
+    },
   },
   mounted() {
+    this.applyDesignTheme()
     setPianoVolume(this.pianoVolume)
     this.metronome.setVolume(this.metronomeVolume)
     this.metronome.setOnTick((beatIndex) => {
@@ -879,10 +902,13 @@ export default {
       return isNoteInPitchClassSet(note, this.harmonicField.scalePitchClasses)
     },
     isHarmonicChordNote(note) {
-      if (!this.harmonicDisplayEnabled) return false
+      if (!this.harmonicDisplayEnabled || !this.harmonicSelectedChord) {
+        return false
+      }
 
-      return this.harmonicField.chords.some((chord) =>
-        isNoteInPitchClassSet(note, chord.pitchClasses),
+      return isNoteInPitchClassSet(
+        note,
+        this.harmonicSelectedChord.pitchClasses,
       )
     },
     isHarmonicTonicNote(note) {
@@ -970,12 +996,22 @@ export default {
     },
     toggleHarmonicDisplay() {
       this.harmonicDisplayEnabled = !this.harmonicDisplayEnabled
+
+      if (!this.harmonicDisplayEnabled) {
+        this.harmonicSelectedChordId = null
+      }
     },
     setHarmonicScaleType(scaleType) {
       this.harmonicScaleType = scaleType
+      this.harmonicSelectedChordId = null
     },
     setHarmonicTonic(tonic) {
       this.harmonicTonic = tonic
+      this.harmonicSelectedChordId = null
+    },
+    toggleHarmonicChord(chordId) {
+      this.harmonicSelectedChordId =
+        this.harmonicSelectedChordId === chordId ? null : chordId
     },
     keyLabel(note) {
       return this.keyLabelNotation === 'western'
@@ -992,7 +1028,18 @@ export default {
         metronomeVolume: this.metronomeVolume,
         accidentalNotation: this.accidentalNotation,
         sidebarNavCompact: this.sidebarNavCompact,
+        designTheme: this.designTheme,
       })
+    },
+    applyDesignTheme() {
+      if (typeof document === 'undefined') return
+
+      document.documentElement.setAttribute('data-design-theme', this.designTheme)
+    },
+    setDesignTheme(theme) {
+      if (theme === 'neumorphic' || theme === 'flat') {
+        this.designTheme = theme
+      }
     },
     toggleSidebarNavCompact() {
       this.sidebarNavCompact = !this.sidebarNavCompact
