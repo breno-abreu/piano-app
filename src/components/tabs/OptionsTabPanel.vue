@@ -186,7 +186,7 @@
 
             <span class="options-panel__field-label">Estilo visual</span>
 
-            <div class="options-panel__field-controls options-panel__field-controls--segmented">
+            <div class="options-panel__field-controls options-panel__field-controls--themes">
 
               <AppTooltip
 
@@ -628,15 +628,21 @@ export default {
 
     designThemeTooltip(themeId) {
 
-      if (themeId === 'flat') {
+      const tooltips = {
 
-        return 'Interface plana com bordas e sombras discretas, sem relevo neumórfico.'
+        neumorphic: 'Tema escuro com relevo suave, sombras duplas e aparência neumórfica.',
+
+        flat: 'Tema escuro plano, com bordas discretas e sem relevo neumórfico.',
+
+        'neumorphic-light': 'Tema claro com relevo suave e superfícies em tons de cinza claro.',
+
+        'flat-light': 'Tema claro plano, com bordas discretas e fundo luminoso.',
 
       }
 
 
 
-      return 'Interface com relevo suave, sombras duplas e aparência neumórfica.'
+      return tooltips[themeId] ?? tooltips.neumorphic
 
     },
 
@@ -867,6 +873,26 @@ export default {
 .options-panel__field-controls--segmented {
 
   gap: 6px;
+
+}
+
+
+
+.options-panel__field-controls--themes {
+
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 8px;
+
+}
+
+
+
+.options-panel__field-controls--themes .recorder-section__pill {
+
+  width: 100%;
 
 }
 

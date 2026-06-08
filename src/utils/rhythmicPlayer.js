@@ -2,6 +2,7 @@ import {
   getRhythmicFigure,
   getRhythmicHitOffsets,
   getRhythmicPlacementAt,
+  isRhythmicBeatTiedFromPrevious,
 } from './rhythmicFigures.js'
 
 const SCHEDULE_AHEAD_SEC = 0.1
@@ -25,10 +26,22 @@ export function buildCountInEvents(beatsPerBar, bpm) {
   }))
 }
 
-export function buildRhythmicTickEvents(score, measureCount, beatsPerBar, bpm) {
+export function buildRhythmicTickEvents(
+  score,
+  measureCount,
+  beatsPerBar,
+  bpm,
+  ties = null,
+) {
   const beatDuration = beatDurationSec(bpm)
   const events = []
   let time = 0
+
+  const isTiedAttack = (measureIndex, beatIndex, hitOffset) => {
+    if (hitOffset !== 0) return false
+
+    return isRhythmicBeatTiedFromPrevious(ties, measureIndex, beatIndex)
+  }
 
   for (let measureIndex = 0; measureIndex < measureCount; measureIndex += 1) {
     for (let beatIndex = 0; beatIndex < beatsPerBar; beatIndex += 1) {
@@ -43,14 +56,23 @@ export function buildRhythmicTickEvents(score, measureCount, beatsPerBar, bpm) {
 
       if (beatSpan > 1) {
         for (let offset = 0; offset < beatSpan; offset += 1) {
-          const playSound = hitOffsets.some(
+          const currentBeat = beatIndex + offset
+          let playSound = hitOffsets.some(
             (hitOffset) => Math.floor(hitOffset * beatSpan) === offset,
           )
+
+          if (
+            offset === 0
+            && playSound
+            && isTiedAttack(measureIndex, currentBeat, 0)
+          ) {
+            playSound = false
+          }
 
           events.push({
             offsetSec: time + offset * beatDuration,
             measureIndex,
-            beatIndex: beatIndex + offset,
+            beatIndex: currentBeat,
             playSound,
             phase: 'sequence',
           })
@@ -73,11 +95,13 @@ export function buildRhythmicTickEvents(score, measureCount, beatsPerBar, bpm) {
       }
 
       for (const hitOffset of hitOffsets) {
+        const playSound = !isTiedAttack(measureIndex, beatIndex, hitOffset)
+
         events.push({
           offsetSec: time + hitOffset * beatDuration,
           measureIndex,
           beatIndex,
-          playSound: true,
+          playSound,
           phase: 'sequence',
         })
       }
@@ -171,7 +195,7 @@ export function createRhythmicPlayer() {
     pendingVisualTimers.push(timerId)
   }
 
-  function rebuildEvents(score, measureCount, beatsPerBar) {
+  function rebuildEvents(score, measureCount, beatsPerBar, ties = null) {
     countInEvents = buildCountInEvents(beatsPerBar, bpm)
     countInDuration = beatsPerBar * beatDurationSec(bpm)
 
@@ -180,6 +204,7 @@ export function createRhythmicPlayer() {
       measureCount,
       beatsPerBar,
       bpm,
+      ties,
     )
     sequenceEvents = sequence.events
     sequenceDuration = sequence.durationSec
@@ -261,11 +286,11 @@ export function createRhythmicPlayer() {
   }
 
   return {
-    async start(score, measureCount, beatsPerBar) {
+    async start(score, measureCount, beatsPerBar, ties = null) {
       if (running) return
 
       await ensureContext()
-      rebuildEvents(score, measureCount, beatsPerBar)
+      rebuildEvents(score, measureCount, beatsPerBar, ties)
 
       if (sequenceEvents.length === 0 && countInEvents.length === 0) return
 

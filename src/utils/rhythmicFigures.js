@@ -61,14 +61,14 @@ export const RHYTHMIC_FIGURES = [
   },
   {
     id: 'colcheia-colcheia',
-    label: 'Colcheia + colcheia',
+    label: 'Duas colcheias',
     beats: 1,
     hits: 2,
     image: '/rhythms/2colcheias.png',
   },
   {
     id: 'colcheia-pontuada-semicolcheia',
-    label: 'Colcheia pontuada + semicolcheia',
+    label: 'Colcheia pontuada e semicolcheia',
     beats: 1,
     hits: 2,
     hitOffsets: [0, 0.75],
@@ -76,7 +76,7 @@ export const RHYTHMIC_FIGURES = [
   },
   {
     id: 'semicolcheia-colcheia-pontuada',
-    label: 'Semicolcheia + colcheia pontuada',
+    label: 'Semicolcheia e colcheia pontuada',
     beats: 1,
     hits: 2,
     hitOffsets: [0, 0.25],
@@ -84,14 +84,14 @@ export const RHYTHMIC_FIGURES = [
   },
   {
     id: 'tercina',
-    label: 'Tercina',
+    label: 'Tercina de colcheias',
     beats: 1,
     hits: 3,
     image: '/rhythms/tercina.png',
   },
   {
     id: 'colcheia-2semicolcheias',
-    label: 'Colcheia + duas semicolcheias',
+    label: 'Colcheia e duas semicolcheias',
     beats: 1,
     hits: 3,
     hitOffsets: [0, 0.5, 0.75],
@@ -99,7 +99,7 @@ export const RHYTHMIC_FIGURES = [
   },
   {
     id: '2semicolcheias-colcheia',
-    label: 'Duas semicolcheias + colcheia',
+    label: 'Duas semicolcheias e colcheia',
     beats: 1,
     hits: 3,
     hitOffsets: [0, 0.25, 0.5],
@@ -107,7 +107,7 @@ export const RHYTHMIC_FIGURES = [
   },
   {
     id: 'semicolcheia-colcheia-semicolcheia',
-    label: 'Semicolcheia + colcheia + semicolcheia',
+    label: 'Semicolcheia, colcheia e semicolcheia',
     beats: 1,
     hits: 3,
     hitOffsets: [0, 0.25, 0.75],
@@ -164,6 +164,125 @@ export function trimRhythmicScore(score, measureCount, beatsPerBar) {
     }
     return nextMeasure
   })
+}
+
+export function createEmptyRhythmicTies(measureCount, beatsPerBar) {
+  const gapCount = Math.max(0, beatsPerBar - 1)
+
+  return Array.from({ length: measureCount }, () =>
+    Array.from({ length: gapCount }, () => false),
+  )
+}
+
+export function trimRhythmicTies(ties, measureCount, beatsPerBar) {
+  const gapCount = Math.max(0, beatsPerBar - 1)
+  const trimmed = ties.slice(0, measureCount)
+
+  while (trimmed.length < measureCount) {
+    trimmed.push(Array.from({ length: gapCount }, () => false))
+  }
+
+  return trimmed.map((measureTies) => {
+    const next = measureTies.slice(0, gapCount)
+
+    while (next.length < gapCount) {
+      next.push(false)
+    }
+
+    return next
+  })
+}
+
+export function getRhythmicFigureStartAt(score, measureIndex, beatIndex) {
+  const placement = score[measureIndex]?.[beatIndex]
+  if (!placement) return null
+
+  const figure = getRhythmicFigure(placement.figureId)
+  if (!figure || figure.hits === 0) return null
+
+  return { placement, figure, startBeat: beatIndex }
+}
+
+export function getRhythmicFigureEndingAt(score, measureIndex, beatIndex) {
+  const measure = score[measureIndex]
+  if (!measure) return null
+
+  for (let startBeat = beatIndex; startBeat >= 0; startBeat -= 1) {
+    const placement = measure[startBeat]
+    if (!placement) continue
+
+    const figure = getRhythmicFigure(placement.figureId)
+    if (!figure || figure.hits === 0) continue
+
+    const endBeat = startBeat + figure.beats - 1
+    if (endBeat === beatIndex) {
+      return { placement, figure, startBeat, endBeat }
+    }
+
+    if (startBeat + figure.beats <= beatIndex) break
+  }
+
+  return null
+}
+
+export function canAddRhythmicTie(score, measureIndex, betweenBeatIndex) {
+  const fromBeat = betweenBeatIndex
+  const toBeat = betweenBeatIndex + 1
+  const ending = getRhythmicFigureEndingAt(score, measureIndex, fromBeat)
+  const starting = getRhythmicFigureStartAt(score, measureIndex, toBeat)
+
+  if (!ending || !starting) return false
+
+  return ending.startBeat !== starting.startBeat
+}
+
+export function isRhythmicBeatTiedFromPrevious(ties, measureIndex, beatIndex) {
+  if (beatIndex <= 0) return false
+
+  return Boolean(ties[measureIndex]?.[beatIndex - 1])
+}
+
+export function hasRhythmicTie(ties, measureIndex, betweenBeatIndex) {
+  return Boolean(ties[measureIndex]?.[betweenBeatIndex])
+}
+
+export function toggleRhythmicTie(ties, score, measureIndex, betweenBeatIndex) {
+  const next = ties.map((measureTies, measureIdx) =>
+    measureIdx === measureIndex ? [...measureTies] : [...measureTies],
+  )
+
+  if (next[measureIndex][betweenBeatIndex]) {
+    next[measureIndex][betweenBeatIndex] = false
+    return next
+  }
+
+  if (!canAddRhythmicTie(score, measureIndex, betweenBeatIndex)) {
+    return ties
+  }
+
+  next[measureIndex][betweenBeatIndex] = true
+  return next
+}
+
+export function sanitizeRhythmicTies(score, ties, measureCount, beatsPerBar) {
+  const next = trimRhythmicTies(ties, measureCount, beatsPerBar)
+
+  for (let measureIndex = 0; measureIndex < measureCount; measureIndex += 1) {
+    for (
+      let betweenBeatIndex = 0;
+      betweenBeatIndex < beatsPerBar - 1;
+      betweenBeatIndex += 1
+    ) {
+      if (
+        next[measureIndex][betweenBeatIndex]
+        && !canAddRhythmicTie(score, measureIndex, betweenBeatIndex)
+      ) {
+        next[measureIndex][betweenBeatIndex] = false
+      }
+    }
+  }
+
+  return next
 }
 
 export function getRhythmicPlacementAt(score, measureIndex, beatIndex) {

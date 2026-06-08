@@ -210,6 +210,52 @@
         <RhythmicFiguresTabPanel v-show="controlsTab === 'rhythmicFigures'" />
       </div>
 
+      <div
+        v-if="showMidiDisconnectedAlert"
+        class="midi-alert"
+        role="alert"
+      >
+        <button
+          type="button"
+          class="midi-alert__close"
+          aria-label="Fechar aviso de MIDI"
+          @click="dismissMidiAlert"
+        >
+          <svg
+            class="midi-alert__close-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+
+        <div class="midi-alert__content">
+          <div class="midi-alert__icon" aria-hidden="true">
+            <svg
+              class="midi-alert__icon-svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <path d="M12 9v4" />
+              <path d="M12 17h.01" />
+            </svg>
+          </div>
+
+          <h3 class="midi-alert__title">{{ midiAlertTitle }}</h3>
+          <p class="midi-alert__message">{{ midiAlertMessage }}</p>
+        </div>
+      </div>
+
     <div
       class="piano-stage"
       :class="{ 'piano-stage--with-roll': midiPlaybackReady }"
@@ -365,15 +411,21 @@ import {
   formatWestern,
   parseNote,
 } from '../utils/noteNames.js'
-import { bindMidiInputs, isMidiSupported, requestMidiAccess } from '../utils/midiConnection.js'
+import {
+  bindMidiInputs,
+  isMidiSupported,
+  requestMidiAccess,
+} from '../utils/midiConnection.js'
 import { isPianoMidiNote, midiNumberToNote, noteToMidiNumber, SUSTAIN_PEDAL_CC } from '../utils/midiNotes.js'
 import {
   playPianoNote,
   releasePianoNote,
   releaseSustainedPianoNotes,
+  resumePianoAudioContext,
   setPianoVolume,
   stopAllPianoNotes,
 } from '../utils/pianoAudio.js'
+import { showToast } from '../utils/toast.js'
 import {
   bpmToTempo,
   createMidiBlob,
@@ -417,6 +469,7 @@ import {
 } from '../utils/chordDictionary.js'
 import {
   DESIGN_THEMES,
+  isValidDesignTheme,
   loadOptionsPreferences,
   saveOptionsPreferences,
   VIEW_ZOOM_DEFAULT,
@@ -530,6 +583,8 @@ export default {
       sustainedActive: {},
       sustainPedalDown: false,
       midiBinder: null,
+      midiConnectionStatus: 'pending',
+      midiAlertDismissed: false,
       isRecording: false,
       midiRecorder: createMidiRecorder(),
       showKeyLabels: storedOptionsPreferences.showKeyLabels,
@@ -552,6 +607,7 @@ export default {
       playbackPositionMs: 0,
       midiRecordedBpm: 120,
       playbackBpm: 120,
+      playbackAudioErrorNotified: false,
       controlsTab: 'recording',
       controlOptionsTab: CONTROL_OPTIONS_TAB,
       sidebarNavCompact: storedOptionsPreferences.sidebarNavCompact,
@@ -793,6 +849,35 @@ export default {
       return this.sidebarNavCompact
         ? 'Mostrar ícones e textos nas abas'
         : 'Mostrar apenas ícones nas abas'
+    },
+    showMidiDisconnectedAlert() {
+      return (
+        !this.midiAlertDismissed &&
+        this.midiConnectionStatus !== 'connected' &&
+        this.midiConnectionStatus !== 'pending'
+      )
+    },
+    midiAlertTitle() {
+      if (this.midiConnectionStatus === 'unsupported') {
+        return 'MIDI não suportado'
+      }
+
+      if (this.midiConnectionStatus === 'unavailable') {
+        return 'MIDI indisponível'
+      }
+
+      return 'MIDI não conectado'
+    },
+    midiAlertMessage() {
+      if (this.midiConnectionStatus === 'unsupported') {
+        return 'Use Chrome, Edge ou Opera para conectar um teclado MIDI ao aplicativo.'
+      }
+
+      if (this.midiConnectionStatus === 'unavailable') {
+        return 'Não foi possível acessar o MIDI. Verifique as permissões do navegador.'
+      }
+
+      return 'Conecte um teclado ou controlador MIDI ao computador para tocar pelo dispositivo físico.'
     },
   },
   watch: {
@@ -1037,7 +1122,7 @@ export default {
       document.documentElement.setAttribute('data-design-theme', this.designTheme)
     },
     setDesignTheme(theme) {
-      if (theme === 'neumorphic' || theme === 'flat') {
+      if (isValidDesignTheme(theme)) {
         this.designTheme = theme
       }
     },
@@ -1179,6 +1264,10 @@ export default {
         this.playbackStatus = 'ready'
       } catch (error) {
         console.warn('Não foi possível ler o arquivo MIDI.', error)
+        showToast({
+          message: 'Não foi possível carregar o arquivo MIDI. Verifique se o arquivo é válido.',
+          type: 'error',
+        })
         this.clearMidiFile()
       }
     },
@@ -1203,7 +1292,7 @@ export default {
         this.midiPlayer = null
       }
     },
-    togglePlaybackPlayPause() {
+    async togglePlaybackPlayPause() {
       if (!this.midiPlayer || !this.midiPlaybackReady) return
 
       if (this.playbackStatus === 'playing') {
@@ -1213,20 +1302,49 @@ export default {
       }
 
       if (this.playbackStatus === 'paused') {
-        this.playbackStatus = 'playing'
-        this.midiPlayer.resume()
+        try {
+          await resumePianoAudioContext()
+          this.playbackStatus = 'playing'
+          this.midiPlayer.resume()
+        } catch (error) {
+          console.warn('Não foi possível retomar a reprodução do MIDI.', error)
+          showToast({
+            message: 'Não foi possível retomar a reprodução do MIDI.',
+            type: 'error',
+          })
+        }
         return
       }
 
-      this.startPlayback()
+      await this.startPlayback()
     },
-    startPlayback() {
+    async startPlayback() {
       if (!this.midiPlayer) return
 
-      this.resetPlaybackVisuals()
-      stopAllPianoNotes()
-      this.playbackStatus = 'playing'
-      this.midiPlayer.play(0)
+      try {
+        await resumePianoAudioContext()
+        this.playbackAudioErrorNotified = false
+        this.resetPlaybackVisuals()
+        stopAllPianoNotes()
+        this.playbackStatus = 'playing'
+        this.midiPlayer.play(0)
+      } catch (error) {
+        console.warn('Não foi possível iniciar a reprodução do MIDI.', error)
+        this.playbackStatus = 'ready'
+        showToast({
+          message: 'Não foi possível iniciar a reprodução do MIDI.',
+          type: 'error',
+        })
+      }
+    },
+    reportPlaybackAudioError() {
+      if (this.playbackAudioErrorNotified) return
+
+      this.playbackAudioErrorNotified = true
+      showToast({
+        message: 'Ocorreu um erro ao reproduzir o áudio do MIDI.',
+        type: 'error',
+      })
     },
     stopPlayback() {
       if (!this.midiPlayer) {
@@ -1309,6 +1427,10 @@ export default {
         sustainPedalDown: this.playbackSustainPedalDown,
       }).catch((error) => {
         console.warn('Erro ao soltar áudio da nota.', error)
+
+        if (this.playbackStatus === 'playing' || this.playbackStatus === 'paused') {
+          this.reportPlaybackAudioError()
+        }
       })
     },
     handlePlaybackSustainPedal(value) {
@@ -1323,6 +1445,10 @@ export default {
     playKeyAudio(midiNumber, velocity = 96) {
       playPianoNote(midiNumber, velocity).catch((error) => {
         console.warn('Erro ao reproduzir áudio da nota.', error)
+
+        if (this.playbackStatus === 'playing' || this.playbackStatus === 'paused') {
+          this.reportPlaybackAudioError()
+        }
       })
     },
     releaseKeyAudio(midiNumber) {
@@ -1465,6 +1591,10 @@ export default {
           return
         }
 
+        showToast({
+          message: 'Não foi possível iniciar a gravação de tela.',
+          type: 'error',
+        })
         console.warn('Não foi possível iniciar a gravação de tela.', error)
       }
     },
@@ -1482,6 +1612,10 @@ export default {
         const blob = await this.screenRecorder.stop()
 
         if (!blob || blob.size === 0) {
+          showToast({
+            message: 'A gravação de tela ficou vazia e não pôde ser salva.',
+            type: 'warning',
+          })
           console.warn('Gravação de tela vazia.')
           return
         }
@@ -1493,6 +1627,10 @@ export default {
           console.warn('Salvamento do vídeo cancelado.')
         }
       } catch (error) {
+        showToast({
+          message: 'Não foi possível salvar a gravação de tela.',
+          type: 'error',
+        })
         console.warn('Não foi possível salvar a gravação de tela.', error)
         this.screenRecorder.cancel()
       }
@@ -1502,6 +1640,10 @@ export default {
       const events = this.midiRecorder.stop()
 
       if (events.length === 0) {
+        showToast({
+          message: 'Nenhuma nota ou pedal foi gravado.',
+          type: 'warning',
+        })
         console.warn('Gravação vazia: nenhuma nota ou pedal foi registrado.')
         return
       }
@@ -1518,22 +1660,49 @@ export default {
           console.warn('Salvamento do MIDI cancelado.')
         }
       } catch (error) {
+        showToast({
+          message: 'Não foi possível salvar a gravação MIDI.',
+          type: 'error',
+        })
         console.warn('Não foi possível salvar o arquivo MIDI.', error)
       }
     },
+    dismissMidiAlert() {
+      this.midiAlertDismissed = true
+    },
+    updateMidiConnectionStatus(inputCount) {
+      const nextStatus = inputCount > 0 ? 'connected' : 'disconnected'
+
+      if (this.midiConnectionStatus === 'connected' && nextStatus === 'disconnected') {
+        this.midiAlertDismissed = false
+      }
+
+      this.midiConnectionStatus = nextStatus
+    },
     async initMidi() {
-      if (!isMidiSupported()) return
+      if (!isMidiSupported()) {
+        this.midiConnectionStatus = 'unsupported'
+        return
+      }
 
       try {
         const access = await requestMidiAccess()
-        if (!access) return
+
+        if (!access) {
+          this.midiConnectionStatus = 'unavailable'
+          return
+        }
 
         this.midiBinder = bindMidiInputs(access, {
           onNoteOn: this.handleMidiNoteOn.bind(this),
           onNoteOff: this.handleMidiNoteOff.bind(this),
           onControlChange: this.handleMidiControlChange.bind(this),
+          onInputsChange: (inputCount) => {
+            this.updateMidiConnectionStatus(inputCount)
+          },
         })
       } catch (error) {
+        this.midiConnectionStatus = 'unavailable'
         console.warn('Não foi possível acessar dispositivos MIDI.', error)
       }
     },
@@ -1574,6 +1743,100 @@ export default {
   padding: 0;
   box-sizing: border-box;
   min-height: 0;
+}
+
+.midi-alert {
+  position: relative;
+  margin: 0 22px 14px;
+  padding: 22px 20px 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+}
+
+.midi-alert__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 26rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.midi-alert__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 2px;
+  border-radius: 50%;
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--app-accent);
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.18);
+}
+
+.midi-alert__icon-svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.midi-alert__title {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--app-heading);
+}
+
+.midi-alert__message {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--app-subtitle);
+}
+
+.midi-alert__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  transition:
+    color 0.12s ease,
+    background-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.midi-alert__close-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.midi-alert__close:hover {
+  color: var(--app-accent);
+  background: var(--app-hover-bg);
+  box-shadow: var(--neu-raised-sm);
+}
+
+.midi-alert__close:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
 }
 
 .piano-wrapper :deep(.recorder-section--sidebar-layout) {

@@ -138,65 +138,88 @@
           class="rhythmic-figures__measure"
         >
           <span class="rhythmic-figures__measure-number">{{ measureIndex + 1 }}</span>
-          <div
-            class="rhythmic-figures__beats"
-            :style="{ gridTemplateColumns: `repeat(${beatsPerBar}, minmax(42px, 1fr))` }"
-          >
-            <div
+          <div class="rhythmic-figures__beats">
+            <template
               v-for="(slot, beatIndex) in measure"
               :key="`beat-${measureIndex}-${beatIndex}`"
-              class="rhythmic-figures__beat"
-              :class="beatCellClass(measureIndex, beatIndex)"
-              :aria-label="beatAriaLabel(measureIndex, beatIndex)"
-              @dragover.prevent="onBeatDragOver(measureIndex, beatIndex, $event)"
-              @dragleave="onBeatDragLeave"
-              @drop.prevent="onBeatDrop(measureIndex, beatIndex, $event)"
             >
+              <div
+                class="rhythmic-figures__beat"
+                :class="beatCellClass(measureIndex, beatIndex)"
+                :aria-label="beatAriaLabel(measureIndex, beatIndex)"
+                @dragover.prevent="onBeatDragOver(measureIndex, beatIndex, $event)"
+                @dragleave="onBeatDragLeave"
+                @drop.prevent="onBeatDrop(measureIndex, beatIndex, $event)"
+              >
+                <button
+                  v-if="isBeatStart(measureIndex, beatIndex)"
+                  type="button"
+                  class="rhythmic-figures__placed"
+                  :aria-label="`Remover ${placedFigureLabel(measureIndex, beatIndex)}`"
+                  @click="removeAt(measureIndex, beatIndex)"
+                >
+                  <img
+                    class="rhythmic-figures__figure-img rhythmic-figures__figure-img--placed"
+                    :src="placedFigureImage(measureIndex, beatIndex)"
+                    alt=""
+                    draggable="false"
+                  />
+                </button>
+                <span
+                  v-else-if="isBeatContinuation(measureIndex, beatIndex)"
+                  class="rhythmic-figures__slot-icon rhythmic-figures__slot-icon--blocked"
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                    <rect x="5" y="11" width="14" height="9" rx="2" />
+                    <path d="M8 11V8.5a4 4 0 0 1 8 0V11" />
+                  </svg>
+                </span>
+                <span
+                  v-else-if="isDragOverInvalid(measureIndex, beatIndex)"
+                  class="rhythmic-figures__slot-icon rhythmic-figures__slot-icon--forbidden"
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M8 16 16 8" />
+                  </svg>
+                </span>
+                <span
+                  v-else-if="isDragPreviewContinuation(measureIndex, beatIndex)"
+                  class="rhythmic-figures__slot-icon rhythmic-figures__slot-icon--blocked rhythmic-figures__slot-icon--preview"
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                    <rect x="5" y="11" width="14" height="9" rx="2" />
+                    <path d="M8 11V8.5a4 4 0 0 1 8 0V11" />
+                  </svg>
+                </span>
+              </div>
+
               <button
-                v-if="isBeatStart(measureIndex, beatIndex)"
+                v-if="beatIndex < measure.length - 1"
                 type="button"
-                class="rhythmic-figures__placed"
-                :aria-label="`Remover ${placedFigureLabel(measureIndex, beatIndex)}`"
-                @click="removeAt(measureIndex, beatIndex)"
+                class="rhythmic-figures__tie"
+                :class="tieButtonClass(measureIndex, beatIndex)"
+                :disabled="!isTieInteractive(measureIndex, beatIndex)"
+                :aria-label="tieAriaLabel(measureIndex, beatIndex)"
+                :aria-pressed="hasTie(measureIndex, beatIndex)"
+                @click="toggleTie(measureIndex, beatIndex)"
               >
-                <img
-                  class="rhythmic-figures__figure-img rhythmic-figures__figure-img--placed"
-                  :src="placedFigureImage(measureIndex, beatIndex)"
-                  alt=""
-                  draggable="false"
-                />
+                <svg
+                  class="rhythmic-figures__tie-icon"
+                  viewBox="0 0 32 14"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.25"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M2 11 C9 2, 23 2, 30 11" />
+                </svg>
               </button>
-              <span
-                v-else-if="isBeatContinuation(measureIndex, beatIndex)"
-                class="rhythmic-figures__slot-icon rhythmic-figures__slot-icon--blocked"
-                aria-hidden="true"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
-                  <rect x="5" y="11" width="14" height="9" rx="2" />
-                  <path d="M8 11V8.5a4 4 0 0 1 8 0V11" />
-                </svg>
-              </span>
-              <span
-                v-else-if="isDragOverInvalid(measureIndex, beatIndex)"
-                class="rhythmic-figures__slot-icon rhythmic-figures__slot-icon--forbidden"
-                aria-hidden="true"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M8 16 16 8" />
-                </svg>
-              </span>
-              <span
-                v-else-if="isDragPreviewContinuation(measureIndex, beatIndex)"
-                class="rhythmic-figures__slot-icon rhythmic-figures__slot-icon--blocked rhythmic-figures__slot-icon--preview"
-                aria-hidden="true"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
-                  <rect x="5" y="11" width="14" height="9" rx="2" />
-                  <path d="M8 11V8.5a4 4 0 0 1 8 0V11" />
-                </svg>
-              </span>
-            </div>
+            </template>
           </div>
         </div>
       </div>
@@ -237,15 +260,21 @@ import {
   RHYTHMIC_TIME_SIGNATURES,
   RHYTHMIC_DEFAULT_BPM,
   clampRhythmicBpm,
+  canAddRhythmicTie,
   canPlaceRhythmicFigure,
   createEmptyRhythmicScore,
+  createEmptyRhythmicTies,
   fillEmptyRhythmicSlotsWithRests,
   getRhythmicBeatsPerBar,
   getRhythmicFigure,
   getRhythmicPlacementAt,
+  hasRhythmicTie,
   placeRhythmicFigure,
   removeRhythmicFigure,
+  sanitizeRhythmicTies,
+  toggleRhythmicTie,
   trimRhythmicScore,
+  trimRhythmicTies,
 } from '../utils/rhythmicFigures.js'
 import { createRhythmicPlayer } from '../utils/rhythmicPlayer.js'
 
@@ -262,6 +291,7 @@ export default {
       bpmEditing: false,
       bpmDraft: '',
       score: createEmptyRhythmicScore(4, 4),
+      ties: createEmptyRhythmicTies(4, 4),
       draggedFigureId: null,
       dragOverTarget: null,
       rhythmicPlayer: createRhythmicPlayer(),
@@ -290,8 +320,17 @@ export default {
     resetScore() {
       this.stopPlayback()
       this.score = createEmptyRhythmicScore(this.measureCount, this.beatsPerBar)
+      this.ties = createEmptyRhythmicTies(this.measureCount, this.beatsPerBar)
       this.draggedFigureId = null
       this.dragOverTarget = null
+    },
+    syncTies() {
+      this.ties = sanitizeRhythmicTies(
+        this.score,
+        this.ties,
+        this.measureCount,
+        this.beatsPerBar,
+      )
     },
     async togglePlayback() {
       if (this.playbackRunning) {
@@ -324,11 +363,13 @@ export default {
         this.measureCount,
         this.beatsPerBar,
       )
+      this.syncTies()
 
       await this.rhythmicPlayer.start(
         this.score,
         this.measureCount,
         this.beatsPerBar,
+        this.ties,
       )
 
       if (this.rhythmicPlayer.isRunning()) {
@@ -343,12 +384,16 @@ export default {
       )
       this.measureCount = nextCount
       this.score = trimRhythmicScore(this.score, nextCount, this.beatsPerBar)
+      this.ties = trimRhythmicTies(this.ties, nextCount, this.beatsPerBar)
+      this.syncTies()
     },
     changeTimeSignature(signature) {
       if (this.timeSignature === signature) return
       this.stopPlayback()
       this.timeSignature = signature
       this.score = trimRhythmicScore(this.score, this.measureCount, this.beatsPerBar)
+      this.ties = trimRhythmicTies(this.ties, this.measureCount, this.beatsPerBar)
+      this.syncTies()
     },
     changeBpm(delta) {
       this.bpm = clampRhythmicBpm(this.bpm + delta)
@@ -417,10 +462,49 @@ export default {
         beatIndex,
         figureId,
       )
+      this.syncTies()
     },
     removeAt(measureIndex, beatIndex) {
       this.stopPlayback()
       this.score = removeRhythmicFigure(this.score, measureIndex, beatIndex)
+      this.syncTies()
+    },
+    hasTie(measureIndex, betweenBeatIndex) {
+      return hasRhythmicTie(this.ties, measureIndex, betweenBeatIndex)
+    },
+    isTieInteractive(measureIndex, betweenBeatIndex) {
+      return (
+        this.hasTie(measureIndex, betweenBeatIndex)
+        || canAddRhythmicTie(this.score, measureIndex, betweenBeatIndex)
+      )
+    },
+    tieButtonClass(measureIndex, betweenBeatIndex) {
+      return {
+        'rhythmic-figures__tie--active': this.hasTie(measureIndex, betweenBeatIndex),
+        'rhythmic-figures__tie--available': this.isTieInteractive(
+          measureIndex,
+          betweenBeatIndex,
+        ),
+      }
+    },
+    toggleTie(measureIndex, betweenBeatIndex) {
+      this.stopPlayback()
+      this.ties = toggleRhythmicTie(
+        this.ties,
+        this.score,
+        measureIndex,
+        betweenBeatIndex,
+      )
+    },
+    tieAriaLabel(measureIndex, betweenBeatIndex) {
+      const fromBeat = betweenBeatIndex + 1
+      const toBeat = betweenBeatIndex + 2
+
+      if (this.hasTie(measureIndex, betweenBeatIndex)) {
+        return `Remover ligadura entre os tempos ${fromBeat} e ${toBeat}`
+      }
+
+      return `Ligar o fim do tempo ${fromBeat} ao início do tempo ${toBeat}`
     },
     placementAt(measureIndex, beatIndex) {
       return getRhythmicPlacementAt(this.score, measureIndex, beatIndex)
@@ -729,11 +813,38 @@ export default {
 
 .rhythmic-figures__measures--count-1 {
   justify-content: center;
+  padding: 4px 8px 8px;
 }
 
 .rhythmic-figures__measures--count-1 .rhythmic-figures__measure {
-  flex: 0 1 280px;
-  max-width: 320px;
+  flex: 0 1 auto;
+  width: min(100%, 540px);
+  max-width: 540px;
+}
+
+.rhythmic-figures__measures--count-1 .rhythmic-figures__beats {
+  padding: 18px 16px;
+  gap: 4px;
+}
+
+.rhythmic-figures__measures--count-1 .rhythmic-figures__beat {
+  min-width: 64px;
+  min-height: 104px;
+  margin: 0 2px;
+  border-radius: 12px;
+}
+
+.rhythmic-figures__measures--count-1 .rhythmic-figures__figure-img--placed {
+  max-height: 58px;
+}
+
+.rhythmic-figures__measures--count-1 .rhythmic-figures__tie {
+  flex: 0 0 34px;
+}
+
+.rhythmic-figures__measures--count-1 .rhythmic-figures__tie-icon {
+  width: 30px;
+  height: 13px;
 }
 
 .rhythmic-figures__measures--count-2 .rhythmic-figures__measure,
@@ -750,9 +861,9 @@ export default {
 }
 
 .rhythmic-figures__beats {
-  display: grid;
+  display: flex;
   align-items: stretch;
-  gap: 6px;
+  gap: 0;
   width: 100%;
   padding: 12px 10px;
   border-radius: 14px;
@@ -763,10 +874,13 @@ export default {
 
 .rhythmic-figures__beat {
   position: relative;
+  flex: 1 1 0;
+  min-width: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 72px;
+  margin: 0 1px;
   border-radius: 10px;
   border: 1px dashed rgba(243, 244, 246, 0.14);
   background: rgba(0, 0, 0, 0.12);
@@ -886,6 +1000,59 @@ export default {
 
 .rhythmic-figures__slot-icon--forbidden {
   color: rgba(239, 68, 68, 0.8);
+}
+
+.rhythmic-figures__tie {
+  flex: 0 0 26px;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(243, 244, 246, 0.16);
+  cursor: default;
+  transition:
+    color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.rhythmic-figures__tie--available {
+  color: rgba(243, 244, 246, 0.34);
+  cursor: pointer;
+}
+
+.rhythmic-figures__tie--available:hover {
+  color: rgba(251, 191, 36, 0.72);
+  background: rgba(251, 191, 36, 0.06);
+}
+
+.rhythmic-figures__tie--active {
+  color: #fbbf24;
+  cursor: pointer;
+}
+
+.rhythmic-figures__tie--active:hover {
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.rhythmic-figures__tie:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.rhythmic-figures__tie:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.rhythmic-figures__tie-icon {
+  width: 24px;
+  height: 11px;
 }
 
 .rhythmic-figures__palette {

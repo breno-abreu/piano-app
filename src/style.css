@@ -16,7 +16,8 @@
 body {
   margin: 0;
   overflow: hidden;
-  background: #1e1e24;
+  background: var(--app-bg);
+  color: var(--app-text);
 }
 
 #app {

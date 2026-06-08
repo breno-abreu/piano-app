@@ -10,6 +10,12 @@ export async function requestMidiAccess() {
   return navigator.requestMIDIAccess({ sysex: false })
 }
 
+export function getMidiInputCount(access) {
+  if (!access?.inputs) return 0
+
+  return access.inputs.size
+}
+
 function dispatchVoiceMessage(command, data1, data2, handlers) {
   const { onNoteOn, onNoteOff, onControlChange } = handlers
 
@@ -92,7 +98,10 @@ function parseMidiEventData(data, runningStatus) {
   return { messages, runningStatus: status }
 }
 
-export function bindMidiInputs(access, { onNoteOn, onNoteOff, onControlChange, onMidiMessage }) {
+export function bindMidiInputs(
+  access,
+  { onNoteOn, onNoteOff, onControlChange, onMidiMessage, onInputsChange },
+) {
   const boundInputs = new Map()
   const runningStatusByInput = new Map()
   const handlers = { onNoteOn, onNoteOff, onControlChange }
@@ -125,10 +134,16 @@ export function bindMidiInputs(access, { onNoteOn, onNoteOff, onControlChange, o
     boundInputs.set(input.id, input)
   }
 
+  const notifyInputsChange = () => {
+    onInputsChange?.(getMidiInputCount(access))
+  }
+
   const attachAllInputs = () => {
     for (const input of access.inputs.values()) {
       attachInput(input)
     }
+
+    notifyInputsChange()
   }
 
   attachAllInputs()

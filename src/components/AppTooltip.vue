@@ -202,7 +202,7 @@ export default {
   padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid rgba(251, 191, 36, 0.22);
-  background: #25252d;
+  background: var(--app-tooltip-bg);
   box-shadow:
     0 10px 24px rgba(0, 0, 0, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -211,7 +211,7 @@ export default {
   font-weight: 500;
   line-height: 1.45;
   letter-spacing: 0.01em;
-  color: rgba(243, 244, 246, 0.92);
+  color: var(--app-tooltip-text);
   text-align: center;
   pointer-events: none;
 }

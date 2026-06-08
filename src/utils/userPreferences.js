@@ -9,10 +9,23 @@ export const VOLUME_MIN = 0
 export const VOLUME_MAX = 100
 export const VOLUME_STEP = 1
 
+export const DESIGN_THEME_IDS = [
+  'neumorphic',
+  'flat',
+  'neumorphic-light',
+  'flat-light',
+]
+
 export const DESIGN_THEMES = [
   { id: 'neumorphic', label: 'Neumorfista' },
   { id: 'flat', label: 'Flat' },
+  { id: 'neumorphic-light', label: 'Neumorfista claro' },
+  { id: 'flat-light', label: 'Flat claro' },
 ]
+
+export function isValidDesignTheme(theme) {
+  return DESIGN_THEME_IDS.includes(theme)
+}
 
 export const OPTIONS_PREFERENCE_DEFAULTS = {
   showKeyLabels: false,
@@ -83,7 +96,7 @@ function sanitizeOptionsPreferences(raw, bounds) {
     prefs.sidebarNavCompact = raw.sidebarNavCompact
   }
 
-  if (raw?.designTheme === 'flat' || raw?.designTheme === 'neumorphic') {
+  if (isValidDesignTheme(raw?.designTheme)) {
     prefs.designTheme = raw.designTheme
   }
 

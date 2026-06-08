@@ -2,8 +2,8 @@
   width: 100%;
   padding: 0;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: #1e1e24;
+  border: 1px solid var(--app-border);
+  background: var(--app-shell-bg);
   box-shadow: var(--neu-raised-lg);
   display: flex;
   flex-direction: column;
@@ -25,8 +25,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #1a1a20;
-  box-shadow: inset 6px 0 14px rgba(0, 0, 0, 0.32);
+  background: var(--app-main-bg);
+  box-shadow: var(--app-main-shadow);
 }
 
 .recorder-section__nav {
@@ -37,10 +37,8 @@
   flex-direction: column;
   width: 12.75rem;
   padding: 14px 10px 12px;
-  background: #222228;
-  box-shadow:
-    inset -5px 0 12px rgba(0, 0, 0, 0.22),
-    4px 0 10px rgba(0, 0, 0, 0.18);
+  background: var(--app-nav-bg);
+  box-shadow: var(--app-nav-shadow);
   transition: width 0.18s ease;
 }
 
@@ -48,10 +46,8 @@
   flex-shrink: 0;
   width: 1px;
   align-self: stretch;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow:
-    1px 0 0 rgba(0, 0, 0, 0.45),
-    -1px 0 0 rgba(255, 255, 255, 0.04);
+  background: var(--app-border-subtle);
+  box-shadow: var(--app-divider-shadow);
 }
 
 .recorder-section__body {
@@ -100,10 +96,8 @@
 .recorder-section__nav-separator {
   height: 1px;
   margin: 0 6px 10px;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.4),
-    0 -1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--app-border-nav);
+  box-shadow: var(--app-separator-shadow);
 }
 
 .recorder-section__tab {
@@ -127,7 +121,7 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.25;
-  color: rgba(243, 244, 246, 0.52);
+  color: var(--app-text-muted);
   cursor: pointer;
   text-align: left;
   transition:
@@ -147,8 +141,8 @@
 }
 
 .recorder-section__tab:hover {
-  color: rgba(243, 244, 246, 0.88);
-  background: rgba(255, 255, 255, 0.03);
+  color: var(--app-text);
+  background: var(--app-hover-bg);
   box-shadow: var(--neu-raised-sm);
 }
 
@@ -162,15 +156,15 @@
 }
 
 .recorder-section__tab--active {
-  color: #fbbf24;
-  background: #2a2a32;
+  color: var(--app-accent);
+  background: var(--app-tab-active-bg);
   box-shadow: var(--neu-pressed);
   transition: none;
 }
 
 .recorder-section__tab--active:hover {
-  color: #fbbf24;
-  background: #2a2a32;
+  color: var(--app-accent);
+  background: var(--app-tab-active-bg);
   box-shadow: var(--neu-pressed);
 }
 
@@ -208,7 +202,7 @@
   border-radius: 10px;
   background: var(--neu-surface);
   box-shadow: var(--neu-raised-sm);
-  color: rgba(243, 244, 246, 0.72);
+  color: var(--app-text-soft);
   cursor: pointer;
   transition:
     box-shadow 0.12s ease,
@@ -217,7 +211,7 @@
 }
 
 .recorder-section__nav-toggle:hover {
-  color: rgba(243, 244, 246, 0.92);
+  color: var(--app-text);
   box-shadow: var(--neu-raised);
 }
 
@@ -227,13 +221,13 @@
 }
 
 .recorder-section__nav-toggle[aria-pressed='true'] {
-  color: #fbbf24;
+  color: var(--app-accent);
   box-shadow: var(--neu-pressed);
   transition: none;
 }
 
 .recorder-section__nav-toggle[aria-pressed='true']:hover {
-  color: #fbbf24;
+  color: var(--app-accent);
   box-shadow: var(--neu-pressed);
 }
 
@@ -353,13 +347,13 @@
 
 .harmonic-chords__item--active {
   box-shadow: var(--neu-pressed-deep);
-  background: #3f1d1d;
+  background: var(--app-chord-active-bg);
   transition: none;
 }
 
 .harmonic-chords__item--active:hover {
   box-shadow: var(--neu-pressed-deep);
-  background: #3f1d1d;
+  background: var(--app-chord-active-bg);
 }
 
 .harmonic-chords__degree {
@@ -447,7 +441,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: rgba(243, 244, 246, 0.85);
+  color: var(--app-text);
   text-align: right;
 }
 
@@ -529,7 +523,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(243, 244, 246, 0.65);
+  color: var(--app-text-soft);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
@@ -672,7 +666,7 @@
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: rgba(243, 244, 246, 0.5);
+  color: var(--app-text-faint);
 }
 
 .recorder-section__button--stop-playback:focus-visible {
@@ -717,7 +711,7 @@
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: rgba(243, 244, 246, 0.45);
+  color: var(--app-text-faint);
 }
 
 .recorder-section__hint--active {
@@ -736,7 +730,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: rgba(243, 244, 246, 0.72);
+  color: var(--app-text-soft);
   cursor: pointer;
   transition: box-shadow 0.15s ease, color 0.15s ease, transform 0.12s ease;
 }
@@ -753,15 +747,15 @@
 }
 
 .recorder-section__pill:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #f59e0b;
   outline-offset: 3px;
 }
 
 .recorder-section__pill--active {
   box-shadow:
     var(--neu-pressed-deep),
-    inset 0 0 12px rgba(59, 130, 246, 0.12);
-  color: #93c5fd;
+    inset 0 0 12px rgba(251, 191, 36, 0.12);
+  color: var(--app-accent);
   transition: none;
 }
 
@@ -769,8 +763,8 @@
 .recorder-section__pill--active:active {
   box-shadow:
     var(--neu-pressed-deep),
-    inset 0 0 12px rgba(59, 130, 246, 0.12);
-  color: #93c5fd;
+    inset 0 0 12px rgba(251, 191, 36, 0.12);
+  color: var(--app-accent);
   transform: none;
 }
 
@@ -889,7 +883,7 @@
   align-items: center;
   justify-content: center;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  color: rgba(243, 244, 246, 0.85);
+  color: var(--app-text);
   cursor: pointer;
   transition: box-shadow 0.15s ease, transform 0.12s ease;
 }
@@ -929,7 +923,7 @@
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: rgba(243, 244, 246, 0.85);
+  color: var(--app-text);
   text-align: center;
   cursor: text;
   transition: box-shadow 0.15s ease;
@@ -990,5 +984,5 @@
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: rgba(243, 244, 246, 0.85);
+  color: var(--app-text);
 }
