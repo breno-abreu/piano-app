@@ -742,7 +742,7 @@ export default {
 
   letter-spacing: 0.02em;
 
-  color: #f3f4f6;
+  color: var(--app-heading);
 
 }
 
@@ -760,7 +760,7 @@ export default {
 
   line-height: 1.5;
 
-  color: rgba(243, 244, 246, 0.55);
+  color: var(--app-subtitle);
 
 }
 
@@ -796,7 +796,7 @@ export default {
 
   box-shadow: var(--neu-raised-sm);
 
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--app-border-card);
 
 }
 
@@ -808,7 +808,7 @@ export default {
 
   padding-bottom: 10px;
 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--app-border-subtle);
 
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 
@@ -820,7 +820,7 @@ export default {
 
   text-transform: uppercase;
 
-  color: #fbbf24;
+  color: var(--app-accent);
 
 }
 
@@ -850,7 +850,7 @@ export default {
 
   text-transform: uppercase;
 
-  color: rgba(243, 244, 246, 0.5);
+  color: var(--app-field-label);
 
 }
 

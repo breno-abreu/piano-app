@@ -361,25 +361,25 @@
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: rgba(251, 191, 36, 0.85);
+  color: var(--app-accent);
 }
 
 .harmonic-chords__symbol {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #f3f4f6;
+  color: var(--app-chord-symbol);
 }
 
 .harmonic-chords__item--active .harmonic-chords__symbol {
-  color: #fca5a5;
+  color: var(--app-chord-symbol-active);
 }
 
 .recorder-section__progress {
   width: 100%;
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--app-border-subtle);
 }
 
 .recorder-section__progress-track {
@@ -651,11 +651,11 @@
 
 .recorder-section__pill--remove-file {
   min-width: 72px;
-  color: rgba(252, 165, 165, 0.9);
+  color: var(--app-danger-soft);
 }
 
 .recorder-section__pill--remove-file:hover {
-  color: #fecaca;
+  color: var(--app-danger-text);
 }
 
 .recorder-section__file-name {
@@ -670,7 +670,7 @@
 }
 
 .recorder-section__button--stop-playback:focus-visible {
-  outline: 2px solid rgba(243, 244, 246, 0.55);
+  outline: 2px solid var(--app-text-muted);
   outline-offset: 3px;
 }
 
@@ -693,7 +693,7 @@
   width: 14px;
   height: 14px;
   border-radius: 2px;
-  background: #f3f4f6;
+  background: var(--app-heading);
 }
 
 .recorder-section__icon--play {
@@ -715,7 +715,7 @@
 }
 
 .recorder-section__hint--active {
-  color: #fca5a5;
+  color: var(--app-danger-soft);
 }
 
 .recorder-section__pill {
@@ -861,7 +861,7 @@
   width: 14px;
   height: 14px;
   border-radius: 2px;
-  background: #f3f4f6;
+  background: var(--app-heading);
 }
 
 .recorder-section__bpm {
@@ -969,7 +969,7 @@
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #f3f4f6;
+  color: var(--app-text);
   text-align: center;
 }
 

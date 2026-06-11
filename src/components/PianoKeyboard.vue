@@ -1840,7 +1840,7 @@ export default {
 }
 
 .piano-wrapper :deep(.recorder-section--sidebar-layout) {
-  border-radius: 0 20px 20px 0;
+  border-radius: 0 0 20px 0;
   border-left: none;
 }
 
@@ -2165,7 +2165,7 @@ export default {
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
-  color: #f3f4f6;
+  color: var(--app-text);
 }
 
 .pedal-visual {

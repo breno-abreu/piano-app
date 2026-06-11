@@ -607,19 +607,12 @@ export default {
 
 <style scoped>
 .rhythmic-figures {
-  --rhythm-surface: #25252d;
-  --rhythm-paper-border: rgba(255, 255, 255, 0.06);
-  --rhythm-paper-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.24),
-    0 4px 10px rgba(0, 0, 0, 0.18);
-  --rhythm-paper-shadow-hover:
-    0 2px 4px rgba(0, 0, 0, 0.26),
-    0 6px 14px rgba(0, 0, 0, 0.2);
-  --rhythm-paper-shadow-pressed:
-    0 1px 2px rgba(0, 0, 0, 0.3);
-  --rhythm-paper-shadow-lifted:
-    0 6px 14px rgba(0, 0, 0, 0.28),
-    0 16px 32px rgba(0, 0, 0, 0.34);
+  --rhythm-surface: var(--neu-surface);
+  --rhythm-paper-border: var(--app-border-card);
+  --rhythm-paper-shadow: var(--neu-raised-sm);
+  --rhythm-paper-shadow-hover: var(--neu-raised);
+  --rhythm-paper-shadow-pressed: var(--neu-pressed);
+  --rhythm-paper-shadow-lifted: var(--neu-raised-lg);
 
   display: flex;
   flex-direction: column;
@@ -653,7 +646,7 @@ export default {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(243, 244, 246, 0.65);
+  color: var(--app-text-muted);
 }
 
 .rhythmic-figures__step,
@@ -672,7 +665,7 @@ export default {
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  color: rgba(243, 244, 246, 0.9);
+  color: var(--app-text);
   font-size: 1.1rem;
   line-height: 1;
 }
@@ -703,7 +696,7 @@ export default {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: rgba(243, 244, 246, 0.92);
+  color: var(--app-text);
 }
 
 .rhythmic-figures__pill {
@@ -713,18 +706,18 @@ export default {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: rgba(243, 244, 246, 0.75);
+  color: var(--app-text-soft);
 }
 
 .rhythmic-figures__pill--active {
-  color: #fbbf24;
+  color: var(--app-accent);
   box-shadow: var(--neu-pressed-deep);
   transition: none;
 }
 
 .rhythmic-figures__pill--active:hover,
 .rhythmic-figures__pill--active:active {
-  color: #fbbf24;
+  color: var(--app-accent);
   box-shadow: var(--neu-pressed-deep);
   transform: none;
 }
@@ -767,7 +760,7 @@ export default {
   width: 14px;
   height: 14px;
   border-radius: 2px;
-  background: #f3f4f6;
+  background: var(--app-heading);
 }
 
 .rhythmic-figures__reset-btn {
@@ -778,7 +771,7 @@ export default {
   height: 44px;
   padding: 0 14px;
   border-radius: 12px;
-  color: rgba(243, 244, 246, 0.82);
+  color: var(--app-text-soft);
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -857,7 +850,7 @@ export default {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(243, 244, 246, 0.45);
+  color: var(--app-text-faint);
 }
 
 .rhythmic-figures__beats {
@@ -882,8 +875,8 @@ export default {
   min-height: 72px;
   margin: 0 1px;
   border-radius: 10px;
-  border: 1px dashed rgba(243, 244, 246, 0.14);
-  background: rgba(0, 0, 0, 0.12);
+  border: 1px dashed var(--app-rhythm-slot-border);
+  background: var(--app-rhythm-beat-bg);
   box-shadow: var(--rhythm-paper-shadow);
   transition:
     border-color 0.12s ease,
@@ -910,13 +903,13 @@ export default {
 
 .rhythmic-figures__beat--occupied {
   border-style: solid;
-  border-color: rgba(243, 244, 246, 0.12);
+  border-color: var(--app-rhythm-slot-border-occupied);
 }
 
 .rhythmic-figures__beat--continuation {
   border-style: solid;
-  border-color: rgba(243, 244, 246, 0.08);
-  background: rgba(0, 0, 0, 0.2);
+  border-color: var(--app-rhythm-slot-border-muted);
+  background: var(--app-rhythm-beat-continuation-bg);
   cursor: not-allowed;
 }
 
@@ -968,8 +961,8 @@ export default {
   object-position: center;
   pointer-events: none;
   user-select: none;
-  filter: invert(1);
-  mix-blend-mode: screen;
+  filter: var(--app-rhythm-figure-filter);
+  mix-blend-mode: var(--app-rhythm-figure-blend);
 }
 
 .rhythmic-figures__figure-img--placed {
@@ -991,7 +984,7 @@ export default {
 }
 
 .rhythmic-figures__slot-icon--blocked {
-  color: rgba(243, 244, 246, 0.28);
+  color: var(--app-rhythm-icon-muted);
 }
 
 .rhythmic-figures__slot-icon--preview {
@@ -1013,7 +1006,7 @@ export default {
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: rgba(243, 244, 246, 0.16);
+  color: var(--app-rhythm-tie-idle);
   cursor: default;
   transition:
     color 0.12s ease,
@@ -1021,7 +1014,7 @@ export default {
 }
 
 .rhythmic-figures__tie--available {
-  color: rgba(243, 244, 246, 0.34);
+  color: var(--app-rhythm-tie-available);
   cursor: pointer;
 }
 
@@ -1031,12 +1024,12 @@ export default {
 }
 
 .rhythmic-figures__tie--active {
-  color: #fbbf24;
+  color: var(--app-accent);
   cursor: pointer;
 }
 
 .rhythmic-figures__tie--active:hover {
-  color: #fde68a;
+  color: var(--app-accent);
   background: rgba(251, 191, 36, 0.08);
 }
 
@@ -1063,7 +1056,7 @@ export default {
   gap: 8px;
   width: 100%;
   padding: 20px 4px 8px;
-  border-top: 1px solid rgba(243, 244, 246, 0.08);
+  border-top: 1px solid var(--app-rhythm-palette-divider);
   overflow: visible;
 }
 
@@ -1157,7 +1150,7 @@ export default {
   font-weight: 500;
   line-height: 1.25;
   text-align: center;
-  color: rgba(243, 244, 246, 0.62);
+  color: var(--app-text-muted);
   transition:
     max-height 0.22s ease,
     opacity 0.18s ease,

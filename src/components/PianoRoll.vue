@@ -93,8 +93,8 @@ export default {
   min-height: 0;
   overflow: hidden;
   border-radius: 16px 16px 0 0;
-  background: linear-gradient(180deg, #14141a 0%, #1a1a22 55%, #1e1e28 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: var(--app-piano-roll-bg);
+  box-shadow: var(--app-piano-roll-inset-shadow);
 }
 
 .piano-roll__grid {
@@ -107,11 +107,11 @@ export default {
 .piano-roll__lane {
   flex-shrink: 0;
   height: 100%;
-  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  border-right: 1px solid var(--app-piano-roll-lane-border);
 }
 
 .piano-roll__lane:first-child {
-  border-left: 1px solid rgba(255, 255, 255, 0.04);
+  border-left: 1px solid var(--app-piano-roll-lane-border);
 }
 
 .piano-roll__notes {
@@ -137,15 +137,13 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 4px 4px 2px 2px;
-  background: linear-gradient(180deg, #4ade80 0%, #22c55e 55%, #16a34a 100%);
-  box-shadow:
-    0 0 10px rgba(34, 197, 94, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  background: var(--app-piano-roll-note-bg);
+  box-shadow: var(--app-piano-roll-note-shadow);
 }
 
 .piano-roll__note--black .piano-roll__note-fill {
   border-radius: 3px 3px 2px 2px;
-  background: linear-gradient(180deg, #86efac 0%, #22c55e 50%, #15803d 100%);
+  background: var(--app-piano-roll-note-black-bg);
 }
 
 .piano-roll__hit-line {
@@ -154,15 +152,8 @@ export default {
   right: 0;
   bottom: 0;
   height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    #4ade80 12%,
-    #86efac 50%,
-    #4ade80 88%,
-    transparent 100%
-  );
-  box-shadow: 0 0 10px rgba(74, 222, 128, 0.65);
+  background: var(--app-piano-roll-hit-line);
+  box-shadow: var(--app-piano-roll-hit-line-shadow);
   z-index: 3;
   pointer-events: none;
 }
