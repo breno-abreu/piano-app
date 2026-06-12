@@ -1,0 +1,27 @@
+# Bloco compartilhado — SPA Vue/Vite
+(pianoapp) {
+	encode gzip zstd
+
+	@static {
+		path *.css *.js *.mjs *.png *.jpg *.jpeg *.gif *.svg *.ico *.webp *.woff *.woff2
+	}
+	header @static Cache-Control "public, max-age=604800, immutable"
+
+	try_files {path} /index.html
+	file_server
+}
+
+# Produção (Docker) — arquivos em /srv
+:80 {
+	root * /srv
+	import pianoapp
+}
+
+# Local (sem Docker) — rode na raiz do projeto:
+#   npm run build
+#   caddy run --config Caddyfile
+# Acesse: http://localhost:8080  ou  http://127.0.0.1:8080
+http://localhost:8080, http://127.0.0.1:8080 {
+	root * dist
+	import pianoapp
+}
