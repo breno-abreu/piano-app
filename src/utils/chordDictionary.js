@@ -194,12 +194,7 @@ function invertVoicingRight(midiNotes) {
   const sorted = [...midiNotes].sort((a, b) => a - b)
   const bottom = sorted.shift()
   const rest = sorted
-  let raised = bottom + 12
-  const top = rest[rest.length - 1]
-
-  while (raised <= top) {
-    raised += 12
-  }
+  const raised = bottom + 12
 
   rest.push(raised)
 

@@ -14,52 +14,25 @@
       </header>
 
       <div class="chord-dict-panel__result" aria-live="polite">
-        <span class="chord-dict-panel__result-label">Acorde selecionado</span>
-        <span class="chord-dict-panel__result-symbol">{{ chordDictFinalLabel }}</span>
+        <div class="chord-dict-panel__result-text">
+          <span class="chord-dict-panel__result-label">Acorde selecionado</span>
+          <span class="chord-dict-panel__result-symbol">{{ chordDictFinalLabel }}</span>
+        </div>
+        <AppTooltip :text="`Tocar o acorde ${chordDictFinalLabel} por alguns segundos.`">
+          <button
+            type="button"
+            class="recorder-section__button recorder-section__button--play chord-dict-panel__play-button"
+            :aria-label="`Tocar acorde ${chordDictFinalLabel}`"
+            @click="$emit('play-chord')"
+          >
+            <span class="recorder-section__icon recorder-section__icon--play" />
+          </button>
+        </AppTooltip>
       </div>
 
       <div class="chord-dict-panel__settings">
-        <section class="chord-dict-panel__card" aria-labelledby="chord-dict-card-base">
+        <section class="chord-dict-panel__card chord-dict-panel__card--base" aria-labelledby="chord-dict-card-base">
           <h3 id="chord-dict-card-base" class="chord-dict-panel__card-title">Base do acorde</h3>
-
-          <div class="chord-dict-panel__field">
-            <span class="chord-dict-panel__field-label">Notação</span>
-            <div class="chord-dict-panel__field-controls">
-              <AppTooltip
-                v-for="notation in accidentalNotations"
-                :key="`chord-dict-tt-${notation.id}`"
-                :text="accidentalTooltip(notation.id)"
-              >
-                <button
-                  type="button"
-                  class="recorder-section__pill"
-                  :class="{ 'recorder-section__pill--active': accidentalNotation === notation.id }"
-                  :aria-pressed="accidentalNotation === notation.id"
-                  @click="$emit('update:accidental-notation', notation.id)"
-                >
-                  {{ notation.label }}
-                </button>
-              </AppTooltip>
-            </div>
-          </div>
-
-          <div class="chord-dict-panel__field">
-            <span class="chord-dict-panel__field-label">Nomes nas teclas</span>
-            <div class="chord-dict-panel__field-controls">
-              <AppTooltip :text="showKeyLabelsTooltip">
-                <button
-                  type="button"
-                  class="recorder-section__pill"
-                  :class="{ 'recorder-section__pill--active': showKeyLabels }"
-                  :aria-pressed="showKeyLabels"
-                  :aria-label="showKeyLabels ? 'Ocultar nomes nas teclas' : 'Mostrar nomes nas teclas'"
-                  @click="$emit('toggle-show-key-labels')"
-                >
-                  {{ showKeyLabels ? 'Visível' : 'Oculto' }}
-                </button>
-              </AppTooltip>
-            </div>
-          </div>
 
           <div class="chord-dict-panel__field">
             <span class="chord-dict-panel__field-label">Tom</span>
@@ -110,92 +83,92 @@
               </div>
             </AppTooltip>
           </div>
+
+          <div class="chord-dict-panel__subsection" aria-labelledby="chord-dict-card-bass">
+            <h4 id="chord-dict-card-bass" class="chord-dict-panel__subsection-title">Baixo</h4>
+
+            <div class="chord-dict-panel__field">
+              <span class="chord-dict-panel__field-label">Nota do baixo</span>
+              <AppTooltip text="Nota tocada no baixo. Pode ser a fundamental ou um baixo alternado (ex.: C/G).">
+                <div class="chord-dict-panel__note-grid">
+                  <button
+                    v-for="bassRoot in chordDictBassRoots"
+                    :key="bassRoot"
+                    type="button"
+                    class="recorder-section__pill recorder-section__pill--tonic chord-dict-panel__note-btn"
+                    :class="{
+                      'recorder-section__pill--active': chordDictActiveBassRoot === bassRoot,
+                      'recorder-section__pill--tonic-enh': bassRoot.includes('#'),
+                    }"
+                    :aria-pressed="chordDictActiveBassRoot === bassRoot"
+                    :aria-label="`Baixo ${formatAccidentalRootLabel(bassRoot)}`"
+                    @click="$emit('set-chord-dict-bass-root', bassRoot)"
+                  >
+                    {{ formatAccidentalRootLabel(bassRoot) }}
+                  </button>
+                </div>
+              </AppTooltip>
+            </div>
+
+            <div class="chord-dict-panel__field chord-dict-panel__field--inversion">
+              <span class="chord-dict-panel__field-label">Inversão do baixo</span>
+              <AppTooltip text="Roda a nota do baixo entre os graus do acorde quando o baixo é um tom do acorde.">
+                <div class="chord-dict-panel__inversion-controls">
+                  <button
+                    type="button"
+                    class="recorder-section__bpm-step chord-dict-panel__inversion-step"
+                    :disabled="!chordDictBassCanInvert"
+                    aria-label="Inversão anterior do baixo"
+                    @click="$emit('shift-chord-dict-bass-inversion', -1)"
+                  >
+                    <span class="recorder-section__bpm-step-glyph" aria-hidden="true">←</span>
+                  </button>
+                  <span class="chord-dict-panel__inversion-status">{{ chordDictBassInversionLabel }}</span>
+                  <button
+                    type="button"
+                    class="recorder-section__bpm-step chord-dict-panel__inversion-step"
+                    :disabled="!chordDictBassCanInvert"
+                    aria-label="Próxima inversão do baixo"
+                    @click="$emit('shift-chord-dict-bass-inversion', 1)"
+                  >
+                    <span class="recorder-section__bpm-step-glyph" aria-hidden="true">→</span>
+                  </button>
+                </div>
+              </AppTooltip>
+            </div>
+          </div>
         </section>
 
-        <section class="chord-dict-panel__card" aria-labelledby="chord-dict-card-bass">
-          <h3 id="chord-dict-card-bass" class="chord-dict-panel__card-title">Baixo</h3>
+        <section class="chord-dict-panel__card chord-dict-panel__card--variations" aria-labelledby="chord-dict-card-variations">
+          <h3 id="chord-dict-card-variations" class="chord-dict-panel__card-title">Tipo do acorde</h3>
 
-          <div class="chord-dict-panel__field">
-            <span class="chord-dict-panel__field-label">Nota do baixo</span>
-            <AppTooltip text="Nota tocada no baixo. Pode ser a fundamental ou um baixo alternado (ex.: C/G).">
-              <div class="chord-dict-panel__note-grid">
-                <button
-                  v-for="bassRoot in chordDictBassRoots"
-                  :key="bassRoot"
-                  type="button"
-                  class="recorder-section__pill recorder-section__pill--tonic chord-dict-panel__note-btn"
-                  :class="{
-                    'recorder-section__pill--active': chordDictActiveBassRoot === bassRoot,
-                    'recorder-section__pill--tonic-enh': bassRoot.includes('#'),
-                  }"
-                  :aria-pressed="chordDictActiveBassRoot === bassRoot"
-                  :aria-label="`Baixo ${formatAccidentalRootLabel(bassRoot)}`"
-                  @click="$emit('set-chord-dict-bass-root', bassRoot)"
-                >
-                  {{ formatAccidentalRootLabel(bassRoot) }}
-                </button>
-              </div>
-            </AppTooltip>
-          </div>
-
-          <div class="chord-dict-panel__field chord-dict-panel__field--inversion">
-            <span class="chord-dict-panel__field-label">Inversão do baixo</span>
-            <AppTooltip text="Roda a nota do baixo entre os graus do acorde quando o baixo é um tom do acorde.">
-              <div class="chord-dict-panel__inversion-controls">
+          <div
+            v-for="group in chordQualityGroups"
+            :key="group.id"
+            class="chord-dict-panel__quality-group"
+          >
+            <span class="chord-dict-panel__quality-group-label">{{ group.label }}</span>
+            <div class="chord-dict-panel__quality-grid">
+              <AppTooltip
+                v-for="quality in group.qualities"
+                :key="`chord-dict-quality-tt-${quality.id}`"
+                :text="qualityTooltip(quality.id)"
+              >
                 <button
                   type="button"
-                  class="recorder-section__bpm-step chord-dict-panel__inversion-step"
-                  :disabled="!chordDictBassCanInvert"
-                  aria-label="Inversão anterior do baixo"
-                  @click="$emit('shift-chord-dict-bass-inversion', -1)"
+                  class="recorder-section__pill chord-dict-panel__quality-pill"
+                  :class="{ 'recorder-section__pill--active': chordDictQualityId === quality.id }"
+                  :aria-pressed="chordDictQualityId === quality.id"
+                  :aria-label="`Acorde ${formatChordQualityLabel(chordDictRoot, quality, accidentalNotation)}`"
+                  @click="$emit('set-chord-dict-quality', quality.id)"
                 >
-                  <span class="recorder-section__bpm-step-glyph" aria-hidden="true">←</span>
+                  {{ formatChordQualityLabel(chordDictRoot, quality, accidentalNotation) }}
                 </button>
-                <span class="chord-dict-panel__inversion-status">{{ chordDictBassInversionLabel }}</span>
-                <button
-                  type="button"
-                  class="recorder-section__bpm-step chord-dict-panel__inversion-step"
-                  :disabled="!chordDictBassCanInvert"
-                  aria-label="Próxima inversão do baixo"
-                  @click="$emit('shift-chord-dict-bass-inversion', 1)"
-                >
-                  <span class="recorder-section__bpm-step-glyph" aria-hidden="true">→</span>
-                </button>
-              </div>
-            </AppTooltip>
+              </AppTooltip>
+            </div>
           </div>
         </section>
       </div>
-
-      <section class="chord-dict-panel__card chord-dict-panel__card--variations" aria-labelledby="chord-dict-card-variations">
-        <h3 id="chord-dict-card-variations" class="chord-dict-panel__card-title">Tipo do acorde</h3>
-
-        <div
-          v-for="group in chordQualityGroups"
-          :key="group.id"
-          class="chord-dict-panel__quality-group"
-        >
-          <span class="chord-dict-panel__quality-group-label">{{ group.label }}</span>
-          <div class="chord-dict-panel__quality-grid">
-            <AppTooltip
-              v-for="quality in group.qualities"
-              :key="`chord-dict-quality-tt-${quality.id}`"
-              :text="qualityTooltip(quality.id)"
-            >
-              <button
-                type="button"
-                class="recorder-section__pill chord-dict-panel__quality-pill"
-                :class="{ 'recorder-section__pill--active': chordDictQualityId === quality.id }"
-                :aria-pressed="chordDictQualityId === quality.id"
-                :aria-label="`Acorde ${formatChordQualityLabel(chordDictRoot, quality, accidentalNotation)}`"
-                @click="$emit('set-chord-dict-quality', quality.id)"
-              >
-                {{ formatChordQualityLabel(chordDictRoot, quality, accidentalNotation) }}
-              </button>
-            </AppTooltip>
-          </div>
-        </div>
-      </section>
     </div>
   </div>
 </template>
@@ -223,7 +196,7 @@ const CHORD_QUALITY_GROUP_DEFS = [
   },
   {
     id: 'extended',
-    label: 'Extensões',
+    label: 'Complexos',
     ids: [
       'add9',
       'madd9',
@@ -277,7 +250,6 @@ export default {
     AppTooltip,
   },
   props: {
-    accidentalNotations: { type: Array, required: true },
     accidentalNotation: { type: String, required: true },
     chordDictRoots: { type: Array, required: true },
     chordDictQualities: { type: Array, required: true },
@@ -290,16 +262,16 @@ export default {
     chordDictInversionLabel: { type: String, required: true },
     chordDictBassInversionLabel: { type: String, required: true },
     chordDictFinalLabel: { type: String, required: true },
-    showKeyLabels: { type: Boolean, required: true },
+    chordDictTrebleNotes: { type: Array, required: true },
+    chordDictBassNotes: { type: Array, required: true },
   },
   emits: [
-    'update:accidental-notation',
     'set-chord-dict-root',
     'set-chord-dict-quality',
     'set-chord-dict-bass-root',
     'shift-chord-dict-inversion',
     'shift-chord-dict-bass-inversion',
-    'toggle-show-key-labels',
+    'play-chord',
   ],
   computed: {
     chordQualityGroups() {
@@ -314,25 +286,11 @@ export default {
           .filter(Boolean),
       })).filter((group) => group.qualities.length > 0)
     },
-    showKeyLabelsTooltip() {
-      if (this.showKeyLabels) {
-        return 'Os nomes das notas estão visíveis nas teclas. Clique para ocultar.'
-      }
-
-      return 'Exibe o nome de cada nota nas teclas do piano (mesma opção da aba Opções).'
-    },
   },
   methods: {
     formatChordQualityLabel,
     formatAccidentalRootLabel(root) {
       return formatRootNotation(root, this.accidentalNotation)
-    },
-    accidentalTooltip(notationId) {
-      if (notationId === 'sharp') {
-        return 'Mostra sustenidos (♯) nos nomes das notas e acordes.'
-      }
-
-      return 'Mostra bemóis (♭) nos nomes das notas e acordes.'
     },
     qualityTooltip(qualityId) {
       return QUALITY_TOOLTIPS[qualityId] ?? 'Seleciona este tipo de acorde no teclado.'
@@ -381,17 +339,31 @@ export default {
 }
 
 .chord-dict-panel__result {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 4px;
+  gap: 18px;
   width: 100%;
-  padding: 14px 16px;
-  border-radius: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
   background: var(--app-result-bg);
   box-shadow: var(--app-result-shadow);
   border: 1px solid rgba(251, 191, 36, 0.12);
   box-sizing: border-box;
+}
+
+.chord-dict-panel__result-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+
+.chord-dict-panel__play-button {
+  justify-self: end;
+  flex-shrink: 0;
 }
 
 .chord-dict-panel__result-label {
@@ -405,8 +377,8 @@ export default {
 
 .chord-dict-panel__result-symbol {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 800;
   letter-spacing: 0.04em;
   color: var(--app-accent);
   text-shadow: none;
@@ -415,6 +387,7 @@ export default {
 .chord-dict-panel__settings {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 14px;
   width: 100%;
 }
@@ -436,10 +409,32 @@ export default {
   gap: 16px;
 }
 
+.chord-dict-panel__card--base .chord-dict-panel__field--inversion {
+  margin-top: 0;
+}
+
 .chord-dict-panel__card-title {
   margin: 0;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--app-border-subtle);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+}
+
+.chord-dict-panel__subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--app-border-subtle);
+}
+
+.chord-dict-panel__subsection-title {
+  margin: 0;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
@@ -572,6 +567,16 @@ export default {
 }
 
 @media (max-width: 900px) {
+  .chord-dict-panel__result {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .chord-dict-panel__play-button {
+    justify-self: center;
+  }
+
   .chord-dict-panel__settings {
     grid-template-columns: minmax(0, 1fr);
   }

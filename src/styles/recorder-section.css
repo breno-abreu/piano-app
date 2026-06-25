@@ -11,11 +11,12 @@
   overflow: hidden;
 }
 
-.recorder-section--sidebar-layout {
+.recorder-section--top-nav-layout {
   flex: 1;
   min-height: 0;
-  flex-direction: row;
+  flex-direction: column;
   align-items: stretch;
+  overflow: visible;
 }
 
 .recorder-section__main {
@@ -34,18 +35,61 @@
   z-index: 2;
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
-  width: 12.75rem;
-  padding: 14px 10px 12px;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
   background: var(--app-nav-bg);
   box-shadow: var(--app-nav-shadow);
-  transition: width 0.18s ease;
+}
+
+.recorder-section__brand-group {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 0 4px;
+}
+
+.recorder-section__brand {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--app-heading);
+  white-space: nowrap;
+}
+
+.recorder-section__midi-status,
+.recorder-section__recording-status {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: var(--app-danger-soft);
+  background: rgba(185, 28, 28, 0.08);
+  border: 1px solid rgba(185, 28, 28, 0.18);
+}
+
+.recorder-section__recording-status {
+  color: #b91c1c;
+  background: rgba(185, 28, 28, 0.1);
+  border-color: rgba(185, 28, 28, 0.22);
+}
+
+.recorder-section__midi-status svg,
+.recorder-section__recording-status svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2;
 }
 
 .recorder-section__nav-divider {
   flex-shrink: 0;
-  width: 1px;
-  align-self: stretch;
+  width: 100%;
+  height: 1px;
   background: var(--app-border-subtle);
   box-shadow: var(--app-divider-shadow);
 }
@@ -71,31 +115,33 @@
 
 .recorder-section__tabs {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   flex: 1;
-  min-height: 0;
+  min-width: 0;
+  gap: 10px;
 }
 
 .recorder-section__tabs-main {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
 }
 
 .recorder-section__tabs-footer {
   flex-shrink: 0;
-  margin-top: auto;
-  padding-top: 8px;
+  display: flex;
+  align-items: center;
 }
 
 .recorder-section__nav-separator {
-  height: 1px;
-  margin: 0 6px 10px;
+  width: 1px;
+  height: 32px;
+  margin: 0 2px;
   background: var(--app-border-nav);
   box-shadow: var(--app-separator-shadow);
 }
@@ -104,14 +150,15 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 10px;
   box-sizing: border-box;
-  width: 100%;
+  width: auto;
+  flex: 0 0 auto;
   min-height: 46px;
   height: auto;
   margin: 0;
-  padding: 10px 12px 10px 16px;
+  padding: 10px 14px;
   border: none;
   border-radius: 10px;
   background: transparent;
@@ -131,23 +178,25 @@
 }
 
 .recorder-section__tab-label {
+  position: relative;
   white-space: normal;
+  transition: transform 0.16s ease;
 }
 
-.recorder-section__tab .control-tab-icon {
-  flex-shrink: 0;
-  opacity: 0.72;
-  transition: opacity 0.12s ease;
+.recorder-section__icon-button {
+  width: 46px;
+  padding: 10px;
+}
+
+.recorder-section__icon-button .control-tab-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .recorder-section__tab:hover {
   color: var(--app-text);
   background: var(--app-hover-bg);
   box-shadow: var(--neu-raised-sm);
-}
-
-.recorder-section__tab:hover .control-tab-icon {
-  opacity: 0.95;
 }
 
 .recorder-section__tab:focus-visible {
@@ -157,27 +206,120 @@
 
 .recorder-section__tab--active {
   color: var(--app-accent);
-  background: var(--app-tab-active-bg);
-  box-shadow: var(--neu-pressed);
-  transition: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.recorder-section__tab--active .recorder-section__tab-label {
+  animation: recorder-section-tab-text-in 0.18s ease-out;
 }
 
 .recorder-section__tab--active:hover {
   color: var(--app-accent);
-  background: var(--app-tab-active-bg);
-  box-shadow: var(--neu-pressed);
+  background: transparent;
+  box-shadow: none;
 }
 
-.recorder-section__tab--active::before {
+.recorder-section__tab--active .recorder-section__tab-label::after {
   content: '';
   position: absolute;
-  left: 5px;
-  top: 10px;
-  bottom: 10px;
-  width: 3px;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 3px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
-  box-shadow: 0 0 10px rgba(251, 191, 36, 0.45);
+  background: currentColor;
+  transform-origin: center;
+  animation: recorder-section-tab-line-in 0.2s ease-out;
+}
+
+@keyframes recorder-section-tab-text-in {
+  from {
+    transform: translateY(2px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes recorder-section-tab-line-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.35);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes recorder-section-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recorder-section__tab--active .recorder-section__tab-label,
+  .recorder-section__tab--active .recorder-section__tab-label::after,
+  .recorder-section__panel {
+    animation: none;
+  }
+}
+
+.recorder-section__popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  z-index: 30;
+  overflow: visible;
+  border-radius: 24px;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.24),
+    0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.recorder-section__popover::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  transform: rotate(45deg);
+  border-left: 1px solid var(--app-border-card);
+  border-top: 1px solid var(--app-border-card);
+  background: var(--neu-surface);
+}
+
+.recorder-section__popover--metronome {
+  right: 70px;
+}
+
+.recorder-section__popover--metronome::before {
+  right: 24px;
+}
+
+.recorder-section__popover--options {
+  right: 12px;
+  width: min(64rem, calc(100vw - 32px));
+}
+
+.recorder-section__popover--options::before {
+  right: 22px;
+}
+
+.recorder-section__popover--options .options-panel {
+  max-width: none;
+  max-height: calc(100svh - 112px);
+  margin: 0;
+  overflow: auto;
 }
 
 .recorder-section__tab--active .control-tab-icon {
@@ -189,73 +331,9 @@
   opacity: 1;
 }
 
-.recorder-section__nav-toggle {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 40px;
-  margin: 0 0 10px;
-  padding: 8px;
-  border: none;
-  border-radius: 10px;
-  background: var(--neu-surface);
-  box-shadow: var(--neu-raised-sm);
-  color: var(--app-text-soft);
-  cursor: pointer;
-  transition:
-    box-shadow 0.12s ease,
-    color 0.12s ease,
-    background-color 0.12s ease;
-}
-
-.recorder-section__nav-toggle:hover {
-  color: var(--app-text);
-  box-shadow: var(--neu-raised);
-}
-
-.recorder-section__nav-toggle:focus-visible {
-  outline: 2px solid #f59e0b;
-  outline-offset: 2px;
-}
-
-.recorder-section__nav-toggle[aria-pressed='true'] {
-  color: var(--app-accent);
-  box-shadow: var(--neu-pressed);
-  transition: none;
-}
-
-.recorder-section__nav-toggle[aria-pressed='true']:hover {
-  color: var(--app-accent);
-  box-shadow: var(--neu-pressed);
-}
-
-.recorder-section__nav-toggle-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.recorder-section--nav-compact .recorder-section__nav {
-  width: 4.25rem;
-  padding: 14px 8px 12px;
-}
-
-.recorder-section--nav-compact .recorder-section__tab {
-  justify-content: center;
-  padding: 10px 8px;
-}
-
-.recorder-section--nav-compact .recorder-section__tab-label {
-  display: none;
-}
-
-.recorder-section--nav-compact .recorder-section__tab--active::before {
-  left: 3px;
-}
-
 .recorder-section__panel {
   width: 100%;
+  animation: recorder-section-panel-in 0.18s ease-out;
 }
 
 .recorder-section__panel--recording {
@@ -267,16 +345,16 @@
 
 .recorder-section__panel--rhythmic-figures {
   width: 100%;
-  overflow: visible;
+  min-height: 0;
 }
 
-.recorder-section--rhythmic-tab {
-  overflow: visible;
-}
-
-.recorder-section--rhythmic-tab .recorder-section__body,
 .recorder-section--rhythmic-tab .recorder-section__main {
-  overflow: visible;
+  overflow: hidden;
+}
+
+.recorder-section--rhythmic-tab .recorder-section__body {
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .recorder-section__harmonic {
@@ -766,6 +844,87 @@
     inset 0 0 12px rgba(251, 191, 36, 0.12);
   color: var(--app-accent);
   transform: none;
+}
+
+.recorder-section__switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  margin: 0;
+  padding: 0 12px 0 6px;
+  border: none;
+  border-radius: 999px;
+  background: var(--neu-surface);
+  box-shadow: var(--neu-raised-sm);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--app-text-soft);
+  cursor: pointer;
+  transition: color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.recorder-section__switch:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    var(--neu-raised-sm),
+    0 8px 16px rgba(15, 23, 42, 0.16);
+}
+
+.recorder-section__switch:active {
+  transform: translateY(-2px);
+}
+
+.recorder-section__switch:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+.recorder-section__switch-track {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--app-border-subtle);
+  box-shadow: var(--neu-pressed);
+  transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.recorder-section__switch-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--neu-surface);
+  box-shadow:
+    2px 2px 5px rgba(15, 23, 42, 0.18),
+    -1px -1px 3px rgba(255, 255, 255, 0.65);
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.recorder-section__switch--active {
+  color: var(--app-accent);
+}
+
+.recorder-section__switch--active .recorder-section__switch-track {
+  background: rgba(245, 158, 11, 0.35);
+  box-shadow:
+    var(--neu-pressed),
+    inset 0 0 0 1px rgba(245, 158, 11, 0.28);
+}
+
+.recorder-section__switch--active .recorder-section__switch-thumb {
+  transform: translateX(18px);
+  background: var(--app-accent);
+}
+
+.recorder-section__switch-label {
+  min-width: 48px;
+  text-align: left;
 }
 
 .recorder-section__pill--notation {

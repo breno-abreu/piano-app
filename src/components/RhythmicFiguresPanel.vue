@@ -1,5 +1,23 @@
 <template>
   <div class="rhythmic-figures">
+    <Transition name="rhythmic-figures__count-overlay">
+      <div
+        v-if="countInOverlayVisible"
+        class="rhythmic-figures__count-overlay"
+        role="status"
+        aria-live="polite"
+      >
+        <Transition name="rhythmic-figures__count-number" mode="out-in">
+          <span
+            :key="countInNumber"
+            class="rhythmic-figures__count-number"
+          >
+            {{ countInNumber }}
+          </span>
+        </Transition>
+      </div>
+    </Transition>
+
     <div class="rhythmic-figures__toolbar">
       <div class="rhythmic-figures__toolbar-group">
         <span class="rhythmic-figures__label">Compassos</span>
@@ -87,6 +105,27 @@
       <div class="rhythmic-figures__toolbar-group rhythmic-figures__toolbar-group--playback">
         <button
           type="button"
+          class="rhythmic-figures__reset-btn"
+          aria-label="Gerar frase rítmica aleatória"
+          @click="generateRandomPhrase"
+        >
+          <ShuffleIcon class="rhythmic-figures__reset-icon" aria-hidden="true" />
+          <span class="rhythmic-figures__reset-label">Gerar</span>
+        </button>
+        <button
+          type="button"
+          class="rhythmic-figures__reset-btn"
+          :class="{ 'rhythmic-figures__reset-btn--active': randomSettingsOpen }"
+          :aria-expanded="randomSettingsOpen"
+          aria-controls="rhythmic-random-settings"
+          aria-label="Configurar geração aleatória"
+          @click="randomSettingsOpen = !randomSettingsOpen"
+        >
+          <SlidersHorizontalIcon class="rhythmic-figures__reset-icon" aria-hidden="true" />
+          <span class="rhythmic-figures__reset-label">Configurar</span>
+        </button>
+        <button
+          type="button"
           class="rhythmic-figures__playback-btn"
           :class="{ 'rhythmic-figures__playback-btn--active': playbackRunning }"
           :aria-label="playbackRunning ? 'Parar sequência rítmica' : 'Reproduzir sequência rítmica'"
@@ -126,6 +165,49 @@
         </button>
       </div>
     </div>
+
+    <section
+      v-if="randomSettingsOpen"
+      id="rhythmic-random-settings"
+      class="rhythmic-figures__random-settings"
+      aria-label="Configurações da geração aleatória"
+    >
+      <div class="rhythmic-figures__random-settings-header">
+        <div>
+          <h3 class="rhythmic-figures__random-settings-title">Figuras permitidas</h3>
+          <p class="rhythmic-figures__random-settings-description">
+            Escolha quais figuras podem aparecer ao gerar uma frase rítmica.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="rhythmic-figures__reset-btn rhythmic-figures__reset-btn--compact"
+          @click="allowAllRandomFigures"
+        >
+          Todas
+        </button>
+      </div>
+
+      <div class="rhythmic-figures__random-grid">
+        <button
+          v-for="figure in figures"
+          :key="`random-${figure.id}`"
+          type="button"
+          class="rhythmic-figures__random-figure"
+          :class="{ 'rhythmic-figures__random-figure--active': isRandomFigureAllowed(figure.id) }"
+          :aria-pressed="isRandomFigureAllowed(figure.id)"
+          @click="toggleRandomFigure(figure.id)"
+        >
+          <img
+            class="rhythmic-figures__figure-img"
+            :src="figure.image"
+            :alt="figure.label"
+            draggable="false"
+          />
+          <span>{{ figure.label }}</span>
+        </button>
+      </div>
+    </section>
 
     <div class="rhythmic-figures__staff" role="region" aria-label="Pauta rítmica">
       <div
@@ -255,6 +337,10 @@
 
 <script>
 import {
+  Shuffle as ShuffleIcon,
+  SlidersHorizontal as SlidersHorizontalIcon,
+} from '@lucide/vue'
+import {
   RHYTHMIC_FIGURES,
   RHYTHMIC_MAX_MEASURES,
   RHYTHMIC_TIME_SIGNATURES,
@@ -280,9 +366,15 @@ import { createRhythmicPlayer } from '../utils/rhythmicPlayer.js'
 
 export default {
   name: 'RhythmicFiguresPanel',
+  components: {
+    ShuffleIcon,
+    SlidersHorizontalIcon,
+  },
   data() {
     return {
       figures: RHYTHMIC_FIGURES,
+      allowedRandomFigureIds: RHYTHMIC_FIGURES.map((figure) => figure.id),
+      randomSettingsOpen: false,
       maxMeasures: RHYTHMIC_MAX_MEASURES,
       timeSignatures: RHYTHMIC_TIME_SIGNATURES,
       measureCount: 4,
@@ -305,6 +397,16 @@ export default {
     beatsPerBar() {
       return getRhythmicBeatsPerBar(this.timeSignature)
     },
+    countInOverlayVisible() {
+      return (
+        this.playbackRunning
+        && this.playbackPhase === 'count-in'
+        && this.activeBeatIndex !== null
+      )
+    },
+    countInNumber() {
+      return this.activeBeatIndex === null ? '' : this.activeBeatIndex + 1
+    },
   },
   beforeUnmount() {
     this.rhythmicPlayer.dispose()
@@ -323,6 +425,68 @@ export default {
       this.ties = createEmptyRhythmicTies(this.measureCount, this.beatsPerBar)
       this.draggedFigureId = null
       this.dragOverTarget = null
+    },
+    generateRandomPhrase() {
+      this.stopPlayback()
+
+      let nextScore = createEmptyRhythmicScore(this.measureCount, this.beatsPerBar)
+      const nextTies = createEmptyRhythmicTies(this.measureCount, this.beatsPerBar)
+      const availableFigures = this.figures.filter((figure) => figure.beats <= this.beatsPerBar)
+
+      for (let measureIndex = 0; measureIndex < this.measureCount; measureIndex += 1) {
+        let beatIndex = 0
+
+        while (beatIndex < this.beatsPerBar) {
+          const remainingBeats = this.beatsPerBar - beatIndex
+          const allowedFigures = availableFigures.filter((figure) =>
+            this.allowedRandomFigureIds.includes(figure.id),
+          )
+          const candidatePool = allowedFigures.length ? allowedFigures : availableFigures
+          const candidates = candidatePool.filter((figure) => figure.beats <= remainingBeats)
+          const safeCandidates = candidates.length
+            ? candidates
+            : availableFigures.filter((figure) => figure.beats <= remainingBeats)
+          const weightedCandidates = safeCandidates.flatMap((figure) => {
+            if (figure.beats === 1 && figure.hits > 0) return [figure, figure, figure]
+            if (figure.hits > 0) return [figure, figure]
+            return [figure]
+          })
+          const randomFigure = weightedCandidates[
+            Math.floor(Math.random() * weightedCandidates.length)
+          ]
+
+          if (!randomFigure) break
+
+          nextScore = placeRhythmicFigure(
+            nextScore,
+            measureIndex,
+            beatIndex,
+            randomFigure.id,
+          )
+          beatIndex += randomFigure.beats
+        }
+      }
+
+      this.score = nextScore
+      this.ties = nextTies
+      this.draggedFigureId = null
+      this.dragOverTarget = null
+    },
+    isRandomFigureAllowed(figureId) {
+      return this.allowedRandomFigureIds.includes(figureId)
+    },
+    toggleRandomFigure(figureId) {
+      if (this.isRandomFigureAllowed(figureId)) {
+        if (this.allowedRandomFigureIds.length === 1) return
+
+        this.allowedRandomFigureIds = this.allowedRandomFigureIds.filter((id) => id !== figureId)
+        return
+      }
+
+      this.allowedRandomFigureIds = [...this.allowedRandomFigureIds, figureId]
+    },
+    allowAllRandomFigures() {
+      this.allowedRandomFigureIds = this.figures.map((figure) => figure.id)
     },
     syncTies() {
       this.ties = sanitizeRhythmicTies(
@@ -343,7 +507,7 @@ export default {
         this.playbackPhase = phase ?? 'sequence'
 
         if (phase === 'count-in') {
-          this.activeMeasureIndex = 0
+          this.activeMeasureIndex = null
           this.activeBeatIndex = beatIndex
           return
         }
@@ -557,11 +721,6 @@ export default {
       const isDragOverInvalid = this.isDragOverInvalid(measureIndex, beatIndex)
       const isDragPreview = this.isDragPreviewContinuation(measureIndex, beatIndex)
 
-      const isCountInPlaying =
-        this.playbackPhase === 'count-in'
-        && measureIndex === 0
-        && this.activeBeatIndex === beatIndex
-
       const isActiveBeat =
         this.activeMeasureIndex === measureIndex
         && this.activeBeatIndex === beatIndex
@@ -572,7 +731,6 @@ export default {
         'rhythmic-figures__beat--drag-over': isDragOverValid,
         'rhythmic-figures__beat--drag-invalid': isDragOverInvalid,
         'rhythmic-figures__beat--drag-preview': isDragPreview,
-        'rhythmic-figures__beat--count-in': isCountInPlaying,
         'rhythmic-figures__beat--playing':
           this.playbackPhase === 'sequence' && isActiveBeat,
       }
@@ -619,6 +777,53 @@ export default {
   gap: 14px;
   width: 100%;
   overflow: visible;
+}
+
+.rhythmic-figures__count-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.rhythmic-figures__count-number {
+  display: grid;
+  place-items: center;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: clamp(5.5rem, 14vw, 10rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--app-accent);
+  text-shadow: 0 10px 34px rgba(3, 8, 18, 0.36);
+}
+
+.rhythmic-figures__count-overlay-enter-active,
+.rhythmic-figures__count-overlay-leave-active {
+  transition: opacity 0.08s ease;
+}
+
+.rhythmic-figures__count-overlay-enter-from,
+.rhythmic-figures__count-overlay-leave-to {
+  opacity: 0;
+}
+
+.rhythmic-figures__count-number-enter-active,
+.rhythmic-figures__count-number-leave-active {
+  transition:
+    opacity 0.08s ease,
+    transform 0.08s ease;
+}
+
+.rhythmic-figures__count-number-enter-from {
+  opacity: 0;
+  transform: scale(0.92);
+}
+
+.rhythmic-figures__count-number-leave-to {
+  opacity: 0;
+  transform: scale(1.04);
 }
 
 .rhythmic-figures__toolbar {
@@ -783,6 +988,107 @@ export default {
   flex-shrink: 0;
 }
 
+.rhythmic-figures__reset-btn--active {
+  color: var(--app-accent);
+  box-shadow: var(--neu-pressed-deep);
+}
+
+.rhythmic-figures__reset-btn--compact {
+  height: 34px;
+  min-width: auto;
+  padding: 0 12px;
+}
+
+.rhythmic-figures__random-settings {
+  width: min(100%, 72rem);
+  margin: 0 auto;
+  padding: 14px 16px;
+  border: 1px solid var(--app-border-card);
+  border-radius: 16px;
+  background: var(--rhythm-surface);
+  box-shadow: var(--rhythm-paper-shadow);
+}
+
+.rhythmic-figures__random-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--app-border-subtle);
+}
+
+.rhythmic-figures__random-settings-title {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+}
+
+.rhythmic-figures__random-settings-description {
+  margin: 4px 0 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--app-text-muted);
+}
+
+.rhythmic-figures__random-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.rhythmic-figures__random-figure {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--app-border-card);
+  border-radius: 12px;
+  background: var(--neu-surface);
+  color: var(--app-text-muted);
+  box-shadow: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    color 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.rhythmic-figures__random-figure:hover {
+  box-shadow: var(--rhythm-paper-shadow-hover);
+}
+
+.rhythmic-figures__random-figure--active {
+  color: var(--app-text);
+  border-color: rgba(217, 119, 6, 0.42);
+  box-shadow: var(--neu-pressed);
+}
+
+.rhythmic-figures__random-figure:not(.rhythmic-figures__random-figure--active) {
+  opacity: 0.55;
+}
+
+.rhythmic-figures__random-figure .rhythmic-figures__figure-img {
+  width: 28px;
+  max-width: 28px;
+  max-height: 24px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
 .rhythmic-figures__staff {
   width: 100%;
   padding: 8px 4px;
@@ -911,14 +1217,6 @@ export default {
   border-color: var(--app-rhythm-slot-border-muted);
   background: var(--app-rhythm-beat-continuation-bg);
   cursor: not-allowed;
-}
-
-.rhythmic-figures__beat--count-in {
-  border-color: rgba(96, 165, 250, 0.9);
-  background: rgba(96, 165, 250, 0.16);
-  box-shadow:
-    var(--rhythm-paper-shadow-hover),
-    0 0 0 1px rgba(96, 165, 250, 0.28);
 }
 
 .rhythmic-figures__beat--playing {
@@ -1162,5 +1460,71 @@ export default {
   max-height: 2.5rem;
   margin-top: 6px;
   opacity: 1;
+}
+
+@media (max-height: 760px) {
+  .rhythmic-figures {
+    gap: 10px;
+  }
+
+  .rhythmic-figures__random-settings {
+    padding: 10px 12px;
+  }
+
+  .rhythmic-figures__random-grid {
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  .rhythmic-figures__random-figure {
+    min-height: 38px;
+    padding: 6px 8px;
+  }
+
+  .rhythmic-figures__staff {
+    padding: 4px 2px;
+  }
+
+  .rhythmic-figures__beats {
+    padding: 8px 8px;
+  }
+
+  .rhythmic-figures__beat {
+    min-height: 54px;
+  }
+
+  .rhythmic-figures__figure-img--placed {
+    max-height: 30px;
+  }
+
+  .rhythmic-figures__palette {
+    padding-top: 12px;
+  }
+
+  .rhythmic-figures__palette-surface {
+    min-height: 44px;
+  }
+}
+
+@media (max-height: 640px) {
+  .rhythmic-figures__toolbar {
+    gap: 10px;
+  }
+
+  .rhythmic-figures__random-settings-description {
+    display: none;
+  }
+
+  .rhythmic-figures__random-grid {
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  }
+
+  .rhythmic-figures__beat {
+    min-height: 46px;
+  }
+
+  .rhythmic-figures__figure-img--placed {
+    max-height: 26px;
+  }
 }
 </style>

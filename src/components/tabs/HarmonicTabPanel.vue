@@ -40,6 +40,102 @@
 
           <div class="harmonic-panel__field">
 
+            <span class="harmonic-panel__field-label">Campo no teclado</span>
+
+            <div class="harmonic-panel__field-controls">
+
+              <AppTooltip :text="harmonicDisplayTooltip">
+
+                <button
+
+                  type="button"
+
+                  role="switch"
+
+                  class="recorder-section__switch"
+
+                  :class="{ 'recorder-section__switch--active': harmonicDisplayEnabled }"
+
+                  :aria-checked="harmonicDisplayEnabled"
+
+                  :aria-label="harmonicDisplayEnabled ? 'Ocultar campo harmônico no teclado' : 'Mostrar campo harmônico no teclado'"
+
+                  @click="$emit('toggle-harmonic-display')"
+
+                >
+
+                  <span class="recorder-section__switch-track" aria-hidden="true">
+
+                    <span class="recorder-section__switch-thumb"></span>
+
+                  </span>
+
+                  <span class="recorder-section__switch-label">
+
+                    {{ harmonicDisplayEnabled ? 'Ativo' : 'Inativo' }}
+
+                  </span>
+
+                </button>
+
+              </AppTooltip>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="harmonic-panel__field">
+
+            <span class="harmonic-panel__field-label">Nomes nas teclas</span>
+
+            <div class="harmonic-panel__field-controls">
+
+              <AppTooltip :text="showKeyLabelsTooltip">
+
+                <button
+
+                  type="button"
+
+                  role="switch"
+
+                  class="recorder-section__switch"
+
+                  :class="{ 'recorder-section__switch--active': showKeyLabels }"
+
+                  :aria-checked="showKeyLabels"
+
+                  :aria-label="showKeyLabels ? 'Ocultar nomes nas teclas' : 'Mostrar nomes nas teclas'"
+
+                  @click="$emit('toggle-show-key-labels')"
+
+                >
+
+                  <span class="recorder-section__switch-track" aria-hidden="true">
+
+                    <span class="recorder-section__switch-thumb"></span>
+
+                  </span>
+
+                  <span class="recorder-section__switch-label">
+
+                    {{ showKeyLabels ? 'Visível' : 'Oculto' }}
+
+                  </span>
+
+                </button>
+
+              </AppTooltip>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="harmonic-panel__field">
+
             <span class="harmonic-panel__field-label">Notação</span>
 
             <div class="harmonic-panel__field-controls">
@@ -69,78 +165,6 @@
                 >
 
                   {{ notation.label }}
-
-                </button>
-
-              </AppTooltip>
-
-            </div>
-
-          </div>
-
-
-
-          <div class="harmonic-panel__field">
-
-            <span class="harmonic-panel__field-label">Campo no teclado</span>
-
-            <div class="harmonic-panel__field-controls">
-
-              <AppTooltip :text="harmonicDisplayTooltip">
-
-                <button
-
-                  type="button"
-
-                  class="recorder-section__pill"
-
-                  :class="{ 'recorder-section__pill--active': harmonicDisplayEnabled }"
-
-                  :aria-pressed="harmonicDisplayEnabled"
-
-                  :aria-label="harmonicDisplayEnabled ? 'Ocultar campo harmônico no teclado' : 'Mostrar campo harmônico no teclado'"
-
-                  @click="$emit('toggle-harmonic-display')"
-
-                >
-
-                  {{ harmonicDisplayEnabled ? 'Ativo' : 'Inativo' }}
-
-                </button>
-
-              </AppTooltip>
-
-            </div>
-
-          </div>
-
-
-
-          <div class="harmonic-panel__field">
-
-            <span class="harmonic-panel__field-label">Nomes nas teclas</span>
-
-            <div class="harmonic-panel__field-controls">
-
-              <AppTooltip :text="showKeyLabelsTooltip">
-
-                <button
-
-                  type="button"
-
-                  class="recorder-section__pill"
-
-                  :class="{ 'recorder-section__pill--active': showKeyLabels }"
-
-                  :aria-pressed="showKeyLabels"
-
-                  :aria-label="showKeyLabels ? 'Ocultar nomes nas teclas' : 'Mostrar nomes nas teclas'"
-
-                  @click="$emit('toggle-show-key-labels')"
-
-                >
-
-                  {{ showKeyLabels ? 'Visível' : 'Oculto' }}
 
                 </button>
 

@@ -10,17 +10,13 @@ export const VOLUME_MAX = 100
 export const VOLUME_STEP = 1
 
 export const DESIGN_THEME_IDS = [
-  'neumorphic',
   'flat',
-  'neumorphic-light',
   'flat-light',
 ]
 
 export const DESIGN_THEMES = [
-  { id: 'neumorphic', label: 'Neumorfista' },
-  { id: 'flat', label: 'Flat' },
-  { id: 'neumorphic-light', label: 'Neumorfista claro' },
-  { id: 'flat-light', label: 'Flat claro' },
+  { id: 'flat', label: 'Modo escuro' },
+  { id: 'flat-light', label: 'Modo claro' },
 ]
 
 export function isValidDesignTheme(theme) {
@@ -29,14 +25,14 @@ export function isValidDesignTheme(theme) {
 
 export const OPTIONS_PREFERENCE_DEFAULTS = {
   showKeyLabels: false,
+  harmonicDisplayEnabled: true,
   keyLabelNotation: 'western',
   keyboardHeight: 220,
   viewZoom: VIEW_ZOOM_DEFAULT,
   pianoVolume: 100,
   metronomeVolume: 100,
   accidentalNotation: 'sharp',
-  sidebarNavCompact: false,
-  designTheme: 'neumorphic',
+  designTheme: 'flat-light',
 }
 
 function clampViewZoom(value, fallback = VIEW_ZOOM_DEFAULT) {
@@ -79,6 +75,10 @@ function sanitizeOptionsPreferences(raw, bounds) {
     prefs.showKeyLabels = raw.showKeyLabels
   }
 
+  if (typeof raw?.harmonicDisplayEnabled === 'boolean') {
+    prefs.harmonicDisplayEnabled = raw.harmonicDisplayEnabled
+  }
+
   if (raw?.keyLabelNotation === 'western' || raw?.keyLabelNotation === 'solfege') {
     prefs.keyLabelNotation = raw.keyLabelNotation
   }
@@ -91,10 +91,6 @@ function sanitizeOptionsPreferences(raw, bounds) {
     raw?.accidentalNotation === 'flat' || raw?.chordDictNotation === 'flat'
       ? 'flat'
       : 'sharp'
-
-  if (typeof raw?.sidebarNavCompact === 'boolean') {
-    prefs.sidebarNavCompact = raw.sidebarNavCompact
-  }
 
   if (isValidDesignTheme(raw?.designTheme)) {
     prefs.designTheme = raw.designTheme

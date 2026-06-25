@@ -1,201 +1,82 @@
-:root,
-[data-design-theme='neumorphic'] {
+[data-design-theme='flat'] {
   color-scheme: dark;
 
-  --app-bg: #1e1e24;
-  --app-shell-bg: #1e1e24;
-  --app-nav-bg: #222228;
-  --app-main-bg: #1a1a20;
-  --app-tab-active-bg: #2a2a32;
-  --app-heading: #f3f4f6;
-  --app-subtitle: rgba(243, 244, 246, 0.55);
-  --app-field-label: rgba(243, 244, 246, 0.5);
-  --app-text: rgba(243, 244, 246, 0.85);
-  --app-text-soft: rgba(243, 244, 246, 0.72);
-  --app-text-muted: rgba(243, 244, 246, 0.52);
-  --app-text-faint: rgba(243, 244, 246, 0.45);
-  --app-text-hint: rgba(243, 244, 246, 0.42);
-  --app-accent: #fbbf24;
-  --app-border: rgba(255, 255, 255, 0.05);
-  --app-border-subtle: rgba(255, 255, 255, 0.06);
-  --app-border-card: rgba(255, 255, 255, 0.04);
-  --app-border-nav: rgba(255, 255, 255, 0.08);
-  --app-hover-bg: rgba(255, 255, 255, 0.03);
-  --app-tooltip-bg: #25252d;
-  --app-tooltip-text: rgba(243, 244, 246, 0.92);
-  --app-chord-active-bg: #3f1d1d;
-  --app-panel-inset: rgba(0, 0, 0, 0.22);
-  --app-result-bg: rgba(0, 0, 0, 0.22);
-  --app-result-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
-  --app-result-label: rgba(243, 244, 246, 0.45);
-  --app-chord-symbol: #f3f4f6;
-  --app-chord-symbol-active: #fca5a5;
-  --app-danger-soft: #fca5a5;
-  --app-danger-text: #fecaca;
-  --app-rhythm-slot-border: rgba(243, 244, 246, 0.14);
-  --app-rhythm-slot-border-occupied: rgba(243, 244, 246, 0.12);
-  --app-rhythm-slot-border-muted: rgba(243, 244, 246, 0.08);
-  --app-rhythm-tie-idle: rgba(243, 244, 246, 0.16);
-  --app-rhythm-tie-available: rgba(243, 244, 246, 0.34);
-  --app-rhythm-icon-muted: rgba(243, 244, 246, 0.28);
-  --app-rhythm-palette-divider: rgba(243, 244, 246, 0.08);
-  --app-rhythm-beat-bg: rgba(0, 0, 0, 0.12);
-  --app-rhythm-beat-continuation-bg: rgba(0, 0, 0, 0.2);
-  --app-rhythm-figure-filter: invert(1);
+  --app-bg: #0f1a2b;
+  --app-shell-bg: #132137;
+  --app-nav-bg: #17263e;
+  --app-main-bg: #101c2f;
+  --app-heading: #f4f0e6;
+  --app-subtitle: #aeb9c8;
+  --app-field-label: #8f9caf;
+  --app-text: #dbe3ee;
+  --app-text-soft: #c4cfdd;
+  --app-text-muted: #97a6ba;
+  --app-text-faint: #7f8da1;
+  --app-text-hint: #8392a7;
+  --app-accent: #e7a94f;
+  --app-border: rgba(226, 232, 240, 0.12);
+  --app-border-subtle: rgba(226, 232, 240, 0.09);
+  --app-border-card: rgba(226, 232, 240, 0.1);
+  --app-border-nav: rgba(231, 169, 79, 0.16);
+  --app-hover-bg: rgba(231, 169, 79, 0.08);
+  --app-tooltip-bg: #17263e;
+  --app-tooltip-text: #e6edf6;
+  --app-chord-active-bg: rgba(231, 169, 79, 0.14);
+  --app-panel-inset: rgba(8, 14, 25, 0.24);
+  --app-result-bg: rgba(231, 169, 79, 0.09);
+  --app-result-shadow: none;
+  --app-result-label: #8f9caf;
+  --app-chord-symbol: #f4f0e6;
+  --app-chord-symbol-active: #f2bf72;
+  --app-danger-soft: #f08a80;
+  --app-danger-text: #fca5a5;
+  --app-rhythm-slot-border: rgba(226, 232, 240, 0.16);
+  --app-rhythm-slot-border-occupied: rgba(231, 169, 79, 0.2);
+  --app-rhythm-slot-border-muted: rgba(226, 232, 240, 0.08);
+  --app-rhythm-tie-idle: rgba(226, 232, 240, 0.24);
+  --app-rhythm-tie-available: rgba(231, 169, 79, 0.52);
+  --app-rhythm-icon-muted: rgba(226, 232, 240, 0.3);
+  --app-rhythm-palette-divider: rgba(226, 232, 240, 0.1);
+  --app-rhythm-beat-bg: rgba(8, 14, 25, 0.22);
+  --app-rhythm-beat-continuation-bg: rgba(8, 14, 25, 0.32);
+  --app-rhythm-figure-filter: invert(1) brightness(1.28) contrast(0.88) saturate(0.2);
   --app-rhythm-figure-blend: normal;
-  --app-piano-roll-bg: linear-gradient(180deg, #14141a 0%, #1a1a22 55%, #1e1e28 100%);
-  --app-piano-roll-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --app-piano-roll-lane-border: rgba(255, 255, 255, 0.04);
-  --app-piano-roll-note-bg: linear-gradient(180deg, #4ade80 0%, #22c55e 55%, #16a34a 100%);
-  --app-piano-roll-note-black-bg: linear-gradient(180deg, #86efac 0%, #22c55e 50%, #15803d 100%);
+  --app-piano-roll-bg: linear-gradient(180deg, #17263e 0%, #132137 58%, #101c2f 100%);
+  --app-piano-roll-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --app-piano-roll-lane-border: rgba(226, 232, 240, 0.09);
+  --app-piano-roll-note-bg: linear-gradient(180deg, #7dd3a7 0%, #2f9b6f 55%, #217455 100%);
+  --app-piano-roll-note-black-bg: linear-gradient(180deg, #a7e3c2 0%, #2f9b6f 50%, #1f6048 100%);
   --app-piano-roll-note-shadow:
-    0 0 10px rgba(34, 197, 94, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    0 0 8px rgba(47, 155, 111, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
   --app-piano-roll-hit-line: linear-gradient(
     90deg,
     transparent 0%,
-    #4ade80 12%,
-    #86efac 50%,
-    #4ade80 88%,
+    #2f9b6f 12%,
+    #7dd3a7 50%,
+    #2f9b6f 88%,
     transparent 100%
   );
-  --app-piano-roll-hit-line-shadow: 0 0 10px rgba(74, 222, 128, 0.65);
-  --app-nav-shadow:
-    inset -5px 0 12px rgba(0, 0, 0, 0.22),
-    4px 0 10px rgba(0, 0, 0, 0.18);
-  --app-main-shadow: inset 6px 0 14px rgba(0, 0, 0, 0.32);
-  --app-divider-shadow:
-    1px 0 0 rgba(0, 0, 0, 0.45),
-    -1px 0 0 rgba(255, 255, 255, 0.04);
-  --app-separator-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.4),
-    0 -1px 0 rgba(255, 255, 255, 0.04);
+  --app-piano-roll-hit-line-shadow: 0 0 8px rgba(47, 155, 111, 0.26);
 
-  --neu-surface: #25252d;
-  --neu-light: rgba(255, 255, 255, 0.07);
-  --neu-dark: rgba(0, 0, 0, 0.5);
-  --neu-raised:
-    6px 6px 12px var(--neu-dark),
-    -6px -6px 12px var(--neu-light);
-  --neu-raised-lg:
-    10px 10px 22px var(--neu-dark),
-    -10px -10px 22px var(--neu-light);
-  --neu-raised-sm:
-    4px 4px 8px var(--neu-dark),
-    -4px -4px 8px var(--neu-light);
-  --neu-pressed:
-    inset 4px 4px 8px var(--neu-dark),
-    inset -4px -4px 8px var(--neu-light);
-  --neu-pressed-deep:
-    inset 6px 6px 12px var(--neu-dark),
-    inset -6px -6px 12px var(--neu-light);
-}
-
-[data-design-theme='flat'] {
-  --neu-surface: #2c2c34;
+  --neu-surface: #17263e;
   --neu-light: transparent;
   --neu-dark: transparent;
-  --neu-raised: 0 0 0 1px rgba(255, 255, 255, 0.12);
-  --neu-raised-lg: 0 0 0 1px rgba(255, 255, 255, 0.14);
-  --neu-raised-sm: 0 0 0 1px rgba(255, 255, 255, 0.1);
-  --neu-pressed: inset 0 0 0 1px rgba(251, 191, 36, 0.38);
-  --neu-pressed-deep: inset 0 0 0 1px rgba(251, 191, 36, 0.48);
+  --neu-raised: 0 0 0 1px rgba(226, 232, 240, 0.12);
+  --neu-raised-lg: 0 0 0 1px rgba(226, 232, 240, 0.14);
+  --neu-raised-sm: 0 0 0 1px rgba(226, 232, 240, 0.1);
+  --neu-pressed: inset 0 0 0 1px rgba(231, 169, 79, 0.28);
+  --neu-pressed-deep: inset 0 0 0 1px rgba(231, 169, 79, 0.38);
 }
 
-[data-design-theme='neumorphic-light'] {
-  color-scheme: light;
-
-  --app-bg: #dfe3eb;
-  --app-shell-bg: #e8ecf2;
-  --app-nav-bg: #e0e5ed;
-  --app-main-bg: #f0f3f8;
-  --app-tab-active-bg: #f8fafc;
-  --app-heading: #1f2937;
-  --app-subtitle: #6b7280;
-  --app-field-label: #9ca3af;
-  --app-text: #374151;
-  --app-text-soft: #4b5563;
-  --app-text-muted: #6b7280;
-  --app-text-faint: #9ca3af;
-  --app-text-hint: #9ca3af;
-  --app-accent: #d97706;
-  --app-border: rgba(15, 23, 42, 0.08);
-  --app-border-subtle: rgba(15, 23, 42, 0.1);
-  --app-border-card: rgba(15, 23, 42, 0.06);
-  --app-border-nav: rgba(15, 23, 42, 0.1);
-  --app-hover-bg: rgba(255, 255, 255, 0.55);
-  --app-tooltip-bg: #ffffff;
-  --app-tooltip-text: #374151;
-  --app-chord-active-bg: #fee2e2;
-  --app-panel-inset: rgba(15, 23, 42, 0.06);
-  --app-result-bg: rgba(217, 119, 6, 0.08);
-  --app-result-shadow: none;
-  --app-result-label: #9ca3af;
-  --app-chord-symbol: #1f2937;
-  --app-chord-symbol-active: #b91c1c;
-  --app-danger-soft: #b91c1c;
-  --app-danger-text: #991b1b;
-  --app-rhythm-slot-border: rgba(15, 23, 42, 0.16);
-  --app-rhythm-slot-border-occupied: rgba(15, 23, 42, 0.12);
-  --app-rhythm-slot-border-muted: rgba(15, 23, 42, 0.08);
-  --app-rhythm-tie-idle: rgba(15, 23, 42, 0.18);
-  --app-rhythm-tie-available: rgba(15, 23, 42, 0.38);
-  --app-rhythm-icon-muted: rgba(15, 23, 42, 0.28);
-  --app-rhythm-palette-divider: rgba(15, 23, 42, 0.08);
-  --app-rhythm-beat-bg: rgba(15, 23, 42, 0.05);
-  --app-rhythm-beat-continuation-bg: rgba(15, 23, 42, 0.09);
-  --app-rhythm-figure-filter: none;
-  --app-rhythm-figure-blend: normal;
-  --app-piano-roll-bg: linear-gradient(180deg, #f8fafc 0%, #f0f3f8 55%, #e8ecf2 100%);
-  --app-piano-roll-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
-  --app-piano-roll-lane-border: rgba(15, 23, 42, 0.09);
-  --app-piano-roll-note-bg: linear-gradient(180deg, #34d399 0%, #059669 55%, #047857 100%);
-  --app-piano-roll-note-black-bg: linear-gradient(180deg, #6ee7b7 0%, #059669 50%, #065f46 100%);
-  --app-piano-roll-note-shadow:
-    0 0 8px rgba(5, 150, 105, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  --app-piano-roll-hit-line: linear-gradient(
-    90deg,
-    transparent 0%,
-    #059669 12%,
-    #10b981 50%,
-    #059669 88%,
-    transparent 100%
-  );
-  --app-piano-roll-hit-line-shadow: 0 0 8px rgba(5, 150, 105, 0.35);
-  --app-nav-shadow: 2px 0 8px rgba(15, 23, 42, 0.06);
-  --app-main-shadow: none;
-  --app-divider-shadow: none;
-  --app-separator-shadow: none;
-
-  --neu-surface: #e8ecf2;
-  --neu-light: rgba(255, 255, 255, 0.95);
-  --neu-dark: rgba(163, 177, 198, 0.55);
-  --neu-raised:
-    6px 6px 12px var(--neu-dark),
-    -6px -6px 12px var(--neu-light);
-  --neu-raised-lg:
-    10px 10px 22px var(--neu-dark),
-    -10px -10px 22px var(--neu-light);
-  --neu-raised-sm:
-    4px 4px 8px var(--neu-dark),
-    -4px -4px 8px var(--neu-light);
-  --neu-pressed:
-    inset 4px 4px 8px var(--neu-dark),
-    inset -4px -4px 8px var(--neu-light);
-  --neu-pressed-deep:
-    inset 6px 6px 12px var(--neu-dark),
-    inset -6px -6px 12px var(--neu-light);
-}
-
+:root:not([data-design-theme]),
 [data-design-theme='flat-light'] {
   color-scheme: light;
 
-  --app-bg: #ececf1;
-  --app-shell-bg: #f4f4f8;
-  --app-nav-bg: #ebebf0;
-  --app-main-bg: #fafafc;
-  --app-tab-active-bg: #ffffff;
+  --app-bg: #f7f4ed;
+  --app-shell-bg: #fdfaf3;
+  --app-nav-bg: #faf6ee;
+  --app-main-bg: #fffdf8;
   --app-heading: #1f2937;
   --app-subtitle: #6b7280;
   --app-field-label: #9ca3af;
@@ -210,7 +91,7 @@
   --app-border-card: rgba(15, 23, 42, 0.08);
   --app-border-nav: rgba(15, 23, 42, 0.1);
   --app-hover-bg: rgba(15, 23, 42, 0.04);
-  --app-tooltip-bg: #ffffff;
+  --app-tooltip-bg: #fffdf8;
   --app-tooltip-text: #374151;
   --app-chord-active-bg: #fee2e2;
   --app-panel-inset: rgba(15, 23, 42, 0.05);
@@ -232,7 +113,7 @@
   --app-rhythm-beat-continuation-bg: rgba(15, 23, 42, 0.08);
   --app-rhythm-figure-filter: none;
   --app-rhythm-figure-blend: normal;
-  --app-piano-roll-bg: linear-gradient(180deg, #ffffff 0%, #fafafc 55%, #f4f4f8 100%);
+  --app-piano-roll-bg: linear-gradient(180deg, #fffefa 0%, #fffdf8 55%, #fdfaf3 100%);
   --app-piano-roll-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
   --app-piano-roll-lane-border: rgba(15, 23, 42, 0.1);
   --app-piano-roll-note-bg: linear-gradient(180deg, #34d399 0%, #059669 55%, #047857 100%);
@@ -254,7 +135,7 @@
   --app-divider-shadow: none;
   --app-separator-shadow: none;
 
-  --neu-surface: #ffffff;
+  --neu-surface: #fffdf8;
   --neu-light: transparent;
   --neu-dark: transparent;
   --neu-raised: 0 0 0 1px rgba(15, 23, 42, 0.1);
@@ -264,9 +145,17 @@
   --neu-pressed-deep: inset 0 0 0 2px rgba(217, 119, 6, 0.5);
 }
 
-[data-design-theme='flat'],
+[data-design-theme='flat'] {
+  --app-nav-shadow:
+    0 14px 30px rgba(3, 8, 18, 0.28),
+    0 4px 10px rgba(3, 8, 18, 0.18);
+  --app-main-shadow: none;
+}
+
 [data-design-theme='flat-light'] {
-  --app-nav-shadow: none;
+  --app-nav-shadow:
+    0 14px 30px rgba(15, 23, 42, 0.16),
+    0 4px 10px rgba(15, 23, 42, 0.1);
   --app-main-shadow: none;
 }
 
@@ -283,8 +172,8 @@
 
 [data-design-theme='flat'] .recorder-section__nav,
 [data-design-theme='flat-light'] .recorder-section__nav {
-  box-shadow: none;
-  border-right: 1px solid var(--app-border-nav);
+  box-shadow: var(--app-nav-shadow);
+  border-bottom: 1px solid var(--app-border-nav);
 }
 
 [data-design-theme='flat'] .recorder-section__nav-divider,
@@ -294,19 +183,12 @@
   box-shadow: none;
 }
 
-[data-design-theme='flat'] .recorder-section__tab--active::before,
-[data-design-theme='flat-light'] .recorder-section__tab--active::before {
-  box-shadow: none;
-}
-
 [data-design-theme='flat'] .recorder-section__pill:hover,
 [data-design-theme='flat-light'] .recorder-section__pill:hover,
 [data-design-theme='flat'] .recorder-section__button:hover,
 [data-design-theme='flat-light'] .recorder-section__button:hover,
 [data-design-theme='flat'] .recorder-section__bpm-step:hover,
-[data-design-theme='flat-light'] .recorder-section__bpm-step:hover,
-[data-design-theme='flat'] .recorder-section__nav-toggle:hover,
-[data-design-theme='flat-light'] .recorder-section__nav-toggle:hover {
+[data-design-theme='flat-light'] .recorder-section__bpm-step:hover {
   box-shadow: var(--neu-raised);
 }
 
@@ -358,56 +240,44 @@
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
 }
 
-[data-design-theme='neumorphic-light'] .recorder-section__main,
 [data-design-theme='flat-light'] .recorder-section__main {
   box-shadow: none;
 }
 
-[data-design-theme='neumorphic-light'] .recorder-section__nav,
 [data-design-theme='flat-light'] .recorder-section__nav {
   box-shadow: var(--app-nav-shadow);
 }
 
-[data-design-theme='neumorphic-light'] .recorder-section__nav-divider,
 [data-design-theme='flat-light'] .recorder-section__nav-divider {
   box-shadow: none;
   background: var(--app-border-subtle);
 }
 
-[data-design-theme='neumorphic-light'] .recorder-section__nav-separator,
 [data-design-theme='flat-light'] .recorder-section__nav-separator {
   box-shadow: none;
   background: var(--app-border-nav);
 }
 
-[data-design-theme='neumorphic-light'] .recorder-section__tab--active,
 [data-design-theme='flat-light'] .recorder-section__tab--active,
-[data-design-theme='neumorphic-light'] .recorder-section__tab--active:hover,
 [data-design-theme='flat-light'] .recorder-section__tab--active:hover {
   color: var(--app-accent);
 }
 
-[data-design-theme='neumorphic-light'] .recorder-section__pill--active,
 [data-design-theme='flat-light'] .recorder-section__pill--active,
-[data-design-theme='neumorphic-light'] .recorder-section__pill--active:hover,
 [data-design-theme='flat-light'] .recorder-section__pill--active:hover,
-[data-design-theme='neumorphic-light'] .recorder-section__pill--active:active,
 [data-design-theme='flat-light'] .recorder-section__pill--active:active {
   color: var(--app-accent);
 }
 
-[data-design-theme='neumorphic-light'] .harmonic-chords__item--active,
 [data-design-theme='flat-light'] .harmonic-chords__item--active {
   background: var(--app-chord-active-bg);
 }
 
-[data-design-theme='neumorphic-light'] .rhythmic-figures,
 [data-design-theme='flat-light'] .rhythmic-figures {
   --rhythm-surface: var(--neu-surface);
   --rhythm-paper-border: var(--app-border-card);
 }
 
-[data-design-theme='neumorphic-light'] .app-tooltip__bubble,
 [data-design-theme='flat-light'] .app-tooltip__bubble {
   background: var(--app-tooltip-bg);
   color: var(--app-tooltip-text);
@@ -466,19 +336,85 @@
   color: var(--app-text);
 }
 
-[data-design-theme='neumorphic-light'] .rhythmic-figures__pill--active,
 [data-design-theme='flat-light'] .rhythmic-figures__pill--active,
-[data-design-theme='neumorphic-light'] .rhythmic-figures__pill--active:hover,
 [data-design-theme='flat-light'] .rhythmic-figures__pill--active:hover {
   color: var(--app-accent);
 }
 
-[data-design-theme='neumorphic-light'] .recorder-section__label,
 [data-design-theme='flat-light'] .recorder-section__label {
   text-shadow: none;
 }
 
-[data-design-theme='neumorphic-light'] .harmonic-chords__item--active .harmonic-chords__symbol,
 [data-design-theme='flat-light'] .harmonic-chords__item--active .harmonic-chords__symbol {
   color: var(--app-chord-symbol-active);
+}
+
+[data-design-theme='flat'] .app-tooltip__bubble {
+  background: var(--app-tooltip-bg);
+  color: var(--app-tooltip-text);
+  border-color: rgba(231, 169, 79, 0.18);
+  box-shadow: 0 8px 20px rgba(3, 8, 18, 0.22);
+}
+
+[data-design-theme='flat'] .recorder-section__popover {
+  box-shadow:
+    0 34px 90px rgba(3, 8, 18, 0.62),
+    0 14px 34px rgba(3, 8, 18, 0.42),
+    0 0 0 1px rgba(231, 169, 79, 0.08);
+}
+
+[data-design-theme='flat'] .chord-dict-panel__result {
+  border-color: rgba(231, 169, 79, 0.14);
+}
+
+[data-design-theme='flat'] .recorder-section__progress-track:hover {
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px rgba(231, 169, 79, 0.14);
+}
+
+[data-design-theme='flat'] .recorder-section__progress-fill,
+[data-design-theme='flat'] .recorder-section__volume-slider::-moz-range-progress {
+  background: linear-gradient(90deg, #b77937 0%, #e7a94f 100%);
+  box-shadow: 0 0 8px rgba(231, 169, 79, 0.22);
+}
+
+[data-design-theme='flat'] .recorder-section__volume-slider {
+  background: linear-gradient(
+    90deg,
+    #b77937 0%,
+    #e7a94f var(--volume-fill, 0%),
+    var(--neu-surface) var(--volume-fill, 0%),
+    var(--neu-surface) 100%
+  );
+}
+
+[data-design-theme='flat'] .recorder-section__volume-slider::-webkit-slider-thumb,
+[data-design-theme='flat'] .recorder-section__volume-slider::-moz-range-thumb {
+  background: linear-gradient(180deg, #f2cf8d 0%, #e7a94f 100%);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.28),
+    0 0 8px rgba(231, 169, 79, 0.22);
+}
+
+[data-design-theme='flat'] .recorder-section__switch--active .recorder-section__switch-track {
+  background: rgba(231, 169, 79, 0.26);
+  box-shadow:
+    var(--neu-pressed),
+    inset 0 0 0 1px rgba(231, 169, 79, 0.2);
+}
+
+[data-design-theme='flat'] .recorder-section__beat-dot--current {
+  background: var(--app-accent);
+  box-shadow:
+    var(--neu-pressed),
+    0 0 10px rgba(231, 169, 79, 0.38);
+}
+
+[data-design-theme='flat'] .recorder-section__button--metronome-active,
+[data-design-theme='flat'] .recorder-section__button--metronome-active:hover,
+[data-design-theme='flat'] .recorder-section__button--metronome-active:active {
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 14px rgba(231, 169, 79, 0.22);
 }

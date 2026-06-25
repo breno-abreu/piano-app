@@ -4,11 +4,11 @@
 
     id="controls-panel-options"
 
-    role="tabpanel"
+    :role="floating ? 'document' : 'tabpanel'"
 
     class="recorder-section__panel recorder-section__panel--options"
 
-    aria-labelledby="controls-tab-options"
+    :aria-labelledby="floating ? undefined : 'controls-tab-options'"
 
   >
 
@@ -16,11 +16,11 @@
 
       <header class="options-panel__header">
 
-        <h2 class="options-panel__title">Opções</h2>
+        <h2 class="options-panel__title">Opções rápidas</h2>
 
         <p class="options-panel__subtitle">
 
-          Ajuste notação, estilo visual, tamanho do teclado e volumes. As alterações aparecem no teclado abaixo.
+          Ajuste notação, aparência, tamanho do teclado e volumes em um só lugar.
 
         </p>
 
@@ -32,13 +32,19 @@
 
         <section class="options-panel__card" aria-labelledby="options-card-notation">
 
-          <h3 id="options-card-notation" class="options-panel__card-title">Notas no teclado</h3>
+          <h3 id="options-card-notation" class="options-panel__card-title">
+            <KeyboardMusicIcon />
+            <span>Notas no teclado</span>
+          </h3>
 
 
 
           <div class="options-panel__field">
 
-            <span class="options-panel__field-label">Exibição</span>
+            <span class="options-panel__field-label">
+              <EyeIcon />
+              <span>Exibição</span>
+            </span>
 
             <div class="options-panel__field-controls">
 
@@ -48,11 +54,13 @@
 
                   type="button"
 
-                  class="recorder-section__pill"
+                  role="switch"
 
-                  :class="{ 'recorder-section__pill--active': showKeyLabels }"
+                  class="recorder-section__switch"
 
-                  :aria-pressed="showKeyLabels"
+                  :class="{ 'recorder-section__switch--active': showKeyLabels }"
+
+                  :aria-checked="showKeyLabels"
 
                   :aria-label="showKeyLabels ? 'Ocultar nomes nas teclas' : 'Mostrar nomes nas teclas'"
 
@@ -60,7 +68,17 @@
 
                 >
 
-                  {{ showKeyLabels ? 'Visível' : 'Oculto' }}
+                  <span class="recorder-section__switch-track" aria-hidden="true">
+
+                    <span class="recorder-section__switch-thumb"></span>
+
+                  </span>
+
+                  <span class="recorder-section__switch-label">
+
+                    {{ showKeyLabels ? 'Visível' : 'Oculto' }}
+
+                  </span>
 
                 </button>
 
@@ -74,7 +92,61 @@
 
           <div class="options-panel__field">
 
-            <span class="options-panel__field-label">Sistema</span>
+            <span class="options-panel__field-label">
+              <PianoIcon />
+              <span>Campo Harmônico</span>
+            </span>
+
+            <div class="options-panel__field-controls">
+
+              <AppTooltip :text="harmonicDisplayTooltip">
+
+                <button
+
+                  type="button"
+
+                  role="switch"
+
+                  class="recorder-section__switch"
+
+                  :class="{ 'recorder-section__switch--active': harmonicDisplayEnabled }"
+
+                  :aria-checked="harmonicDisplayEnabled"
+
+                  :aria-label="harmonicDisplayEnabled ? 'Ocultar campo harmônico no teclado' : 'Mostrar campo harmônico no teclado'"
+
+                  @click="$emit('toggle-harmonic-display')"
+
+                >
+
+                  <span class="recorder-section__switch-track" aria-hidden="true">
+
+                    <span class="recorder-section__switch-thumb"></span>
+
+                  </span>
+
+                  <span class="recorder-section__switch-label">
+
+                    {{ harmonicDisplayEnabled ? 'Ativo' : 'Inativo' }}
+
+                  </span>
+
+                </button>
+
+              </AppTooltip>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="options-panel__field">
+
+            <span class="options-panel__field-label">
+              <LanguagesIcon />
+              <span>Sistema</span>
+            </span>
 
             <div class="options-panel__field-controls options-panel__field-controls--segmented">
 
@@ -134,7 +206,10 @@
 
           <div class="options-panel__field">
 
-            <span class="options-panel__field-label">Alterações</span>
+            <span class="options-panel__field-label">
+              <HashIcon />
+              <span>Alterações</span>
+            </span>
 
             <div class="options-panel__field-controls options-panel__field-controls--segmented">
 
@@ -178,13 +253,19 @@
 
         <section class="options-panel__card" aria-labelledby="options-card-display">
 
-          <h3 id="options-card-display" class="options-panel__card-title">Visualização</h3>
+          <h3 id="options-card-display" class="options-panel__card-title">
+            <MonitorCogIcon />
+            <span>Visualização</span>
+          </h3>
 
 
 
           <div class="options-panel__field">
 
-            <span class="options-panel__field-label">Estilo visual</span>
+            <span class="options-panel__field-label">
+              <PaletteIcon />
+              <span>Estilo visual</span>
+            </span>
 
             <div class="options-panel__field-controls options-panel__field-controls--themes">
 
@@ -212,6 +293,12 @@
 
                 >
 
+                  <component
+                    :is="themeIcon(theme.id)"
+                    class="options-panel__theme-icon"
+                    aria-hidden="true"
+                  />
+
                   {{ theme.label }}
 
                 </button>
@@ -226,7 +313,10 @@
 
           <div class="options-panel__field">
 
-            <span class="options-panel__field-label">Altura das teclas</span>
+            <span class="options-panel__field-label">
+              <PanelTopIcon />
+              <span>Altura das teclas</span>
+            </span>
 
             <div class="options-panel__field-controls">
 
@@ -302,7 +392,10 @@
 
           <div class="options-panel__field">
 
-            <span class="options-panel__field-label">Zoom da tela</span>
+            <span class="options-panel__field-label">
+              <ZoomInIcon />
+              <span>Zoom da tela</span>
+            </span>
 
             <div class="options-panel__field-controls">
 
@@ -402,13 +495,19 @@
 
         <section class="options-panel__card" aria-labelledby="options-card-audio">
 
-          <h3 id="options-card-audio" class="options-panel__card-title">Áudio</h3>
+          <h3 id="options-card-audio" class="options-panel__card-title">
+            <AudioLinesIcon />
+            <span>Áudio</span>
+          </h3>
 
 
 
           <div class="options-panel__field options-panel__field--volume">
 
-            <span class="options-panel__field-label">Volume piano</span>
+            <span class="options-panel__field-label">
+              <PianoIcon />
+              <span>Volume piano</span>
+            </span>
 
             <div class="options-panel__field-controls">
 
@@ -452,7 +551,10 @@
 
           <div class="options-panel__field options-panel__field--volume">
 
-            <span class="options-panel__field-label">Volume metrônomo</span>
+            <span class="options-panel__field-label">
+              <MetronomeIcon />
+              <span>Volume metrônomo</span>
+            </span>
 
             <div class="options-panel__field-controls">
 
@@ -506,7 +608,27 @@
 
 <script>
 
+import {
+  AudioLines as AudioLinesIcon,
+  Eye as EyeIcon,
+  Hash as HashIcon,
+  KeyboardMusic as KeyboardMusicIcon,
+  Languages as LanguagesIcon,
+  Metronome as MetronomeIcon,
+  MonitorCog as MonitorCogIcon,
+  Moon as MoonIcon,
+  Palette as PaletteIcon,
+  PanelTop as PanelTopIcon,
+  Piano as PianoIcon,
+  Sun as SunIcon,
+  ZoomIn as ZoomInIcon,
+} from '@lucide/vue'
 import AppTooltip from '../AppTooltip.vue'
+
+const THEME_ICONS = {
+  flat: MoonIcon,
+  'flat-light': SunIcon,
+}
 
 
 
@@ -516,13 +638,37 @@ export default {
 
   components: {
 
+    AudioLinesIcon,
+
     AppTooltip,
+
+    EyeIcon,
+
+    HashIcon,
+
+    KeyboardMusicIcon,
+
+    LanguagesIcon,
+
+    MetronomeIcon,
+
+    MonitorCogIcon,
+
+    PaletteIcon,
+
+    PanelTopIcon,
+
+    PianoIcon,
+
+    ZoomInIcon,
 
   },
 
   props: {
 
     showKeyLabels: { type: Boolean, required: true },
+
+    harmonicDisplayEnabled: { type: Boolean, required: true },
 
     keyLabelNotation: { type: String, required: true },
 
@@ -558,11 +704,15 @@ export default {
 
     designTheme: { type: String, required: true },
 
+    floating: { type: Boolean, default: false },
+
   },
 
   emits: [
 
     'toggle-show-key-labels',
+
+    'toggle-harmonic-display',
 
     'update:design-theme',
 
@@ -604,6 +754,20 @@ export default {
 
     },
 
+    harmonicDisplayTooltip() {
+
+      if (this.harmonicDisplayEnabled) {
+
+        return 'O campo harmônico está visível no teclado. Clique para ocultar.'
+
+      }
+
+
+
+      return 'O campo harmônico está oculto no teclado. Clique para mostrar.'
+
+    },
+
     keyboardHeightTooltip() {
 
       return `Altura atual das teclas: ${this.keyboardHeight} px. A alteração é aplicada ao teclado abaixo.`
@@ -630,19 +794,21 @@ export default {
 
       const tooltips = {
 
-        neumorphic: 'Tema escuro com relevo suave, sombras duplas e aparência neumórfica.',
+        flat: 'Modo escuro com bordas discretas e visual mais neutro.',
 
-        flat: 'Tema escuro plano, com bordas discretas e sem relevo neumórfico.',
-
-        'neumorphic-light': 'Tema claro com relevo suave e superfícies em tons de cinza claro.',
-
-        'flat-light': 'Tema claro plano, com bordas discretas e fundo luminoso.',
+        'flat-light': 'Modo claro com bordas discretas e fundo luminoso.',
 
       }
 
 
 
-      return tooltips[themeId] ?? tooltips.neumorphic
+      return tooltips[themeId] ?? tooltips['flat-light']
+
+    },
+
+    themeIcon(themeId) {
+
+      return THEME_ICONS[themeId] ?? SunIcon
 
     },
 
@@ -708,9 +874,19 @@ export default {
 
   width: 100%;
 
-  max-width: 72rem;
+  max-width: 64rem;
 
   margin: 0 auto;
+
+  padding: 20px;
+
+  border: 1px solid var(--app-border-card);
+
+  border-radius: 22px;
+
+  background: var(--neu-surface);
+
+  box-shadow: var(--neu-raised-sm);
 
 }
 
@@ -724,7 +900,9 @@ export default {
 
   gap: 6px;
 
-  padding-bottom: 4px;
+  padding-bottom: 16px;
+
+  border-bottom: 1px solid var(--app-border-subtle);
 
 }
 
@@ -772,7 +950,7 @@ export default {
 
   grid-template-columns: repeat(3, minmax(0, 1fr));
 
-  gap: 14px;
+  gap: 18px;
 
   width: 100%;
 
@@ -788,21 +966,45 @@ export default {
 
   gap: 14px;
 
-  padding: 16px 18px;
+  min-width: 0;
 
-  border-radius: 16px;
+  padding: 0 18px 0 0;
 
-  background: var(--neu-surface);
+  border-right: 1px solid var(--app-border-subtle);
 
-  box-shadow: var(--neu-raised-sm);
+  border-radius: 0;
 
-  border: 1px solid var(--app-border-card);
+  background: transparent;
+
+  box-shadow: none;
+
+  border-top: none;
+
+  border-bottom: none;
+
+  border-left: none;
+
+}
+
+
+
+.options-panel__card:last-child {
+
+  padding-right: 0;
+
+  border-right: none;
 
 }
 
 
 
 .options-panel__card-title {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
 
   margin: 0;
 
@@ -826,6 +1028,18 @@ export default {
 
 
 
+.options-panel__card-title svg {
+
+  width: 1rem;
+
+  height: 1rem;
+
+  stroke-width: 1.9;
+
+}
+
+
+
 .options-panel__field {
 
   display: flex;
@@ -840,6 +1054,12 @@ export default {
 
 .options-panel__field-label {
 
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 
   font-size: 0.75rem;
@@ -851,6 +1071,20 @@ export default {
   text-transform: uppercase;
 
   color: var(--app-field-label);
+
+}
+
+
+
+.options-panel__field-label svg {
+
+  width: 0.875rem;
+
+  height: 0.875rem;
+
+  flex-shrink: 0;
+
+  stroke-width: 1.9;
 
 }
 
@@ -884,7 +1118,7 @@ export default {
 
   grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  gap: 8px;
+  gap: 6px;
 
 }
 
@@ -893,6 +1127,28 @@ export default {
 .options-panel__field-controls--themes .recorder-section__pill {
 
   width: 100%;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 6px;
+
+}
+
+
+
+.options-panel__theme-icon {
+
+  width: 0.875rem;
+
+  height: 0.875rem;
+
+  flex-shrink: 0;
+
+  stroke-width: 1.9;
 
 }
 
@@ -986,6 +1242,10 @@ export default {
 
     grid-column: 1 / -1;
 
+    padding-top: 18px;
+
+    border-top: 1px solid var(--app-border-subtle);
+
   }
 
 }
@@ -1005,6 +1265,30 @@ export default {
   .options-panel__card:last-child {
 
     grid-column: auto;
+
+  }
+
+
+
+  .options-panel__card {
+
+    padding: 0 0 18px;
+
+    border-right: none;
+
+    border-bottom: 1px solid var(--app-border-subtle);
+
+  }
+
+
+
+  .options-panel__card:last-child {
+
+    padding: 0;
+
+    border-top: none;
+
+    border-bottom: none;
 
   }
 

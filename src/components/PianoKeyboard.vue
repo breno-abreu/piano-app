@@ -1,47 +1,50 @@
 ﻿<template>
   <div class="piano-wrapper" :style="viewZoomStyle">
     <section
-      class="recorder-section recorder-section--sidebar-layout"
+      class="recorder-section recorder-section--top-nav-layout"
       :class="{
         'recorder-section--rhythmic-tab': controlsTab === 'rhythmicFigures',
-        'recorder-section--nav-compact': sidebarNavCompact,
-        'recorder-section--piano-roll-layout': midiPlaybackReady,
+        'recorder-section--piano-roll-layout': showPianoRoll,
       }"
       aria-label="Controles da performance"
     >
       <nav class="recorder-section__nav" aria-label="Seções de controles">
-        <AppTooltip :text="sidebarNavToggleTooltip" placement="right">
-          <button
-            type="button"
-            class="recorder-section__nav-toggle"
-            :aria-label="sidebarNavToggleTooltip"
-            :aria-pressed="sidebarNavCompact"
-            @click="toggleSidebarNavCompact"
-          >
-            <svg
-              class="recorder-section__nav-toggle-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <template v-if="sidebarNavCompact">
-                <path d="M16 6l-3.5 6 3.5 6" />
-                <path d="M11 6l-3.5 6 3.5 6" />
-              </template>
-              <template v-else>
-                <path d="M8 6l3.5 6L8 18" />
-                <path d="M13 6l3.5 6L13 18" />
-              </template>
-            </svg>
-          </button>
-        </AppTooltip>
+        <div class="recorder-section__brand-group">
+          <div class="recorder-section__brand" aria-label="PianoApp">
+            PianoApp
+          </div>
 
-        <div class="recorder-section__tabs" role="tablist">
-          <div class="recorder-section__tabs-main">
+          <AppTooltip
+            v-if="midiConnectionStatus !== 'connected'"
+            :text="midiConnectionIndicatorTooltip"
+            placement="bottom"
+          >
+            <span
+              class="recorder-section__midi-status"
+              role="status"
+              aria-label="Controlador MIDI não conectado"
+            >
+              <UnplugIcon />
+            </span>
+          </AppTooltip>
+
+          <AppTooltip
+            v-if="isRecording"
+            text="Gravação MIDI em andamento. Clique em Gravação para parar e salvar."
+            placement="bottom"
+          >
+            <span
+              class="recorder-section__recording-status"
+              role="status"
+              aria-label="Gravação MIDI em andamento"
+            >
+              <CircleDotIcon />
+            </span>
+          </AppTooltip>
+        </div>
+
+        <div class="recorder-section__tabs">
+          <div class="recorder-section__tabs-main" role="tablist">
             <button
               v-for="tab in controlMainTabs"
               :id="tab.idAttr"
@@ -53,9 +56,8 @@
               :aria-selected="controlsTab === tab.id"
               :aria-controls="tab.panelId"
               :aria-label="tab.label"
-              @click="controlsTab = tab.id"
+              @click="selectControlTab(tab.id)"
             >
-              <ControlTabIcon :name="tab.icon" />
               <span class="recorder-section__tab-label">{{ tab.label }}</span>
             </button>
           </div>
@@ -63,20 +65,93 @@
           <div class="recorder-section__tabs-footer">
             <div class="recorder-section__nav-separator" aria-hidden="true" />
             <button
-              :id="controlOptionsTab.idAttr"
               type="button"
-              role="tab"
-              class="recorder-section__tab"
-              :class="{ 'recorder-section__tab--active': controlsTab === controlOptionsTab.id }"
-              :aria-selected="controlsTab === controlOptionsTab.id"
+              class="recorder-section__tab recorder-section__icon-button"
+              :class="{ 'recorder-section__tab--active': metronomePopoverOpen || metronomeRunning }"
+              aria-label="Abrir metrônomo"
+              :aria-expanded="metronomePopoverOpen"
+              aria-haspopup="dialog"
+              @click.stop="toggleMetronomePopover"
+            >
+              <ControlTabIcon name="metronome" />
+            </button>
+            <button
+              :id="controlOptionsTab.idAttr"
+              ref="optionsButton"
+              type="button"
+              class="recorder-section__tab recorder-section__icon-button"
+              :class="{ 'recorder-section__tab--active': optionsPopoverOpen }"
               :aria-controls="controlOptionsTab.panelId"
               :aria-label="controlOptionsTab.label"
-              @click="controlsTab = controlOptionsTab.id"
+              :aria-expanded="optionsPopoverOpen"
+              aria-haspopup="dialog"
+              @click.stop="toggleOptionsPopover"
             >
               <ControlTabIcon :name="controlOptionsTab.icon" />
-              <span class="recorder-section__tab-label">{{ controlOptionsTab.label }}</span>
             </button>
           </div>
+        </div>
+
+        <div
+          v-if="metronomePopoverOpen"
+          class="recorder-section__popover recorder-section__popover--metronome"
+          role="dialog"
+          aria-label="Metrônomo"
+          @click.stop
+        >
+          <MetronomePopoverPanel
+            :metronome-running="metronomeRunning"
+            :metronome-bpm="metronomeBpm"
+            :metronome-time-signatures="metronomeTimeSignatures"
+            :metronome-time-signature="metronomeTimeSignature"
+            :metronome-beat-count="metronomeBeatCount"
+            :metronome-current-beat="metronomeCurrentBeat"
+            @toggle-metronome="toggleMetronome"
+            @change-metronome-bpm="changeMetronomeBpm"
+            @update:metronome-bpm="applyMetronomeBpm"
+            @set-metronome-time-signature="setMetronomeTimeSignature"
+          />
+        </div>
+
+        <div
+          v-if="optionsPopoverOpen"
+          class="recorder-section__popover recorder-section__popover--options"
+          role="dialog"
+          aria-label="Opções rápidas"
+          @click.stop
+        >
+          <OptionsTabPanel
+            floating
+            :show-key-labels="showKeyLabels"
+            :harmonic-display-enabled="harmonicDisplayEnabled"
+            :key-label-notation="keyLabelNotation"
+            :accidental-notations="accidentalNotations"
+            :accidental-notation="accidentalNotation"
+            :keyboard-height="keyboardHeight"
+            :keyboard-height-step="keyboardHeightStep"
+            :can-decrease-keyboard-height="canDecreaseKeyboardHeight"
+            :can-increase-keyboard-height="canIncreaseKeyboardHeight"
+            :view-zoom="viewZoom"
+            :view-zoom-step="viewZoomStep"
+            :view-zoom-default="viewZoomDefault"
+            :view-zoom-percent="viewZoomPercent"
+            :can-decrease-view-zoom="canDecreaseViewZoom"
+            :can-increase-view-zoom="canIncreaseViewZoom"
+            :piano-volume="pianoVolume"
+            :metronome-volume="metronomeVolume"
+            :design-themes="designThemes"
+            :design-theme="designTheme"
+            @toggle-show-key-labels="toggleShowKeyLabels"
+            @toggle-harmonic-display="toggleHarmonicDisplay"
+            @update:design-theme="setDesignTheme"
+            @update:key-label-notation="setKeyLabelNotation"
+            @update:accidental-notation="setAccidentalNotation"
+            @change-keyboard-height="changeKeyboardHeight"
+            @change-view-zoom="changeViewZoom"
+            @reset-view-zoom="resetViewZoom"
+            @update:piano-volume="onPianoVolumeChange"
+            @update:metronome-volume="onMetronomeVolumeChange"
+          />
         </div>
       </nav>
 
@@ -84,6 +159,12 @@
 
       <div class="recorder-section__main">
       <div class="recorder-section__body">
+        <HomeTabPanel
+          v-show="controlsTab === 'home'"
+          :cards="homeTabCards"
+          @select-tab="selectControlTab"
+        />
+
         <RecordingTabPanel
           v-show="controlsTab === 'recording'"
           :is-recording="isRecording"
@@ -131,37 +212,6 @@
           @seek="seekPlaybackFromEvent"
         />
 
-        <OptionsTabPanel
-          v-show="controlsTab === 'options'"
-          :show-key-labels="showKeyLabels"
-          :key-label-notation="keyLabelNotation"
-          :accidental-notations="accidentalNotations"
-          :accidental-notation="accidentalNotation"
-          :keyboard-height="keyboardHeight"
-          :keyboard-height-step="keyboardHeightStep"
-          :can-decrease-keyboard-height="canDecreaseKeyboardHeight"
-          :can-increase-keyboard-height="canIncreaseKeyboardHeight"
-          :view-zoom="viewZoom"
-          :view-zoom-step="viewZoomStep"
-          :view-zoom-default="viewZoomDefault"
-          :view-zoom-percent="viewZoomPercent"
-          :can-decrease-view-zoom="canDecreaseViewZoom"
-          :can-increase-view-zoom="canIncreaseViewZoom"
-          :piano-volume="pianoVolume"
-          :metronome-volume="metronomeVolume"
-          :design-themes="designThemes"
-          :design-theme="designTheme"
-          @toggle-show-key-labels="toggleShowKeyLabels"
-          @update:design-theme="setDesignTheme"
-          @update:key-label-notation="setKeyLabelNotation"
-          @update:accidental-notation="setAccidentalNotation"
-          @change-keyboard-height="changeKeyboardHeight"
-          @change-view-zoom="changeViewZoom"
-          @reset-view-zoom="resetViewZoom"
-          @update:piano-volume="onPianoVolumeChange"
-          @update:metronome-volume="onMetronomeVolumeChange"
-        />
-
         <HarmonicTabPanel
           v-show="controlsTab === 'harmonic'"
           :accidental-notations="accidentalNotations"
@@ -184,7 +234,6 @@
 
         <ChordDictionaryTabPanel
           v-show="controlsTab === 'chordDictionary'"
-          :accidental-notations="accidentalNotations"
           :accidental-notation="accidentalNotation"
           :chord-dict-roots="chordDictRoots"
           :chord-dict-qualities="chordDictQualities"
@@ -197,75 +246,29 @@
           :chord-dict-inversion-label="chordDictInversionLabel"
           :chord-dict-bass-inversion-label="chordDictBassInversionLabel"
           :chord-dict-final-label="chordDictFinalLabel"
-          :show-key-labels="showKeyLabels"
-          @update:accidental-notation="setAccidentalNotation"
-          @toggle-show-key-labels="toggleShowKeyLabels"
+          :chord-dict-treble-notes="chordDictTrebleNotes"
+          :chord-dict-bass-notes="chordDictBassNotes"
           @set-chord-dict-root="setChordDictRoot"
           @set-chord-dict-quality="setChordDictQuality"
           @set-chord-dict-bass-root="setChordDictBassRoot"
           @shift-chord-dict-inversion="shiftChordDictInversion"
           @shift-chord-dict-bass-inversion="shiftChordDictBassInversion"
+          @play-chord="playChordDictionaryChord"
         />
 
         <RhythmicFiguresTabPanel v-show="controlsTab === 'rhythmicFigures'" />
       </div>
 
-      <div
-        v-if="showMidiDisconnectedAlert"
-        class="midi-alert"
-        role="alert"
-      >
-        <button
-          type="button"
-          class="midi-alert__close"
-          aria-label="Fechar aviso de MIDI"
-          @click="dismissMidiAlert"
-        >
-          <svg
-            class="midi-alert__close-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            aria-hidden="true"
-          >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-
-        <div class="midi-alert__content">
-          <div class="midi-alert__icon" aria-hidden="true">
-            <svg
-              class="midi-alert__icon-svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <path d="M12 9v4" />
-              <path d="M12 17h.01" />
-            </svg>
-          </div>
-
-          <h3 class="midi-alert__title">{{ midiAlertTitle }}</h3>
-          <p class="midi-alert__message">{{ midiAlertMessage }}</p>
-        </div>
-      </div>
-
     <div
       class="piano-stage"
-      :class="{ 'piano-stage--with-roll': midiPlaybackReady }"
+      :class="{ 'piano-stage--with-roll': showPianoRoll }"
     >
     <div
       class="piano-playfield"
-      :class="{ 'piano-playfield--with-roll': midiPlaybackReady }"
+      :class="{ 'piano-playfield--with-roll': showPianoRoll }"
     >
       <PianoRoll
-        v-if="midiPlaybackReady"
+        v-if="showPianoRoll"
         :notes="pianoRollNotes"
         :position-ms="playbackPositionMs"
         :white-keys="whiteKeys"
@@ -443,6 +446,7 @@ import {
 import { parseMidiFile } from '../utils/midiParser.js'
 import { createMidiPlayer } from '../utils/midiPlayer.js'
 import { buildPianoRollNotes } from '../utils/midiPianoRoll.js'
+import { CircleDot as CircleDotIcon, Unplug as UnplugIcon } from '@lucide/vue'
 import {
   ACCIDENTAL_NOTATIONS,
   buildHarmonicField,
@@ -470,8 +474,6 @@ import {
 import {
   DESIGN_THEMES,
   isValidDesignTheme,
-  loadOptionsPreferences,
-  saveOptionsPreferences,
   VIEW_ZOOM_DEFAULT,
   VIEW_ZOOM_MAX,
   VIEW_ZOOM_MIN,
@@ -479,6 +481,7 @@ import {
   VOLUME_MAX,
   VOLUME_MIN,
 } from '../utils/userPreferences.js'
+import { useOptionsPreferencesStore } from '../stores/optionsPreferencesStore.js'
 import {
   createScreenRecorder,
   formatScreenRecordingFilename,
@@ -490,6 +493,8 @@ import {
 import AppTooltip from './AppTooltip.vue'
 import ControlTabIcon from './ControlTabIcon.vue'
 import PianoRoll from './PianoRoll.vue'
+import HomeTabPanel from './tabs/HomeTabPanel.vue'
+import MetronomePopoverPanel from './tabs/MetronomePopoverPanel.vue'
 import RecordingTabPanel from './tabs/RecordingTabPanel.vue'
 import PlaybackTabPanel from './tabs/PlaybackTabPanel.vue'
 import OptionsTabPanel from './tabs/OptionsTabPanel.vue'
@@ -511,15 +516,21 @@ const keyboardHeightBounds = {
   fallback: KEYBOARD_HEIGHT_DEFAULT,
 }
 
-const storedOptionsPreferences = loadOptionsPreferences(keyboardHeightBounds)
-
 const CONTROL_TABS = [
+  {
+    id: 'home',
+    label: 'Início',
+    icon: 'home',
+    idAttr: 'controls-tab-home',
+    panelId: 'controls-panel-home',
+  },
   {
     id: 'recording',
     label: 'Gravação',
     icon: 'recording',
     idAttr: 'controls-tab-recording',
     panelId: 'controls-panel-recording',
+    description: 'Grave performances MIDI, capture a tela e controle o metrônomo.',
   },
   {
     id: 'playback',
@@ -527,27 +538,31 @@ const CONTROL_TABS = [
     icon: 'playback',
     idAttr: 'controls-tab-playback',
     panelId: 'controls-panel-playback',
+    description: 'Carregue arquivos MIDI, reproduza, pause e ajuste a velocidade.',
   },
   {
     id: 'harmonic',
-    label: 'Campos harmônicos',
+    label: 'Campos Harmônicos',
     icon: 'harmonic',
     idAttr: 'controls-tab-harmonic',
     panelId: 'controls-panel-harmonic',
+    description: 'Visualize escalas, graus e acordes diretamente no teclado.',
   },
   {
     id: 'chordDictionary',
-    label: 'Dicionário de acordes',
+    label: 'Dicionário de Acordes',
     icon: 'chord-dictionary',
     idAttr: 'controls-tab-chord-dictionary',
     panelId: 'controls-panel-chord-dictionary',
+    description: 'Monte acordes, inversões e baixos alternativos para estudar voicings.',
   },
   {
     id: 'rhythmicFigures',
-    label: 'Figuras rítmicas',
+    label: 'Figuras Rítmicas',
     icon: 'rhythmic-figures',
     idAttr: 'controls-tab-rhythmic-figures',
     panelId: 'controls-panel-rhythmic-figures',
+    description: 'Organize células rítmicas e pratique combinações de duração.',
   },
 ]
 
@@ -557,20 +572,33 @@ const CONTROL_OPTIONS_TAB = {
   icon: 'options',
   idAttr: 'controls-tab-options',
   panelId: 'controls-panel-options',
+  description: 'Ajuste visual, altura do teclado, zoom, volume e preferências de notas.',
 }
 
 export default {
   name: 'PianoKeyboard',
   components: {
     AppTooltip,
+    CircleDotIcon,
     ControlTabIcon,
+    UnplugIcon,
     PianoRoll,
+    HomeTabPanel,
+    MetronomePopoverPanel,
     RecordingTabPanel,
     PlaybackTabPanel,
     OptionsTabPanel,
     HarmonicTabPanel,
     ChordDictionaryTabPanel,
     RhythmicFiguresTabPanel,
+  },
+  setup() {
+    const optionsPreferencesStore = useOptionsPreferencesStore()
+    optionsPreferencesStore.hydrate(keyboardHeightBounds)
+
+    return {
+      optionsPreferencesStore,
+    }
   },
   data() {
     return {
@@ -584,11 +612,8 @@ export default {
       sustainPedalDown: false,
       midiBinder: null,
       midiConnectionStatus: 'pending',
-      midiAlertDismissed: false,
       isRecording: false,
       midiRecorder: createMidiRecorder(),
-      showKeyLabels: storedOptionsPreferences.showKeyLabels,
-      keyLabelNotation: storedOptionsPreferences.keyLabelNotation,
       metronome: createMetronome(),
       metronomeRunning: false,
       metronomeBpm: 120,
@@ -608,28 +633,22 @@ export default {
       midiRecordedBpm: 120,
       playbackBpm: 120,
       playbackAudioErrorNotified: false,
-      controlsTab: 'recording',
+      controlsTab: 'home',
+      optionsPopoverOpen: false,
+      metronomePopoverOpen: false,
       controlOptionsTab: CONTROL_OPTIONS_TAB,
-      sidebarNavCompact: storedOptionsPreferences.sidebarNavCompact,
       designThemes: DESIGN_THEMES,
-      designTheme: storedOptionsPreferences.designTheme,
-      keyboardHeight: storedOptionsPreferences.keyboardHeight,
       keyboardHeightStep: KEYBOARD_HEIGHT_STEP,
-      viewZoom: storedOptionsPreferences.viewZoom,
       viewZoomStep: VIEW_ZOOM_STEP,
       viewZoomDefault: VIEW_ZOOM_DEFAULT,
-      pianoVolume: storedOptionsPreferences.pianoVolume,
-      metronomeVolume: storedOptionsPreferences.metronomeVolume,
       volumeMin: VOLUME_MIN,
       volumeMax: VOLUME_MAX,
       accidentalNotations: ACCIDENTAL_NOTATIONS,
-      accidentalNotation: storedOptionsPreferences.accidentalNotation,
       screenRecorder: createScreenRecorder(),
       isScreenRecording: false,
       screenRecordingElapsedMs: 0,
       harmonicScaleTypes: HARMONIC_SCALE_TYPES,
       harmonicTonics: HARMONIC_TONICS,
-      harmonicDisplayEnabled: false,
       harmonicScaleType: 'major',
       harmonicTonic: 'C',
       harmonicSelectedChordId: null,
@@ -643,11 +662,88 @@ export default {
       chordDictBassInversion: 0,
       chordDictBassManual: false,
       chordDictBassManualRoot: 'C',
+      chordPreviewReleaseTimer: null,
+      chordPreviewMidiNotes: [],
     }
   },
   computed: {
+    showKeyLabels: {
+      get() {
+        return this.optionsPreferencesStore.showKeyLabels
+      },
+      set(value) {
+        this.optionsPreferencesStore.updatePreference('showKeyLabels', value)
+      },
+    },
+    harmonicDisplayEnabled: {
+      get() {
+        return this.optionsPreferencesStore.harmonicDisplayEnabled
+      },
+      set(value) {
+        this.optionsPreferencesStore.updatePreference('harmonicDisplayEnabled', value)
+      },
+    },
+    keyLabelNotation: {
+      get() {
+        return this.optionsPreferencesStore.keyLabelNotation
+      },
+      set(value) {
+        this.optionsPreferencesStore.updatePreference('keyLabelNotation', value)
+      },
+    },
+    keyboardHeight: {
+      get() {
+        return this.optionsPreferencesStore.keyboardHeight
+      },
+      set(value) {
+        this.optionsPreferencesStore.updatePreference('keyboardHeight', value)
+      },
+    },
+    viewZoom: {
+      get() {
+        return this.optionsPreferencesStore.viewZoom
+      },
+      set(value) {
+        this.optionsPreferencesStore.updatePreference('viewZoom', value)
+      },
+    },
+    pianoVolume: {
+      get() {
+        return this.optionsPreferencesStore.pianoVolume
+      },
+      set(value) {
+        this.optionsPreferencesStore.updatePreference('pianoVolume', value)
+      },
+    },
+    metronomeVolume: {
+      get() {
+        return this.optionsPreferencesStore.metronomeVolume
+      },
+      set(value) {
+        this.optionsPreferencesStore.updatePreference('metronomeVolume', value)
+      },
+    },
+    accidentalNotation: {
+      get() {
+        return this.optionsPreferencesStore.accidentalNotation
+      },
+      set(value) {
+        this.optionsPreferencesStore.updatePreference('accidentalNotation', value)
+      },
+    },
+    designTheme: {
+      get() {
+        return this.optionsPreferencesStore.designTheme
+      },
+      set(value) {
+        this.optionsPreferencesStore.updatePreference('designTheme', value)
+      },
+    },
     controlMainTabs() {
       return CONTROL_TABS
+    },
+    homeTabCards() {
+      return CONTROL_TABS.filter((tab) => tab.id !== 'home')
     },
     harmonicField() {
       return buildHarmonicField(this.harmonicTonic, this.harmonicScaleType)
@@ -820,6 +916,9 @@ export default {
     midiPlaybackReady() {
       return this.midiParsedEvents.length > 0
     },
+    showPianoRoll() {
+      return this.midiPlaybackReady && this.controlsTab === 'playback'
+    },
     midiPlaybackCanStop() {
       return (
         this.midiPlaybackReady &&
@@ -845,69 +944,25 @@ export default {
     isPlaybackAtOriginalBpm() {
       return this.playbackBpm === this.midiRecordedBpm
     },
-    sidebarNavToggleTooltip() {
-      return this.sidebarNavCompact
-        ? 'Mostrar ícones e textos nas abas'
-        : 'Mostrar apenas ícones nas abas'
-    },
-    showMidiDisconnectedAlert() {
-      return (
-        !this.midiAlertDismissed &&
-        this.midiConnectionStatus !== 'connected' &&
-        this.midiConnectionStatus !== 'pending'
-      )
-    },
-    midiAlertTitle() {
-      if (this.midiConnectionStatus === 'unsupported') {
-        return 'MIDI não suportado'
+    midiConnectionIndicatorTooltip() {
+      if (this.midiConnectionStatus === 'pending') {
+        return 'Procurando controladores MIDI conectados.'
       }
 
-      if (this.midiConnectionStatus === 'unavailable') {
-        return 'MIDI indisponível'
-      }
-
-      return 'MIDI não conectado'
-    },
-    midiAlertMessage() {
       if (this.midiConnectionStatus === 'unsupported') {
-        return 'Use Chrome, Edge ou Opera para conectar um teclado MIDI ao aplicativo.'
+        return 'MIDI não é suportado neste navegador. Use Chrome, Edge ou Opera.'
       }
 
       if (this.midiConnectionStatus === 'unavailable') {
         return 'Não foi possível acessar o MIDI. Verifique as permissões do navegador.'
       }
 
-      return 'Conecte um teclado ou controlador MIDI ao computador para tocar pelo dispositivo físico.'
+      return 'Nenhum controlador MIDI conectado. Conecte um teclado ou controlador para tocar pelo dispositivo físico.'
     },
   },
   watch: {
-    showKeyLabels() {
-      this.persistOptionsPreferences()
-    },
-    keyLabelNotation() {
-      this.persistOptionsPreferences()
-    },
-    keyboardHeight() {
-      this.persistOptionsPreferences()
-    },
-    viewZoom() {
-      this.persistOptionsPreferences()
-    },
-    pianoVolume() {
-      this.persistOptionsPreferences()
-    },
-    metronomeVolume() {
-      this.persistOptionsPreferences()
-    },
-    accidentalNotation() {
-      this.persistOptionsPreferences()
-    },
-    sidebarNavCompact() {
-      this.persistOptionsPreferences()
-    },
     designTheme() {
       this.applyDesignTheme()
-      this.persistOptionsPreferences()
     },
   },
   mounted() {
@@ -927,14 +982,17 @@ export default {
     })
     this.initMidi()
     window.addEventListener('keydown', this.handleRecordingKeydown)
+    window.addEventListener('click', this.closePopovers)
     window.addEventListener('mouseup', this.onWindowMouseUp)
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.handleRecordingKeydown)
+    window.removeEventListener('click', this.closePopovers)
     window.removeEventListener('mouseup', this.onWindowMouseUp)
     stopAllPianoNotes()
     this.metronome.dispose()
     this.screenRecorder.dispose()
+    this.releaseChordPreview()
     this.disposeMidiPlayer()
     this.teardownMidi()
   },
@@ -942,10 +1000,96 @@ export default {
     formatHarmonicTonicLabel,
     formatChordDictionaryLabel,
     formatChordQualityLabel,
+    selectControlTab(tabId) {
+      if (tabId === 'options') {
+        this.$nextTick(() => {
+          this.optionsPopoverOpen = true
+          this.metronomePopoverOpen = false
+        })
+        return
+      }
+
+      this.controlsTab = tabId
+
+      if (tabId === 'harmonic') {
+        this.harmonicDisplayEnabled = true
+      }
+
+      this.closePopovers()
+    },
+    toggleOptionsPopover() {
+      this.optionsPopoverOpen = !this.optionsPopoverOpen
+      if (this.optionsPopoverOpen) {
+        this.metronomePopoverOpen = false
+      }
+    },
+    toggleMetronomePopover() {
+      this.metronomePopoverOpen = !this.metronomePopoverOpen
+      if (this.metronomePopoverOpen) {
+        this.optionsPopoverOpen = false
+      }
+    },
+    closePopovers() {
+      this.optionsPopoverOpen = false
+      this.metronomePopoverOpen = false
+    },
     setAccidentalNotation(notation) {
       this.accidentalNotation = notation
     },
+    getChordDictionaryPreviewMidis() {
+      const notes = [
+        ...this.chordDictBassNotes,
+        ...this.chordDictTrebleNotes,
+      ]
+
+      return [...new Set(
+        notes
+          .map((note) => noteToMidiNumber(note))
+          .filter((midi) => midi !== null),
+      )].sort((a, b) => a - b)
+    },
+    releaseChordPreview() {
+      if (this.chordPreviewReleaseTimer) {
+        clearTimeout(this.chordPreviewReleaseTimer)
+        this.chordPreviewReleaseTimer = null
+      }
+
+      for (const midi of this.chordPreviewMidiNotes) {
+        releasePianoNote(midi).catch((error) => {
+          console.warn('Erro ao soltar áudio do acorde.', error)
+        })
+      }
+
+      this.chordPreviewMidiNotes = []
+    },
+    playChordDictionaryChord() {
+      const midiNotes = this.getChordDictionaryPreviewMidis()
+      if (!midiNotes.length) return
+
+      this.releaseChordPreview()
+      this.chordPreviewMidiNotes = midiNotes
+
+      Promise.all(
+        midiNotes.map((midi) => playPianoNote(midi, 92)),
+      ).catch((error) => {
+        console.warn('Erro ao reproduzir áudio do acorde.', error)
+      })
+
+      this.chordPreviewReleaseTimer = window.setTimeout(() => {
+        this.releaseChordPreview()
+      }, 2800)
+    },
     handleRecordingKeydown(event) {
+      if (event.key === 'Escape' && this.optionsPopoverOpen) {
+        this.closePopovers()
+        return
+      }
+
+      if (event.key === 'Escape' && this.metronomePopoverOpen) {
+        this.closePopovers()
+        return
+      }
+
       if (this.isPlaybackBlockingLive) return
       if (event.key !== 'r' && event.key !== 'R') return
       if (event.repeat) return
@@ -1103,19 +1247,6 @@ export default {
         ? formatWestern(note, this.accidentalNotation)
         : formatSolfege(note, this.accidentalNotation)
     },
-    persistOptionsPreferences() {
-      saveOptionsPreferences({
-        showKeyLabels: this.showKeyLabels,
-        keyLabelNotation: this.keyLabelNotation,
-        keyboardHeight: this.keyboardHeight,
-        viewZoom: this.viewZoom,
-        pianoVolume: this.pianoVolume,
-        metronomeVolume: this.metronomeVolume,
-        accidentalNotation: this.accidentalNotation,
-        sidebarNavCompact: this.sidebarNavCompact,
-        designTheme: this.designTheme,
-      })
-    },
     applyDesignTheme() {
       if (typeof document === 'undefined') return
 
@@ -1125,9 +1256,6 @@ export default {
       if (isValidDesignTheme(theme)) {
         this.designTheme = theme
       }
-    },
-    toggleSidebarNavCompact() {
-      this.sidebarNavCompact = !this.sidebarNavCompact
     },
     onPianoVolumeChange(value) {
       this.pianoVolume = value
@@ -1667,17 +1795,8 @@ export default {
         console.warn('Não foi possível salvar o arquivo MIDI.', error)
       }
     },
-    dismissMidiAlert() {
-      this.midiAlertDismissed = true
-    },
     updateMidiConnectionStatus(inputCount) {
-      const nextStatus = inputCount > 0 ? 'connected' : 'disconnected'
-
-      if (this.midiConnectionStatus === 'connected' && nextStatus === 'disconnected') {
-        this.midiAlertDismissed = false
-      }
-
-      this.midiConnectionStatus = nextStatus
+      this.midiConnectionStatus = inputCount > 0 ? 'connected' : 'disconnected'
     },
     async initMidi() {
       if (!isMidiSupported()) {
@@ -1745,103 +1864,9 @@ export default {
   min-height: 0;
 }
 
-.midi-alert {
-  position: relative;
-  margin: 0 22px 14px;
-  padding: 22px 20px 20px;
-  border-radius: 16px;
-  border: 1px solid rgba(251, 191, 36, 0.28);
-  background: var(--neu-surface);
-  box-shadow: var(--neu-raised-sm);
-}
-
-.midi-alert__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  max-width: 26rem;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.midi-alert__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  margin-bottom: 2px;
-  border-radius: 50%;
-  background: rgba(251, 191, 36, 0.12);
-  color: var(--app-accent);
-  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.18);
-}
-
-.midi-alert__icon-svg {
-  width: 1.75rem;
-  height: 1.75rem;
-}
-
-.midi-alert__title {
-  margin: 0;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--app-heading);
-}
-
-.midi-alert__message {
-  margin: 0;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--app-subtitle);
-}
-
-.midi-alert__close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--app-text-muted);
-  cursor: pointer;
-  transition:
-    color 0.12s ease,
-    background-color 0.12s ease,
-    box-shadow 0.12s ease;
-}
-
-.midi-alert__close-icon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.midi-alert__close:hover {
-  color: var(--app-accent);
-  background: var(--app-hover-bg);
-  box-shadow: var(--neu-raised-sm);
-}
-
-.midi-alert__close:focus-visible {
-  outline: 2px solid #f59e0b;
-  outline-offset: 2px;
-}
-
-.piano-wrapper :deep(.recorder-section--sidebar-layout) {
-  border-radius: 0 0 20px 0;
-  border-left: none;
+.piano-wrapper :deep(.recorder-section--top-nav-layout) {
+  border-top: none;
+  border-radius: 0 0 20px 20px;
 }
 
 .piano-wrapper :deep(.recorder-section--piano-roll-layout .recorder-section__main) {
@@ -2042,10 +2067,10 @@ export default {
   flex: 1 1 0;
   min-width: 0;
   height: 100%;
-  border: 1px solid #c4c4c4;
+  border: 1px solid #cbc7bd;
   border-top: none;
   border-radius: 0 0 3px 3px;
-  background: linear-gradient(180deg, #ffffff 0%, #ececec 100%);
+  background: linear-gradient(180deg, #fffefa 0%, #f3f0e8 100%);
 }
 
 .piano-key--white.piano-key--pressed,
@@ -2207,7 +2232,7 @@ export default {
 }
 
 .pedal-visual__lever--pressed .pedal-visual__pad {
-  fill: #86efac;
-  stroke: #4ade80;
+  fill: #6fa878;
+  stroke: #3f7d4a;
 }
 </style>
