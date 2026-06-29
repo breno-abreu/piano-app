@@ -22,6 +22,13 @@
   --app-selection-bg: rgba(226, 232, 240, 0.14);
   --app-selection-border: rgba(226, 232, 240, 0.32);
   --app-selection-text: #f9fafb;
+  --app-home-card-hover-bg: #34373d;
+  --app-home-card-hover-border: rgba(226, 232, 240, 0.24);
+  --app-home-card-hover-shadow:
+    0 0 0 1px rgba(226, 232, 240, 0.14),
+    0 14px 32px rgba(3, 8, 18, 0.3);
+  --app-home-card-icon-bg: transparent;
+  --app-home-card-icon-hover-ring: rgba(226, 232, 240, 0.18);
   --app-tooltip-bg: #2d3035;
   --app-tooltip-text: #f3f4f6;
   --app-chord-active-bg: rgba(226, 232, 240, 0.12);
@@ -97,6 +104,13 @@
   --app-selection-bg: #e5e7eb;
   --app-selection-border: rgba(17, 24, 39, 0.28);
   --app-selection-text: #111827;
+  --app-home-card-hover-bg: #f9fafb;
+  --app-home-card-hover-border: rgba(17, 24, 39, 0.22);
+  --app-home-card-hover-shadow:
+    var(--neu-raised),
+    0 12px 24px rgba(15, 23, 42, 0.08);
+  --app-home-card-icon-bg: transparent;
+  --app-home-card-icon-hover-ring: rgba(17, 24, 39, 0.14);
   --app-tooltip-bg: #ffffff;
   --app-tooltip-text: #374151;
   --app-chord-active-bg: #f3f4f6;

@@ -120,7 +120,7 @@ export default {
 .home-tab-panel__grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  grid-auto-rows: minmax(112px, auto);
+  grid-auto-rows: minmax(140px, auto);
   gap: 14px;
 }
 
@@ -147,39 +147,36 @@ export default {
 }
 
 .home-tab-panel__card[data-card-id='playback'] {
-  grid-column: span 3;
-  grid-row: span 2;
-  min-height: 278px;
+  grid-column: span 2;
+  min-height: 140px;
   align-content: start;
-  padding: 22px;
+  padding: 18px;
 }
 
 .home-tab-panel__card[data-card-id='recording'],
 .home-tab-panel__card[data-card-id='harmonic'] {
-  grid-column: span 3;
-}
-
-.home-tab-panel__card[data-card-id='chordDictionary'] {
-  grid-column: span 4;
-}
-
-.home-tab-panel__card[data-card-id='rhythmicFigures'] {
   grid-column: span 2;
 }
 
+.home-tab-panel__card[data-card-id='chordDictionary'] {
+  grid-column: span 3;
+}
+
+.home-tab-panel__card[data-card-id='rhythmicFigures'] {
+  grid-column: span 3;
+}
+
 .home-tab-panel__card:hover {
-  border-color: rgba(17, 24, 39, 0.22);
-  background: #f9fafb;
-  box-shadow:
-    var(--neu-raised),
-    0 12px 24px rgba(15, 23, 42, 0.08);
+  border-color: var(--app-home-card-hover-border);
+  background: var(--app-home-card-hover-bg);
+  box-shadow: var(--app-home-card-hover-shadow);
   transform: translateY(-2px);
 }
 
 .home-tab-panel__card:hover .home-tab-panel__card-icon {
   box-shadow:
     var(--neu-pressed),
-    0 0 0 1px rgba(17, 24, 39, 0.14);
+    0 0 0 1px var(--app-home-card-icon-hover-ring);
 }
 
 .home-tab-panel__card:hover .home-tab-panel__card-action {
@@ -202,7 +199,7 @@ export default {
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--app-home-card-icon-bg);
   color: var(--app-accent);
   box-shadow: var(--neu-pressed);
 }
