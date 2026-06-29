@@ -200,7 +200,7 @@
 }
 
 .recorder-section__tab:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 2px;
 }
 
@@ -410,6 +410,7 @@
   box-shadow: var(--neu-raised-sm);
   cursor: pointer;
   transition:
+    background-color 0.12s ease,
     box-shadow 0.12s ease,
     color 0.12s ease;
 }
@@ -419,19 +420,23 @@
 }
 
 .harmonic-chords__item:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 2px;
 }
 
 .harmonic-chords__item--active {
-  box-shadow: var(--neu-pressed-deep);
   background: var(--app-chord-active-bg);
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px var(--app-selection-border);
   transition: none;
 }
 
 .harmonic-chords__item--active:hover {
-  box-shadow: var(--neu-pressed-deep);
   background: var(--app-chord-active-bg);
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px var(--app-selection-border);
 }
 
 .harmonic-chords__degree {
@@ -451,6 +456,10 @@
 
 .harmonic-chords__item--active .harmonic-chords__symbol {
   color: var(--app-chord-symbol-active);
+}
+
+.harmonic-chords__item--active .harmonic-chords__degree {
+  color: var(--app-selection-text);
 }
 
 .recorder-section__progress {
@@ -478,11 +487,11 @@
 .recorder-section__progress-track:hover {
   box-shadow:
     var(--neu-pressed-deep),
-    inset 0 0 0 1px rgba(251, 191, 36, 0.2);
+    inset 0 0 0 1px rgba(55, 65, 81, 0.18);
 }
 
 .recorder-section__progress-track:focus-visible {
-  outline: 2px solid #fbbf24;
+  outline: 2px solid var(--app-accent);
   outline-offset: 3px;
 }
 
@@ -491,8 +500,8 @@
   height: 100%;
   min-width: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #ca8a04 0%, #fbbf24 100%);
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.35);
+  background: linear-gradient(90deg, #4b5563 0%, #111827 100%);
+  box-shadow: 0 0 8px rgba(55, 65, 81, 0.18);
   pointer-events: none;
 }
 
@@ -534,8 +543,8 @@
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    #ca8a04 0%,
-    #fbbf24 var(--volume-fill, 0%),
+    #4b5563 0%,
+    #111827 var(--volume-fill, 0%),
     var(--neu-surface) var(--volume-fill, 0%),
     var(--neu-surface) 100%
   );
@@ -560,12 +569,12 @@
 .recorder-section__volume-slider::-moz-range-progress {
   height: 10px;
   border-radius: 999px 0 0 999px;
-  background: linear-gradient(90deg, #ca8a04 0%, #fbbf24 100%);
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.28);
+  background: linear-gradient(90deg, #4b5563 0%, #111827 100%);
+  box-shadow: 0 0 8px rgba(55, 65, 81, 0.18);
 }
 
 .recorder-section__volume-slider:focus-visible {
-  outline: 2px solid #fbbf24;
+  outline: 2px solid var(--app-accent);
   outline-offset: 3px;
 }
 
@@ -576,10 +585,10 @@
   margin-top: -3px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  background: linear-gradient(180deg, #e5e7eb 0%, #6b7280 100%);
   box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.35),
-    0 0 8px rgba(251, 191, 36, 0.35);
+    0 0 8px rgba(55, 65, 81, 0.2);
   cursor: pointer;
 }
 
@@ -588,10 +597,10 @@
   height: 16px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  background: linear-gradient(180deg, #e5e7eb 0%, #6b7280 100%);
   box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.35),
-    0 0 8px rgba(251, 191, 36, 0.35);
+    0 0 8px rgba(55, 65, 81, 0.2);
   cursor: pointer;
 }
 
@@ -633,7 +642,7 @@
 }
 
 .recorder-section__button:focus-visible {
-  outline: 2px solid #ef4444;
+  outline: 2px solid var(--app-accent);
   outline-offset: 3px;
 }
 
@@ -657,10 +666,36 @@
   outline-offset: 3px;
 }
 
+.recorder-section__button:has(.recorder-section__icon--record):focus-visible {
+  outline: 2px solid #ef4444;
+}
+
+.recorder-section__button:has(.recorder-section__icon--stop):focus-visible,
+.recorder-section__button:has(.recorder-section__icon--metronome-stop):focus-visible,
+.recorder-section__button--stop-playback:focus-visible {
+  outline: 2px solid #f59e0b;
+}
+
+.recorder-section__button:has(.recorder-section__icon--stop):hover,
+.recorder-section__button:has(.recorder-section__icon--metronome-stop):hover,
+.recorder-section__button--stop-playback:hover {
+  box-shadow:
+    var(--neu-raised),
+    0 0 12px rgba(55, 65, 81, 0.18);
+}
+
+.recorder-section__button:has(.recorder-section__icon--stop):active,
+.recorder-section__button:has(.recorder-section__icon--metronome-stop):active,
+.recorder-section__button--stop-playback:active {
+  box-shadow:
+    var(--neu-pressed-deep),
+    0 0 12px rgba(55, 65, 81, 0.18);
+}
+
 .recorder-section__button--pause-mode {
   box-shadow:
     var(--neu-pressed-deep),
-    inset 0 0 0 1px rgba(251, 191, 36, 0.35);
+    inset 0 0 0 1px rgba(55, 65, 81, 0.24);
   transition: none;
 }
 
@@ -668,12 +703,12 @@
 .recorder-section__button--pause-mode:active {
   box-shadow:
     var(--neu-pressed-deep),
-    inset 0 0 0 1px rgba(251, 191, 36, 0.35);
+    inset 0 0 0 1px rgba(55, 65, 81, 0.24);
   transform: none;
 }
 
 .recorder-section__button--pause-mode:focus-visible {
-  outline: 2px solid #fbbf24;
+  outline: 2px solid var(--app-accent);
   outline-offset: 3px;
 }
 
@@ -691,8 +726,8 @@
   width: 4px;
   height: 14px;
   border-radius: 1px;
-  background: #fbbf24;
-  box-shadow: 0 0 5px rgba(251, 191, 36, 0.55);
+  background: #4b5563;
+  box-shadow: 0 0 5px rgba(55, 65, 81, 0.28);
 }
 
 .recorder-section__icon--pause::before {
@@ -748,7 +783,7 @@
 }
 
 .recorder-section__button--stop-playback:focus-visible {
-  outline: 2px solid var(--app-text-muted);
+  outline: 2px solid #f59e0b;
   outline-offset: 3px;
 }
 
@@ -771,7 +806,8 @@
   width: 14px;
   height: 14px;
   border-radius: 2px;
-  background: var(--app-heading);
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.42);
 }
 
 .recorder-section__icon--play {
@@ -810,7 +846,11 @@
   letter-spacing: 0.02em;
   color: var(--app-text-soft);
   cursor: pointer;
-  transition: box-shadow 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
 }
 
 .recorder-section__pill:hover {
@@ -825,24 +865,27 @@
 }
 
 .recorder-section__pill:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 3px;
 }
 
 .recorder-section__pill--active {
+  background: var(--app-selection-bg);
   box-shadow:
     var(--neu-pressed-deep),
-    inset 0 0 12px rgba(251, 191, 36, 0.12);
-  color: var(--app-accent);
+    inset 0 0 0 1px var(--app-selection-border);
+  color: var(--app-selection-text);
+  font-weight: 700;
   transition: none;
 }
 
 .recorder-section__pill--active:hover,
 .recorder-section__pill--active:active {
+  background: var(--app-selection-bg);
   box-shadow:
     var(--neu-pressed-deep),
-    inset 0 0 12px rgba(251, 191, 36, 0.12);
-  color: var(--app-accent);
+    inset 0 0 0 1px var(--app-selection-border);
+  color: var(--app-selection-text);
   transform: none;
 }
 
@@ -878,7 +921,7 @@
 }
 
 .recorder-section__switch:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 3px;
 }
 
@@ -911,10 +954,10 @@
 }
 
 .recorder-section__switch--active .recorder-section__switch-track {
-  background: rgba(245, 158, 11, 0.35);
+  background: rgba(55, 65, 81, 0.18);
   box-shadow:
     var(--neu-pressed),
-    inset 0 0 0 1px rgba(245, 158, 11, 0.28);
+    inset 0 0 0 1px rgba(55, 65, 81, 0.2);
 }
 
 .recorder-section__switch--active .recorder-section__switch-thumb {
@@ -972,29 +1015,29 @@
 }
 
 .recorder-section__beat-dot--strong {
-  background: #a16207;
+  background: #4b5563;
   box-shadow:
     var(--neu-raised-sm),
-    0 0 6px rgba(202, 138, 4, 0.35);
+    0 0 6px rgba(55, 65, 81, 0.22);
 }
 
 .recorder-section__beat-dot--current {
-  background: #f59e0b;
+  background: #111827;
   box-shadow:
     var(--neu-pressed),
-    0 0 10px rgba(245, 158, 11, 0.65);
+    0 0 10px rgba(55, 65, 81, 0.32);
   transform: scale(1.2);
 }
 
 .recorder-section__button--metronome:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid #22c55e;
   outline-offset: 3px;
 }
 
 .recorder-section__button--metronome-active {
   box-shadow:
     var(--neu-pressed-deep),
-    0 0 14px rgba(245, 158, 11, 0.35);
+    0 0 14px rgba(55, 65, 81, 0.2);
   transition: none;
 }
 
@@ -1002,7 +1045,7 @@
 .recorder-section__button--metronome-active:active {
   box-shadow:
     var(--neu-pressed-deep),
-    0 0 14px rgba(245, 158, 11, 0.35);
+    0 0 14px rgba(55, 65, 81, 0.2);
   transform: none;
 }
 
@@ -1012,15 +1055,16 @@
   margin-left: 3px;
   border-style: solid;
   border-width: 9px 0 9px 16px;
-  border-color: transparent transparent transparent #f59e0b;
-  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.45));
+  border-color: transparent transparent transparent #22c55e;
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.42));
 }
 
 .recorder-section__icon--metronome-stop {
   width: 14px;
   height: 14px;
   border-radius: 2px;
-  background: var(--app-heading);
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.42);
 }
 
 .recorder-section__bpm {
@@ -1067,7 +1111,7 @@
 }
 
 .recorder-section__bpm-step:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 2px;
 }
 
@@ -1102,7 +1146,7 @@
 }
 
 .recorder-section__bpm-value:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 2px;
 }
 
@@ -1136,7 +1180,7 @@
   outline: none;
   box-shadow:
     var(--neu-pressed-deep),
-    0 0 0 2px rgba(245, 158, 11, 0.35);
+    0 0 0 2px rgba(55, 65, 81, 0.2);
 }
 
 .recorder-section__bpm-suffix {

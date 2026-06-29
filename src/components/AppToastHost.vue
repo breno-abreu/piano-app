@@ -151,7 +151,7 @@ export default {
 }
 
 .app-toast--warning {
-  border: 1px solid rgba(251, 191, 36, 0.35);
+  border: 1px solid rgba(55, 65, 81, 0.22);
 }
 
 .app-toast__icon {
@@ -170,7 +170,7 @@ export default {
 }
 
 .app-toast--warning .app-toast__icon {
-  background: rgba(251, 191, 36, 0.12);
+  background: rgba(55, 65, 81, 0.08);
   color: var(--app-accent);
 }
 
@@ -220,7 +220,7 @@ export default {
 }
 
 .app-toast__close:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 2px;
 }
 

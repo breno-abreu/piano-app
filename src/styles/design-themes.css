@@ -1,47 +1,50 @@
 [data-design-theme='flat'] {
   color-scheme: dark;
 
-  --app-bg: #0f1a2b;
-  --app-shell-bg: #132137;
-  --app-nav-bg: #17263e;
-  --app-main-bg: #101c2f;
-  --app-heading: #f4f0e6;
-  --app-subtitle: #aeb9c8;
-  --app-field-label: #8f9caf;
-  --app-text: #dbe3ee;
-  --app-text-soft: #c4cfdd;
-  --app-text-muted: #97a6ba;
-  --app-text-faint: #7f8da1;
-  --app-text-hint: #8392a7;
-  --app-accent: #e7a94f;
+  --app-bg: #202124;
+  --app-shell-bg: #26282c;
+  --app-nav-bg: #2d3035;
+  --app-main-bg: #24262a;
+  --app-heading: #f3f4f6;
+  --app-subtitle: #c4c7cc;
+  --app-field-label: #9ca3af;
+  --app-text: #e5e7eb;
+  --app-text-soft: #d1d5db;
+  --app-text-muted: #aeb4bd;
+  --app-text-faint: #8f969f;
+  --app-text-hint: #9ca3af;
+  --app-accent: #d1d5db;
   --app-border: rgba(226, 232, 240, 0.12);
   --app-border-subtle: rgba(226, 232, 240, 0.09);
   --app-border-card: rgba(226, 232, 240, 0.1);
-  --app-border-nav: rgba(231, 169, 79, 0.16);
-  --app-hover-bg: rgba(231, 169, 79, 0.08);
-  --app-tooltip-bg: #17263e;
-  --app-tooltip-text: #e6edf6;
-  --app-chord-active-bg: rgba(231, 169, 79, 0.14);
-  --app-panel-inset: rgba(8, 14, 25, 0.24);
-  --app-result-bg: rgba(231, 169, 79, 0.09);
+  --app-border-nav: rgba(226, 232, 240, 0.12);
+  --app-hover-bg: rgba(226, 232, 240, 0.08);
+  --app-selection-bg: rgba(226, 232, 240, 0.14);
+  --app-selection-border: rgba(226, 232, 240, 0.32);
+  --app-selection-text: #f9fafb;
+  --app-tooltip-bg: #2d3035;
+  --app-tooltip-text: #f3f4f6;
+  --app-chord-active-bg: rgba(226, 232, 240, 0.12);
+  --app-panel-inset: rgba(0, 0, 0, 0.18);
+  --app-result-bg: rgba(226, 232, 240, 0.08);
   --app-result-shadow: none;
-  --app-result-label: #8f9caf;
-  --app-chord-symbol: #f4f0e6;
-  --app-chord-symbol-active: #f2bf72;
+  --app-result-label: #9ca3af;
+  --app-chord-symbol: #f3f4f6;
+  --app-chord-symbol-active: #ffffff;
   --app-danger-soft: #f08a80;
   --app-danger-text: #fca5a5;
   --app-rhythm-slot-border: rgba(226, 232, 240, 0.16);
-  --app-rhythm-slot-border-occupied: rgba(231, 169, 79, 0.2);
+  --app-rhythm-slot-border-occupied: rgba(226, 232, 240, 0.2);
   --app-rhythm-slot-border-muted: rgba(226, 232, 240, 0.08);
   --app-rhythm-tie-idle: rgba(226, 232, 240, 0.24);
-  --app-rhythm-tie-available: rgba(231, 169, 79, 0.52);
+  --app-rhythm-tie-available: rgba(226, 232, 240, 0.5);
   --app-rhythm-icon-muted: rgba(226, 232, 240, 0.3);
   --app-rhythm-palette-divider: rgba(226, 232, 240, 0.1);
-  --app-rhythm-beat-bg: rgba(8, 14, 25, 0.22);
-  --app-rhythm-beat-continuation-bg: rgba(8, 14, 25, 0.32);
+  --app-rhythm-beat-bg: rgba(0, 0, 0, 0.16);
+  --app-rhythm-beat-continuation-bg: rgba(0, 0, 0, 0.24);
   --app-rhythm-figure-filter: invert(1) brightness(1.28) contrast(0.88) saturate(0.2);
   --app-rhythm-figure-blend: normal;
-  --app-piano-roll-bg: linear-gradient(180deg, #17263e 0%, #132137 58%, #101c2f 100%);
+  --app-piano-roll-bg: linear-gradient(180deg, #2d3035 0%, #26282c 58%, #24262a 100%);
   --app-piano-roll-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --app-piano-roll-lane-border: rgba(226, 232, 240, 0.09);
   --app-piano-roll-note-bg: linear-gradient(180deg, #7dd3a7 0%, #2f9b6f 55%, #217455 100%);
@@ -59,24 +62,24 @@
   );
   --app-piano-roll-hit-line-shadow: 0 0 8px rgba(47, 155, 111, 0.26);
 
-  --neu-surface: #17263e;
+  --neu-surface: #2d3035;
   --neu-light: transparent;
   --neu-dark: transparent;
   --neu-raised: 0 0 0 1px rgba(226, 232, 240, 0.12);
   --neu-raised-lg: 0 0 0 1px rgba(226, 232, 240, 0.14);
   --neu-raised-sm: 0 0 0 1px rgba(226, 232, 240, 0.1);
-  --neu-pressed: inset 0 0 0 1px rgba(231, 169, 79, 0.28);
-  --neu-pressed-deep: inset 0 0 0 1px rgba(231, 169, 79, 0.38);
+  --neu-pressed: inset 0 0 0 1px rgba(226, 232, 240, 0.24);
+  --neu-pressed-deep: inset 0 0 0 1px rgba(226, 232, 240, 0.34);
 }
 
 :root:not([data-design-theme]),
 [data-design-theme='flat-light'] {
   color-scheme: light;
 
-  --app-bg: #f7f4ed;
-  --app-shell-bg: #fdfaf3;
-  --app-nav-bg: #faf6ee;
-  --app-main-bg: #fffdf8;
+  --app-bg: #ffffff;
+  --app-shell-bg: #ffffff;
+  --app-nav-bg: #f8fafc;
+  --app-main-bg: #ffffff;
   --app-heading: #1f2937;
   --app-subtitle: #6b7280;
   --app-field-label: #9ca3af;
@@ -85,21 +88,24 @@
   --app-text-muted: #6b7280;
   --app-text-faint: #9ca3af;
   --app-text-hint: #9ca3af;
-  --app-accent: #d97706;
+  --app-accent: #374151;
   --app-border: rgba(15, 23, 42, 0.1);
   --app-border-subtle: rgba(15, 23, 42, 0.1);
   --app-border-card: rgba(15, 23, 42, 0.08);
   --app-border-nav: rgba(15, 23, 42, 0.1);
   --app-hover-bg: rgba(15, 23, 42, 0.04);
-  --app-tooltip-bg: #fffdf8;
+  --app-selection-bg: #e5e7eb;
+  --app-selection-border: rgba(17, 24, 39, 0.28);
+  --app-selection-text: #111827;
+  --app-tooltip-bg: #ffffff;
   --app-tooltip-text: #374151;
-  --app-chord-active-bg: #fee2e2;
+  --app-chord-active-bg: #f3f4f6;
   --app-panel-inset: rgba(15, 23, 42, 0.05);
-  --app-result-bg: rgba(217, 119, 6, 0.08);
+  --app-result-bg: rgba(17, 24, 39, 0.05);
   --app-result-shadow: none;
   --app-result-label: #9ca3af;
   --app-chord-symbol: #1f2937;
-  --app-chord-symbol-active: #b91c1c;
+  --app-chord-symbol-active: #111827;
   --app-danger-soft: #b91c1c;
   --app-danger-text: #991b1b;
   --app-rhythm-slot-border: rgba(15, 23, 42, 0.16);
@@ -113,11 +119,11 @@
   --app-rhythm-beat-continuation-bg: rgba(15, 23, 42, 0.08);
   --app-rhythm-figure-filter: none;
   --app-rhythm-figure-blend: normal;
-  --app-piano-roll-bg: linear-gradient(180deg, #fffefa 0%, #fffdf8 55%, #fdfaf3 100%);
+  --app-piano-roll-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 55%, #f3f4f6 100%);
   --app-piano-roll-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
   --app-piano-roll-lane-border: rgba(15, 23, 42, 0.1);
-  --app-piano-roll-note-bg: linear-gradient(180deg, #34d399 0%, #059669 55%, #047857 100%);
-  --app-piano-roll-note-black-bg: linear-gradient(180deg, #6ee7b7 0%, #059669 50%, #065f46 100%);
+  --app-piano-roll-note-bg: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  --app-piano-roll-note-black-bg: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
   --app-piano-roll-note-shadow:
     0 0 8px rgba(5, 150, 105, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.55);
@@ -135,14 +141,14 @@
   --app-divider-shadow: none;
   --app-separator-shadow: none;
 
-  --neu-surface: #fffdf8;
+  --neu-surface: #ffffff;
   --neu-light: transparent;
   --neu-dark: transparent;
   --neu-raised: 0 0 0 1px rgba(15, 23, 42, 0.1);
   --neu-raised-lg: 0 0 0 1px rgba(15, 23, 42, 0.12);
   --neu-raised-sm: 0 0 0 1px rgba(15, 23, 42, 0.08);
-  --neu-pressed: inset 0 0 0 1px rgba(217, 119, 6, 0.45);
-  --neu-pressed-deep: inset 0 0 0 2px rgba(217, 119, 6, 0.5);
+  --neu-pressed: inset 0 0 0 1px rgba(55, 65, 81, 0.28);
+  --neu-pressed-deep: inset 0 0 0 2px rgba(55, 65, 81, 0.34);
 }
 
 [data-design-theme='flat'] {
@@ -210,19 +216,30 @@
 
 [data-design-theme='flat'] .recorder-section__pill--active,
 [data-design-theme='flat-light'] .recorder-section__pill--active {
-  box-shadow: var(--neu-pressed-deep);
+  background: var(--app-selection-bg);
+  color: var(--app-selection-text);
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px var(--app-selection-border);
 }
 
 [data-design-theme='flat'] .recorder-section__pill--active:hover,
 [data-design-theme='flat-light'] .recorder-section__pill--active:hover,
 [data-design-theme='flat'] .recorder-section__pill--active:active,
 [data-design-theme='flat-light'] .recorder-section__pill--active:active {
-  box-shadow: var(--neu-pressed-deep);
+  background: var(--app-selection-bg);
+  color: var(--app-selection-text);
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px var(--app-selection-border);
 }
 
 [data-design-theme='flat'] .harmonic-chords__item--active,
 [data-design-theme='flat-light'] .harmonic-chords__item--active {
   background: var(--app-chord-active-bg);
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px var(--app-selection-border);
 }
 
 [data-design-theme='flat'] .rhythmic-figures,
@@ -266,7 +283,7 @@
 [data-design-theme='flat-light'] .recorder-section__pill--active,
 [data-design-theme='flat-light'] .recorder-section__pill--active:hover,
 [data-design-theme='flat-light'] .recorder-section__pill--active:active {
-  color: var(--app-accent);
+  color: var(--app-selection-text);
 }
 
 [data-design-theme='flat-light'] .harmonic-chords__item--active {
@@ -281,7 +298,7 @@
 [data-design-theme='flat-light'] .app-tooltip__bubble {
   background: var(--app-tooltip-bg);
   color: var(--app-tooltip-text);
-  border-color: rgba(217, 119, 6, 0.28);
+  border-color: rgba(55, 65, 81, 0.22);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
 }
 
@@ -320,7 +337,7 @@
 .chord-dict-panel__result {
   background: var(--app-result-bg);
   box-shadow: var(--app-result-shadow);
-  border-color: rgba(217, 119, 6, 0.18);
+  border-color: rgba(55, 65, 81, 0.14);
 }
 
 .chord-dict-panel__result-label {
@@ -338,7 +355,7 @@
 
 [data-design-theme='flat-light'] .rhythmic-figures__pill--active,
 [data-design-theme='flat-light'] .rhythmic-figures__pill--active:hover {
-  color: var(--app-accent);
+  color: var(--app-selection-text);
 }
 
 [data-design-theme='flat-light'] .recorder-section__label {
@@ -352,7 +369,7 @@
 [data-design-theme='flat'] .app-tooltip__bubble {
   background: var(--app-tooltip-bg);
   color: var(--app-tooltip-text);
-  border-color: rgba(231, 169, 79, 0.18);
+  border-color: rgba(226, 232, 240, 0.16);
   box-shadow: 0 8px 20px rgba(3, 8, 18, 0.22);
 }
 
@@ -360,30 +377,30 @@
   box-shadow:
     0 34px 90px rgba(3, 8, 18, 0.62),
     0 14px 34px rgba(3, 8, 18, 0.42),
-    0 0 0 1px rgba(231, 169, 79, 0.08);
+    0 0 0 1px rgba(226, 232, 240, 0.08);
 }
 
 [data-design-theme='flat'] .chord-dict-panel__result {
-  border-color: rgba(231, 169, 79, 0.14);
+  border-color: rgba(226, 232, 240, 0.14);
 }
 
 [data-design-theme='flat'] .recorder-section__progress-track:hover {
   box-shadow:
     var(--neu-pressed-deep),
-    inset 0 0 0 1px rgba(231, 169, 79, 0.14);
+    inset 0 0 0 1px rgba(226, 232, 240, 0.14);
 }
 
 [data-design-theme='flat'] .recorder-section__progress-fill,
 [data-design-theme='flat'] .recorder-section__volume-slider::-moz-range-progress {
-  background: linear-gradient(90deg, #b77937 0%, #e7a94f 100%);
-  box-shadow: 0 0 8px rgba(231, 169, 79, 0.22);
+  background: linear-gradient(90deg, #9ca3af 0%, #e5e7eb 100%);
+  box-shadow: 0 0 8px rgba(226, 232, 240, 0.18);
 }
 
 [data-design-theme='flat'] .recorder-section__volume-slider {
   background: linear-gradient(
     90deg,
-    #b77937 0%,
-    #e7a94f var(--volume-fill, 0%),
+    #9ca3af 0%,
+    #e5e7eb var(--volume-fill, 0%),
     var(--neu-surface) var(--volume-fill, 0%),
     var(--neu-surface) 100%
   );
@@ -391,24 +408,37 @@
 
 [data-design-theme='flat'] .recorder-section__volume-slider::-webkit-slider-thumb,
 [data-design-theme='flat'] .recorder-section__volume-slider::-moz-range-thumb {
-  background: linear-gradient(180deg, #f2cf8d 0%, #e7a94f 100%);
+  background: linear-gradient(180deg, #f3f4f6 0%, #9ca3af 100%);
   box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.28),
-    0 0 8px rgba(231, 169, 79, 0.22);
+    0 0 8px rgba(226, 232, 240, 0.18);
 }
 
 [data-design-theme='flat'] .recorder-section__switch--active .recorder-section__switch-track {
-  background: rgba(231, 169, 79, 0.26);
+  background: rgba(226, 232, 240, 0.18);
   box-shadow:
     var(--neu-pressed),
-    inset 0 0 0 1px rgba(231, 169, 79, 0.2);
+    inset 0 0 0 1px rgba(226, 232, 240, 0.18);
+}
+
+:root:not([data-design-theme]) .recorder-section__switch--active .recorder-section__switch-track,
+[data-design-theme='flat-light'] .recorder-section__switch--active .recorder-section__switch-track {
+  background: rgba(55, 65, 81, 0.18);
+  box-shadow:
+    var(--neu-pressed),
+    inset 0 0 0 1px rgba(55, 65, 81, 0.2);
+}
+
+:root:not([data-design-theme]) .recorder-section__switch--active .recorder-section__switch-thumb,
+[data-design-theme='flat-light'] .recorder-section__switch--active .recorder-section__switch-thumb {
+  background: var(--app-accent);
 }
 
 [data-design-theme='flat'] .recorder-section__beat-dot--current {
   background: var(--app-accent);
   box-shadow:
     var(--neu-pressed),
-    0 0 10px rgba(231, 169, 79, 0.38);
+    0 0 10px rgba(226, 232, 240, 0.24);
 }
 
 [data-design-theme='flat'] .recorder-section__button--metronome-active,
@@ -416,5 +446,5 @@
 [data-design-theme='flat'] .recorder-section__button--metronome-active:active {
   box-shadow:
     var(--neu-pressed-deep),
-    0 0 14px rgba(231, 169, 79, 0.22);
+    0 0 14px rgba(226, 232, 240, 0.18);
 }

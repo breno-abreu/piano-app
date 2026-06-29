@@ -201,7 +201,7 @@ export default {
   max-width: min(18rem, calc(100vw - 20px));
   padding: 8px 12px;
   border-radius: 10px;
-  border: 1px solid rgba(251, 191, 36, 0.22);
+  border: 1px solid rgba(55, 65, 81, 0.18);
   background: var(--app-tooltip-bg);
   box-shadow:
     0 10px 24px rgba(0, 0, 0, 0.42),

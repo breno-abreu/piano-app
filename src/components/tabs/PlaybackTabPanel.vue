@@ -135,7 +135,7 @@
         @click="$emit('seek', $event)"
       >
         <span
-          class="recorder-section__progress-fill"
+          class="recorder-section__progress-fill playback-tab-panel__progress-fill"
           :style="{ width: `${playbackProgressPercent}%` }"
         />
       </button>
@@ -220,3 +220,10 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.playback-tab-panel__progress-fill {
+  background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.28);
+}
+</style>

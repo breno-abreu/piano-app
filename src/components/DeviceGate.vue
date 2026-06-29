@@ -125,7 +125,7 @@ export default {
   place-items: center;
   padding: 24px;
   background:
-    radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 34rem),
+    radial-gradient(circle at top left, rgba(55, 65, 81, 0.08), transparent 34rem),
     linear-gradient(145deg, var(--app-bg), var(--app-main-bg));
   color: var(--app-text);
 }
@@ -183,9 +183,9 @@ export default {
 .device-gate__hint {
   margin: 20px 0 0;
   padding: 12px 14px;
-  border: 1px solid rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(55, 65, 81, 0.16);
   border-radius: 14px;
-  background: rgba(251, 191, 36, 0.08);
+  background: rgba(55, 65, 81, 0.05);
   font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.45;

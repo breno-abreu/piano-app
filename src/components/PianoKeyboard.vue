@@ -1011,10 +1011,6 @@ export default {
 
       this.controlsTab = tabId
 
-      if (tabId === 'harmonic') {
-        this.harmonicDisplayEnabled = true
-      }
-
       this.closePopovers()
     },
     toggleOptionsPopover() {
@@ -1968,7 +1964,7 @@ export default {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ea580c;
+  background: #4b5563;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
 }
 
@@ -1977,7 +1973,7 @@ export default {
   height: 0;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-bottom: 9px solid #ea580c;
+  border-bottom: 9px solid #4b5563;
   filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.55));
 }
 
@@ -1990,12 +1986,12 @@ export default {
 }
 
 .piano-key--black .piano-key__harmonic-marker--scale {
-  background: #fb923c;
+  background: #d1d5db;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 .piano-key--black .piano-key__harmonic-marker--tonic {
-  border-bottom-color: #fb923c;
+  border-bottom-color: #d1d5db;
 }
 
 .piano-key--harmonic-chord .piano-key__harmonic-marker--scale {
@@ -2067,16 +2063,16 @@ export default {
   flex: 1 1 0;
   min-width: 0;
   height: 100%;
-  border: 1px solid #cbc7bd;
+  border: 1px solid #d1d5db;
   border-top: none;
   border-radius: 0 0 3px 3px;
-  background: linear-gradient(180deg, #fffefa 0%, #f3f0e8 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
 }
 
 .piano-key--white.piano-key--pressed,
 .piano-key--white:active {
-  background: #1d4ed8 !important;
-  border-color: #1e3a8a !important;
+  background: #2563eb !important;
+  border-color: #1d4ed8 !important;
 }
 
 .piano-key--white.piano-key--sustained:not(:active) {
@@ -2107,8 +2103,8 @@ export default {
 
 .piano-key--black.piano-key--pressed,
 .piano-key--black:active {
-  background: #1d4ed8 !important;
-  border-color: #1e3a8a !important;
+  background: #2563eb !important;
+  border-color: #1d4ed8 !important;
 }
 
 .piano-key--black.piano-key--sustained:not(:active) {

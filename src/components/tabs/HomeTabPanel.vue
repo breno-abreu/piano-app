@@ -15,10 +15,11 @@
 
     <div class="home-tab-panel__grid">
       <button
-        v-for="card in cards"
+        v-for="card in bentoCards"
         :key="card.id"
         type="button"
         class="home-tab-panel__card"
+        :data-card-id="card.id"
         @click="$emit('select-tab', card.id)"
       >
         <span class="home-tab-panel__card-icon" aria-hidden="true">
@@ -49,6 +50,26 @@ export default {
     },
   },
   emits: ['select-tab'],
+  computed: {
+    bentoCards() {
+      const importanceOrder = [
+        'playback',
+        'recording',
+        'harmonic',
+        'chordDictionary',
+        'rhythmicFigures',
+      ]
+
+      return [...this.cards].sort((cardA, cardB) => {
+        const cardAIndex = importanceOrder.indexOf(cardA.id)
+        const cardBIndex = importanceOrder.indexOf(cardB.id)
+        const normalizedAIndex = cardAIndex === -1 ? importanceOrder.length : cardAIndex
+        const normalizedBIndex = cardBIndex === -1 ? importanceOrder.length : cardBIndex
+
+        return normalizedAIndex - normalizedBIndex
+      })
+    },
+  },
 }
 </script>
 
@@ -98,7 +119,8 @@ export default {
 
 .home-tab-panel__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-rows: minmax(112px, auto);
   gap: 14px;
 }
 
@@ -118,15 +140,50 @@ export default {
   cursor: pointer;
   text-align: left;
   transition:
+    background-color 0.15s ease,
     box-shadow 0.15s ease,
     transform 0.12s ease,
     border-color 0.15s ease;
 }
 
+.home-tab-panel__card[data-card-id='playback'] {
+  grid-column: span 3;
+  grid-row: span 2;
+  min-height: 278px;
+  align-content: start;
+  padding: 22px;
+}
+
+.home-tab-panel__card[data-card-id='recording'],
+.home-tab-panel__card[data-card-id='harmonic'] {
+  grid-column: span 3;
+}
+
+.home-tab-panel__card[data-card-id='chordDictionary'] {
+  grid-column: span 4;
+}
+
+.home-tab-panel__card[data-card-id='rhythmicFigures'] {
+  grid-column: span 2;
+}
+
 .home-tab-panel__card:hover {
-  border-color: rgba(251, 191, 36, 0.22);
-  box-shadow: var(--neu-raised);
-  transform: translateY(-1px);
+  border-color: rgba(17, 24, 39, 0.22);
+  background: #f9fafb;
+  box-shadow:
+    var(--neu-raised),
+    0 12px 24px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+.home-tab-panel__card:hover .home-tab-panel__card-icon {
+  box-shadow:
+    var(--neu-pressed),
+    0 0 0 1px rgba(17, 24, 39, 0.14);
+}
+
+.home-tab-panel__card:hover .home-tab-panel__card-action {
+  color: var(--app-heading);
 }
 
 .home-tab-panel__card:active {
@@ -135,7 +192,7 @@ export default {
 }
 
 .home-tab-panel__card:focus-visible {
-  outline: 2px solid #fbbf24;
+  outline: 2px solid var(--app-accent);
   outline-offset: 3px;
 }
 
@@ -145,7 +202,7 @@ export default {
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background: rgba(251, 191, 36, 0.1);
+  background: #ffffff;
   color: var(--app-accent);
   box-shadow: var(--neu-pressed);
 }
@@ -153,6 +210,17 @@ export default {
 .home-tab-panel__card-icon :deep(.control-tab-icon) {
   width: 1.45rem;
   height: 1.45rem;
+}
+
+.home-tab-panel__card[data-card-id='playback'] .home-tab-panel__card-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+}
+
+.home-tab-panel__card[data-card-id='playback'] .home-tab-panel__card-icon :deep(.control-tab-icon) {
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 .home-tab-panel__card-body {
@@ -168,6 +236,10 @@ export default {
   font-weight: 700;
   line-height: 1.25;
   color: var(--app-heading);
+}
+
+.home-tab-panel__card[data-card-id='playback'] .home-tab-panel__card-title {
+  font-size: 1.08rem;
 }
 
 .home-tab-panel__card-description {
@@ -193,6 +265,18 @@ export default {
 @media (max-width: 1080px) {
   .home-tab-panel__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: auto;
+  }
+
+  .home-tab-panel__card,
+  .home-tab-panel__card[data-card-id='recording'],
+  .home-tab-panel__card[data-card-id='playback'],
+  .home-tab-panel__card[data-card-id='harmonic'],
+  .home-tab-panel__card[data-card-id='chordDictionary'],
+  .home-tab-panel__card[data-card-id='rhythmicFigures'] {
+    grid-column: span 1;
+    grid-row: auto;
+    min-height: 132px;
   }
 }
 </style>

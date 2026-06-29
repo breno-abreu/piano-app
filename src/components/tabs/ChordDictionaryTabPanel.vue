@@ -348,7 +348,7 @@ export default {
   border-radius: 18px;
   background: var(--app-result-bg);
   box-shadow: var(--app-result-shadow);
-  border: 1px solid rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(55, 65, 81, 0.12);
   box-sizing: border-box;
 }
 

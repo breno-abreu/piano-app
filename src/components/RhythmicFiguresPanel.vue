@@ -863,7 +863,11 @@ export default {
   background: var(--neu-surface);
   box-shadow: var(--neu-raised-sm);
   cursor: pointer;
-  transition: box-shadow 0.12s ease, transform 0.12s ease;
+  transition:
+    background-color 0.12s ease,
+    box-shadow 0.12s ease,
+    color 0.12s ease,
+    transform 0.12s ease;
 }
 
 .rhythmic-figures__step {
@@ -915,15 +919,22 @@ export default {
 }
 
 .rhythmic-figures__pill--active {
-  color: var(--app-accent);
-  box-shadow: var(--neu-pressed-deep);
+  background: var(--app-selection-bg);
+  color: var(--app-selection-text);
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px var(--app-selection-border);
+  font-weight: 700;
   transition: none;
 }
 
 .rhythmic-figures__pill--active:hover,
 .rhythmic-figures__pill--active:active {
-  color: var(--app-accent);
-  box-shadow: var(--neu-pressed-deep);
+  background: var(--app-selection-bg);
+  color: var(--app-selection-text);
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px var(--app-selection-border);
   transform: none;
 }
 
@@ -965,7 +976,8 @@ export default {
   width: 14px;
   height: 14px;
   border-radius: 2px;
-  background: var(--app-heading);
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.42);
 }
 
 .rhythmic-figures__reset-btn {
@@ -989,8 +1001,12 @@ export default {
 }
 
 .rhythmic-figures__reset-btn--active {
-  color: var(--app-accent);
-  box-shadow: var(--neu-pressed-deep);
+  background: var(--app-selection-bg);
+  color: var(--app-selection-text);
+  box-shadow:
+    var(--neu-pressed-deep),
+    inset 0 0 0 1px var(--app-selection-border);
+  font-weight: 700;
 }
 
 .rhythmic-figures__reset-btn--compact {
@@ -1061,6 +1077,7 @@ export default {
   font-size: 0.75rem;
   font-weight: 600;
   transition:
+    background-color 0.12s ease,
     border-color 0.12s ease,
     box-shadow 0.12s ease,
     color 0.12s ease,
@@ -1072,9 +1089,13 @@ export default {
 }
 
 .rhythmic-figures__random-figure--active {
-  color: var(--app-text);
-  border-color: rgba(217, 119, 6, 0.42);
-  box-shadow: var(--neu-pressed);
+  background: var(--app-selection-bg);
+  color: var(--app-selection-text);
+  border-color: var(--app-selection-border);
+  box-shadow:
+    var(--neu-pressed),
+    inset 0 0 0 1px var(--app-selection-border);
+  font-weight: 700;
 }
 
 .rhythmic-figures__random-figure:not(.rhythmic-figures__random-figure--active) {
@@ -1191,8 +1212,8 @@ export default {
 }
 
 .rhythmic-figures__beat--drag-over {
-  border-color: rgba(251, 191, 36, 0.75);
-  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(55, 65, 81, 0.52);
+  background: rgba(55, 65, 81, 0.06);
 }
 
 .rhythmic-figures__beat--drag-invalid {
@@ -1203,8 +1224,8 @@ export default {
 
 .rhythmic-figures__beat--drag-preview {
   border-style: solid;
-  border-color: rgba(251, 191, 36, 0.35);
-  background: rgba(251, 191, 36, 0.05);
+  border-color: rgba(55, 65, 81, 0.24);
+  background: rgba(55, 65, 81, 0.04);
 }
 
 .rhythmic-figures__beat--occupied {
@@ -1220,11 +1241,11 @@ export default {
 }
 
 .rhythmic-figures__beat--playing {
-  border-color: rgba(251, 191, 36, 0.9);
-  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(55, 65, 81, 0.62);
+  background: rgba(55, 65, 81, 0.1);
   box-shadow:
     var(--rhythm-paper-shadow-hover),
-    0 0 0 1px rgba(251, 191, 36, 0.28);
+    0 0 0 1px rgba(55, 65, 81, 0.18);
 }
 
 .rhythmic-figures__placed {
@@ -1246,7 +1267,7 @@ export default {
 }
 
 .rhythmic-figures__placed:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 2px;
 }
 
@@ -1286,7 +1307,7 @@ export default {
 }
 
 .rhythmic-figures__slot-icon--preview {
-  color: rgba(251, 191, 36, 0.45);
+  color: rgba(55, 65, 81, 0.45);
 }
 
 .rhythmic-figures__slot-icon--forbidden {
@@ -1317,22 +1338,25 @@ export default {
 }
 
 .rhythmic-figures__tie--available:hover {
-  color: rgba(251, 191, 36, 0.72);
-  background: rgba(251, 191, 36, 0.06);
+  color: rgba(55, 65, 81, 0.72);
+  background: rgba(55, 65, 81, 0.06);
 }
 
 .rhythmic-figures__tie--active {
-  color: var(--app-accent);
+  color: var(--app-selection-text);
+  background: var(--app-selection-bg);
+  box-shadow:
+    inset 0 0 0 1px var(--app-selection-border);
   cursor: pointer;
 }
 
 .rhythmic-figures__tie--active:hover {
-  color: var(--app-accent);
-  background: rgba(251, 191, 36, 0.08);
+  color: var(--app-selection-text);
+  background: var(--app-selection-bg);
 }
 
 .rhythmic-figures__tie:focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 2px;
 }
 
@@ -1434,7 +1458,7 @@ export default {
 }
 
 .rhythmic-figures__palette-item:focus-visible .rhythmic-figures__palette-surface {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--app-accent);
   outline-offset: 2px;
 }
 
