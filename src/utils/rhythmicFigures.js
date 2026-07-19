@@ -9,62 +9,67 @@ const BEATS_PER_BAR = {
   '4/4': 4,
 }
 
+function publicAsset(path) {
+  const normalized = String(path).replace(/^\/+/, '')
+  return `${import.meta.env.BASE_URL}${normalized}`
+}
+
 export const RHYTHMIC_FIGURES = [
   {
     id: 'pausa-sembreve',
     label: 'Pausa de semibreve',
     beats: 4,
     hits: 0,
-    image: '/rhythms/pausa_semibreve.png',
+    image: publicAsset('rhythms/pausa_semibreve.png'),
   },
   {
     id: 'pausa-minima',
     label: 'Pausa de mínima',
     beats: 2,
     hits: 0,
-    image: '/rhythms/pausa_minima.png',
+    image: publicAsset('rhythms/pausa_minima.png'),
   },
   {
     id: 'pausa-seminima',
     label: 'Pausa de semínima',
     beats: 1,
     hits: 0,
-    image: '/rhythms/pausa_seminima.png',
+    image: publicAsset('rhythms/pausa_seminima.png'),
   },
   {
     id: 'sembreve',
     label: 'Semibreve',
     beats: 4,
     hits: 1,
-    image: '/rhythms/semibreve.png',
+    image: publicAsset('rhythms/semibreve.png'),
   },
   {
     id: 'minima-pontuada',
     label: 'Mínima pontuada',
     beats: 3,
     hits: 1,
-    image: '/rhythms/minima_pontuada.png',
+    image: publicAsset('rhythms/minima_pontuada.png'),
   },
   {
     id: 'minima',
     label: 'Mínima',
     beats: 2,
     hits: 1,
-    image: '/rhythms/minima.png',
+    image: publicAsset('rhythms/minima.png'),
   },
   {
     id: 'seminima',
     label: 'Semínima',
     beats: 1,
     hits: 1,
-    image: '/rhythms/seminima.png',
+    image: publicAsset('rhythms/seminima.png'),
   },
   {
     id: 'colcheia-colcheia',
     label: 'Duas colcheias',
     beats: 1,
     hits: 2,
-    image: '/rhythms/2colcheias.png',
+    image: publicAsset('rhythms/2colcheias.png'),
   },
   {
     id: 'colcheia-pontuada-semicolcheia',
@@ -72,7 +77,7 @@ export const RHYTHMIC_FIGURES = [
     beats: 1,
     hits: 2,
     hitOffsets: [0, 0.75],
-    image: '/rhythms/1colcheia_pontuada_1semicolcheia.png',
+    image: publicAsset('rhythms/1colcheia_pontuada_1semicolcheia.png'),
   },
   {
     id: 'semicolcheia-colcheia-pontuada',
@@ -80,14 +85,14 @@ export const RHYTHMIC_FIGURES = [
     beats: 1,
     hits: 2,
     hitOffsets: [0, 0.25],
-    image: '/rhythms/1semicolcheia_1colcheia_pontuada.png',
+    image: publicAsset('rhythms/1semicolcheia_1colcheia_pontuada.png'),
   },
   {
     id: 'tercina',
     label: 'Tercina de colcheias',
     beats: 1,
     hits: 3,
-    image: '/rhythms/tercina.png',
+    image: publicAsset('rhythms/tercina.png'),
   },
   {
     id: 'colcheia-2semicolcheias',
@@ -95,7 +100,7 @@ export const RHYTHMIC_FIGURES = [
     beats: 1,
     hits: 3,
     hitOffsets: [0, 0.5, 0.75],
-    image: '/rhythms/1colcheia_2semicolcheias.png',
+    image: publicAsset('rhythms/1colcheia_2semicolcheias.png'),
   },
   {
     id: '2semicolcheias-colcheia',
@@ -103,7 +108,7 @@ export const RHYTHMIC_FIGURES = [
     beats: 1,
     hits: 3,
     hitOffsets: [0, 0.25, 0.5],
-    image: '/rhythms/2semicolcheias_1colcheia.png',
+    image: publicAsset('rhythms/2semicolcheias_1colcheia.png'),
   },
   {
     id: 'semicolcheia-colcheia-semicolcheia',
@@ -111,14 +116,14 @@ export const RHYTHMIC_FIGURES = [
     beats: 1,
     hits: 3,
     hitOffsets: [0, 0.25, 0.75],
-    image: '/rhythms/1semicolcheia_1colcheia_1semicolcheia.png',
+    image: publicAsset('rhythms/1semicolcheia_1colcheia_1semicolcheia.png'),
   },
   {
     id: '4semicolcheias',
     label: 'Quatro semicolcheias',
     beats: 1,
     hits: 4,
-    image: '/rhythms/4semicolcheias.png',
+    image: publicAsset('rhythms/4semicolcheias.png'),
   },
 ]
 

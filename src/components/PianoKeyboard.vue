@@ -10,8 +10,9 @@
     >
       <nav class="recorder-section__nav" aria-label="Seções de controles">
         <div class="recorder-section__brand-group">
-          <div class="recorder-section__brand" aria-label="PianoApp">
-            PianoApp
+          <div class="recorder-section__brand" aria-label="Crispy Keys">
+            <CookieIcon class="recorder-section__brand-icon" aria-hidden="true" :stroke-width="2" />
+            <span>Crispy Keys</span>
           </div>
 
           <AppTooltip
@@ -159,6 +160,21 @@
 
       <div class="recorder-section__main">
       <div class="recorder-section__body">
+        <AppTooltip
+          v-if="activeTabHelpText"
+          class="recorder-section__help"
+          :text="activeTabHelpText"
+          placement="left"
+        >
+          <button
+            type="button"
+            class="recorder-section__help-button"
+            :aria-label="`Ajuda: ${activeTabHelpLabel}`"
+          >
+            <CircleQuestionMarkIcon aria-hidden="true" :stroke-width="2" />
+          </button>
+        </AppTooltip>
+
         <HomeTabPanel
           v-show="controlsTab === 'home'"
           :cards="homeTabCards"
@@ -202,7 +218,9 @@
           :playback-progress-aria-label="playbackProgressAriaLabel"
           :playback-position-ms="playbackPositionMs"
           :midi-duration-ms="midiDurationMs"
+          :demo-loading="midiDemoLoading"
           @file-selected="onMidiFileSelected"
+          @load-demo="loadMidiDemo"
           @remove-file="removeMidiFile"
           @toggle-play-pause="togglePlaybackPlayPause"
           @stop="stopPlayback"
@@ -446,7 +464,7 @@ import {
 import { parseMidiFile } from '../utils/midiParser.js'
 import { createMidiPlayer } from '../utils/midiPlayer.js'
 import { buildPianoRollNotes } from '../utils/midiPianoRoll.js'
-import { CircleDot as CircleDotIcon, Unplug as UnplugIcon } from '@lucide/vue'
+import { CircleDot as CircleDotIcon, CircleQuestionMark as CircleQuestionMarkIcon, Cookie as CookieIcon, Unplug as UnplugIcon } from '@lucide/vue'
 import {
   ACCIDENTAL_NOTATIONS,
   buildHarmonicField,
@@ -525,20 +543,24 @@ const CONTROL_TABS = [
     panelId: 'controls-panel-home',
   },
   {
-    id: 'recording',
-    label: 'Gravação',
-    icon: 'recording',
-    idAttr: 'controls-tab-recording',
-    panelId: 'controls-panel-recording',
-    description: 'Grave performances MIDI, capture a tela e controle o metrônomo.',
-  },
-  {
     id: 'playback',
     label: 'Reprodução',
     icon: 'playback',
     idAttr: 'controls-tab-playback',
     panelId: 'controls-panel-playback',
     description: 'Carregue arquivos MIDI, reproduza, pause e ajuste a velocidade.',
+    helpText:
+      'Reproduza arquivos MIDI. Carregue com Arquivo ou Demo, use Play/Pause e ajuste a velocidade se quiser.',
+  },
+  {
+    id: 'recording',
+    label: 'Gravação',
+    icon: 'recording',
+    idAttr: 'controls-tab-recording',
+    panelId: 'controls-panel-recording',
+    description: 'Grave performances MIDI, capture a tela e controle o metrônomo.',
+    helpText:
+      'Grave a performance em MIDI ou capture a tela. Toque no teclado e use o metrônomo para manter o andamento.',
   },
   {
     id: 'harmonic',
@@ -547,6 +569,8 @@ const CONTROL_TABS = [
     idAttr: 'controls-tab-harmonic',
     panelId: 'controls-panel-harmonic',
     description: 'Visualize escalas, graus e acordes diretamente no teclado.',
+    helpText:
+      'Veja o campo harmônico no teclado. Escolha tônica e escala; clique em um acorde para destacá-lo.',
   },
   {
     id: 'chordDictionary',
@@ -555,6 +579,8 @@ const CONTROL_TABS = [
     idAttr: 'controls-tab-chord-dictionary',
     panelId: 'controls-panel-chord-dictionary',
     description: 'Monte acordes, inversões e baixos alternativos para estudar voicings.',
+    helpText:
+      'Monte e estude acordes. Escolha raiz e qualidade, teste inversões e toque o acorde no teclado.',
   },
   {
     id: 'rhythmicFigures',
@@ -563,6 +589,8 @@ const CONTROL_TABS = [
     idAttr: 'controls-tab-rhythmic-figures',
     panelId: 'controls-panel-rhythmic-figures',
     description: 'Organize células rítmicas e pratique combinações de duração.',
+    helpText:
+      'Monte sequências rítmicas. Arraste figuras para o painel e pratique as combinações.',
   },
 ]
 
@@ -580,6 +608,8 @@ export default {
   components: {
     AppTooltip,
     CircleDotIcon,
+    CircleQuestionMarkIcon,
+    CookieIcon,
     ControlTabIcon,
     UnplugIcon,
     PianoRoll,
@@ -624,6 +654,7 @@ export default {
       midiParsedEvents: [],
       pianoRollNotes: [],
       midiPlayer: null,
+      midiDemoLoading: false,
       playbackStatus: 'idle',
       playbackActive: {},
       playbackSustained: {},
@@ -741,6 +772,16 @@ export default {
     },
     controlMainTabs() {
       return CONTROL_TABS
+    },
+    activeControlTab() {
+      return CONTROL_TABS.find((tab) => tab.id === this.controlsTab) ?? null
+    },
+    activeTabHelpText() {
+      if (this.controlsTab === 'home') return ''
+      return this.activeControlTab?.helpText ?? ''
+    },
+    activeTabHelpLabel() {
+      return this.activeControlTab?.label ?? ''
     },
     homeTabCards() {
       return CONTROL_TABS.filter((tab) => tab.id !== 'home')
@@ -1339,6 +1380,33 @@ export default {
     setMetronomeTimeSignature(signature) {
       this.metronomeTimeSignature = signature
       this.metronome.setTimeSignature(signature)
+    },
+    async loadMidiDemo() {
+      if (this.midiDemoLoading) return
+
+      this.midiDemoLoading = true
+
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}demos/bohemian-rhapsody.mid`)
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`)
+        }
+
+        const blob = await response.blob()
+        const file = new File([blob], 'Queen - Bohemian Rhapsody.mid', {
+          type: 'audio/midi',
+        })
+
+        await this.onMidiFileSelected(file)
+      } catch (error) {
+        console.warn('Não foi possível carregar a demonstração MIDI.', error)
+        showToast({
+          message: 'Não foi possível carregar a demonstração. Tente novamente.',
+          type: 'error',
+        })
+      } finally {
+        this.midiDemoLoading = false
+      }
     },
     async onMidiFileSelected(file) {
       if (!file) return

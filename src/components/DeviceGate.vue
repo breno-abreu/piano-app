@@ -86,7 +86,7 @@ export default {
           eyebrow: 'Modo paisagem recomendado',
           title: 'Gire o tablet para continuar',
           message:
-            'O PianoApp usa teclado, controles e leitura musical em uma área horizontal ampla.',
+            'Crispy Keys usa teclado, controles e leitura musical em uma área horizontal ampla.',
           hint: 'Use o tablet na horizontal para acessar a experiência completa.',
         }
       }

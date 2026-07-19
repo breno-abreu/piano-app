@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:pages": "vite build --base=/piano-app/",
     "preview": "vite preview"
   },
+  "homepage": "https://breno-abreu.github.io/piano-app/",
   "dependencies": {
     "@lucide/vue": "^1.21.0",
     "@vexflow-fonts/bravura": "^1.0.2",

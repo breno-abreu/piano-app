@@ -1,5 +1,31 @@
-# Vue 3 + Vite
+# Crispy Keys
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+App de piano virtual (projeto `piano-app`) com reprodução MIDI, gravação, campos harmônicos e figuras rítmicas.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## Desenvolvimento
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+npm run preview
+```
+
+## GitHub Pages
+
+O deploy é automático via GitHub Actions em cada push na `main`.
+
+URL publicada: https://breno-abreu.github.io/piano-app/
+
+### Ativar Pages (uma vez)
+
+1. No repositório: **Settings → Pages**
+2. Em **Build and deployment → Source**, escolha **GitHub Actions**
+3. Faça push na `main` (ou rode o workflow **Deploy to GitHub Pages** manualmente)
+
+O `npm run build:pages` usa `base: '/piano-app/'` para os assets carregarem corretamente no subpath do Pages.

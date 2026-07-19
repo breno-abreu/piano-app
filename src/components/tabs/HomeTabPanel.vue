@@ -9,7 +9,7 @@
       <p class="home-tab-panel__eyebrow">Início</p>
       <h2 class="home-tab-panel__title">Escolha uma área para começar</h2>
       <p class="home-tab-panel__subtitle">
-        Acesse rapidamente gravação, reprodução, teoria musical e figuras rítmicas.
+        Acesse rapidamente reprodução, gravação, teoria musical e figuras rítmicas.
       </p>
     </header>
 

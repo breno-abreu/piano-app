@@ -22,6 +22,15 @@
         >
           Arquivo
         </button>
+        <button
+          type="button"
+          class="recorder-section__pill recorder-section__pill--demo"
+          :disabled="demoLoading"
+          aria-label="Carregar demonstração Bohemian Rhapsody"
+          @click="$emit('load-demo')"
+        >
+          {{ demoLoading ? 'Carregando…' : 'Demo' }}
+        </button>
         <span
           v-if="midiFileName"
           class="recorder-section__file-name"
@@ -160,9 +169,11 @@ export default {
     playbackProgressAriaLabel: { type: String, default: '' },
     playbackPositionMs: { type: Number, default: 0 },
     midiDurationMs: { type: Number, default: 0 },
+    demoLoading: { type: Boolean, default: false },
   },
   emits: [
     'file-selected',
+    'load-demo',
     'remove-file',
     'toggle-play-pause',
     'stop',
