@@ -25,7 +25,7 @@ export function isValidDesignTheme(theme) {
 
 export const OPTIONS_PREFERENCE_DEFAULTS = {
   showKeyLabels: false,
-  harmonicDisplayEnabled: true,
+  harmonicDisplayEnabled: false,
   keyLabelNotation: 'western',
   keyboardHeight: 220,
   viewZoom: VIEW_ZOOM_DEFAULT,
