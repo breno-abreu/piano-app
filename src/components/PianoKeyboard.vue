@@ -10,10 +10,15 @@
     >
       <nav class="recorder-section__nav" aria-label="Seções de controles">
         <div class="recorder-section__brand-group">
-          <div class="recorder-section__brand" aria-label="Crispy Keys">
+          <button
+            type="button"
+            class="recorder-section__brand"
+            aria-label="Crispy Keys — ir para Início"
+            @click="selectControlTab('home')"
+          >
             <CookieIcon class="recorder-section__brand-icon" aria-hidden="true" :stroke-width="2" />
             <span>Crispy Keys</span>
-          </div>
+          </button>
 
           <AppTooltip
             v-if="midiConnectionStatus !== 'connected'"
